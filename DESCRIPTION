@@ -1,0 +1,13 @@
+Package: NETNCoastalBirds
+Type: Package
+Title: A package for summarizing NETN Coastal Breeding bird monitoring program data.
+Version: 0.1.0
+Author: Aaron Weed
+Maintainer: The package maintainer <aaron_weed@nps.gov>
+Description: This packages produces summary plots and tables to support reporting of the NETN Coastal Breeding bird monitoring program.
+License: No license
+Encoding: UTF-8
+LazyData: true
+Collate: 
+    'CB_Plot.R'
+RoxygenNote: 6.0.1
