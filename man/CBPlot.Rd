@@ -5,10 +5,10 @@
 \title{CBPlot}
 \usage{
 CBPlot(object, species = NA, island = NA, var = NA, scale = NA,
-  facet = NA, ...)
+  year = NA, facet = NA, ...)
 }
 \arguments{
-\item{object}{A dataframe of coastal bird observations}
+\item{object}{A \code{data.frame}  of coastal bird observations}
 
 \item{species}{A  vector of species names}
 
