@@ -1,19 +1,17 @@
 
-#' @title CBPlot
+#' @title CBPlot_generic
 #'
-#' @importFrom dplyr group_by right_join left_join summarise
-#' @importFrom ggplot2 ggplot aes element_line geom_point ggplot ggtitle labs scale_x_continuous theme theme_minimal facet_wrap
-#' @importFrom magrittr %>%
-#' @importFrom tidyr add_column
+#' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect
 #'
 #' @description Plots bird detections over time.
 #'
 #' @param object A \code{data.frame}  of coastal bird observations
-#' @param time  A numeric vector. Indicates which years should be graphed.
-#' @param island A  vector of island names
-#' @param species  A  vector of species names
+#' @param island A  vector of island names. To view summariaes across all islands, "All Islands"
+#' @param species  A  vector of species names, e.g. "BCNH"
+#' @param var Select a variable to plot, typically a life stage (e.g., eggs, nests, creche size). Defaults to all values.
 #' @param scale Convert to log scale by entering "log"
-#' @param facet Plot the data into separate facets by Island, Species, etc.
+#' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
+#' @param facet Plot the data into separate facets by Island, Species, etc. 
 #'
 #' @details This function produces a graph of species detections over time.
 #'
@@ -21,31 +19,39 @@
 
 ########################
 
-setGeneric(name="CBPlot",function(object, species=NA, island=NA, var=NA, scale=NA, year= NA,
-                                  facet=NA, ...){standardGeneric("CBPlot")}, signature="object")
+setGeneric(name="CBPlot",function(object, island=NA, species=NA,year= NA, var=NA, scale, facet = NA,
+                                 ...){standardGeneric("CBPlot")}, signature="object")
 
-
+#facet="Island"
 setMethod(f="CBPlot",  signature=c(object="data.frame"),
-          function(object, species=NA, island=NA, var=NA, scale=NA,year= NA, facet=NA, ...) {
+          function(object, island, species, year,  var, scale="norm",facet= "Island", ...) {
             
             ## returns the subsetted df based on the inputs
 
             graphdata<-object
 
-                   if(!anyNA(species)) graphdata<-graphdata[graphdata$Species_Code %in% species,]
+            if(!anyNA(island)) graphdata<-graphdata[graphdata$Island %in% island,]
+            
+              if(facet == "Island") graphdata<-graphdata[!graphdata$Island %in% "All Islands",]
+            
+            if(!anyNA(year)) graphdata<-graphdata[graphdata$year %in% year,]
+            
+            if(!anyNA(species)) graphdata<-graphdata[graphdata$Species_Code %in% species,]
 
-                   if(!anyNA(island)) graphdata<-graphdata[graphdata$Island %in% island,]
+            if(!anyNA(var)) graphdata<-graphdata[graphdata$variable %in% var,]
 
-                   if(!anyNA(variable)) graphdata<-graphdata[graphdata$variable %in% variable,]
-
-                   if(!anyNA(facet)) graphdata<-graphdata[!graphdata$Island %in% "All Islands",]
-                   
-                   if(!anyNA(year)) graphdata<-graphdata[graphdata$year %in% year,]
-                   
 
           ## plotting
                    
-                   if(anyNA(scale)){
+                   
+                   if(scale == "log"){
+                     
+                     
+                     GraphOut<-ggplot(graphdata, aes(x=time, y= log(value), colour= variable,group= variable))+
+                       labs(y = paste0("log(Number Detected)"), x= "")+
+                       geom_point(size=2)+ geom_line()
+                   } 
+                   else{
                      
                      GraphOut<-ggplot(graphdata, aes(x=time, y= value, colour= variable,group= variable))+
                        labs(y = paste0("Number Detected"), x= "")+
@@ -53,18 +59,13 @@ setMethod(f="CBPlot",  signature=c(object="data.frame"),
                      
                    }
                    
-                   if(scale == "log"){
+                   if(!is.null(facet)){
 
-            
-            GraphOut<-ggplot(graphdata, aes(x=time, y= log(value), colour= variable,group= variable))+
-                       labs(y = paste0("log(Number Detected)"), x= "")+
-                       geom_point(size=2)+ geom_line()
-              }
-                   
-          
+                     GraphOut<-(GraphOut+facet_wrap(facet, scales = "free_y" ))
+                   }
 
 
-              GraphOut<-(y2+facet_wrap(~facet, scales = "free_y" )+
+              GraphOut<-(GraphOut+
                                 theme(legend.position = "right", legend.text = element_text(size = 16), legend.title = element_text(size =16)) +
                                 theme(axis.text.y = element_text(color="black", vjust= 0.5,size = 13,face="bold"))+
                                 theme(axis.text.x = element_text(angle = 90,  vjust=0,size = 14 , face="bold")) +

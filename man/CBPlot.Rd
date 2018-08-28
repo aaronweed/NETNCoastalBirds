@@ -2,23 +2,25 @@
 % Please edit documentation in R/CB_Plot.R
 \name{CBPlot}
 \alias{CBPlot}
-\title{CBPlot}
+\title{CBPlot_generic}
 \usage{
-CBPlot(object, species = NA, island = NA, var = NA, scale = NA,
-  year = NA, facet = NA, ...)
+CBPlot(object, island = NA, species = NA, year = NA, var = NA, scale,
+  facet = NA, ...)
 }
 \arguments{
 \item{object}{A \code{data.frame}  of coastal bird observations}
 
-\item{species}{A  vector of species names}
+\item{island}{A  vector of island names. To view summariaes across all islands, "All Islands"}
 
-\item{island}{A  vector of island names}
+\item{species}{A  vector of species names, e.g. "BCNH"}
+
+\item{year}{Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.}
+
+\item{var}{Select a variable to plot, typically a life stage (e.g., eggs, nests, creche size). Defaults to all values.}
 
 \item{scale}{Convert to log scale by entering "log"}
 
 \item{facet}{Plot the data into separate facets by Island, Species, etc.}
-
-\item{time}{A numeric vector. Indicates which years should be graphed.}
 }
 \description{
 Plots bird detections over time.
