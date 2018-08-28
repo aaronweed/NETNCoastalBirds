@@ -1,4 +1,3 @@
-
 #' @title CBPlot
 #'
 #' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect

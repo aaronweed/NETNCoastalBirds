@@ -1,7 +1,7 @@
-#' @title GetAMOYdata
+#' @title GetAMOYData
 #'
 #' @importFrom plyr join
-#' @importFrom ODBC odbcConnect sqlFetch odbcClose
+#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data
 #'
@@ -11,8 +11,7 @@
 #'
 #' @export
 
-
-GetAMOYdata<-function(x){
+GetAMOYData<-function(x){
   
   con <- odbcConnect("NETNCB")
   

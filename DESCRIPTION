@@ -9,9 +9,10 @@ License: No license
 Encoding: UTF-8
 LazyData: true
 Collate: 
+    'GetAMOYData.R'
+    'AMOYPairsByDate.R'
+    'AMOYPairsByYear.R'
     'CB_Plot.R'
     'CB_Plot_notgeneric.R'
-    'GetAMOYData.R'
-    'GetAMOYdata.R'
     'getSurveyMat.R'
 RoxygenNote: 6.0.1
