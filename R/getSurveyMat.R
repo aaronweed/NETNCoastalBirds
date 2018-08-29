@@ -1,10 +1,9 @@
-<<<<<<< HEAD
-#' @include GetAMOYdata.R
+#' @include AMOYPairsByDate.R
+#' #' @include CrecheSum.R
 
 #' @title getSurveyMat
 #'
 #' @importFrom dplyr summarise mutate filter arrange
-=======
 #' @include GetAMOYData.R
 #' @include AMOYPairsByYear.R
 #' @include AMOYPairsByDate.R
@@ -12,7 +11,6 @@
 #' @title getSurveyMat
 #'
 #' @importFrom dplyr summarise mutate filter arrange group_by
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
 #' @importFrom tidyr spread
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
@@ -29,31 +27,13 @@
 #' @export
 
 getSurveyMat<-function(survey, island=NA, year= NA, species=NA){
-<<<<<<< HEAD
   
-  library(dplyr)
-  library(tidyr)
-  library(magrittr)
-  library(tibble)
-  library(lubridate)
   
-  source("incub_survey_sumfuncs.R") # COTE, DCCO, GBBG, HERG, LETE
-  source("nest_summaryfunc.R") # summarizes nest survey data for #"BCNH" "COEI" "COTE" "DCCO" "GBBG" "GLIB" "GREG" "HERG" "LETE" "SNEG" "SPSA" "WILL"
-  source("COEI_crech_survey_sum_func.R") # summarizes COEI creche counts per island and all islands
-  source("AMOYPairs_sumfunc.R") # summarizes AMOY mating pair counts per island and all islands
-  
-=======
-  # 
-  # source("incub_survey_sumfuncs.R") # COTE, DCCO, GBBG, HERG, LETE
-  # source("nest_summaryfunc.R") # summarizes nest survey data for #"BCNH" "COEI" "COTE" "DCCO" "GBBG" "GLIB" "GREG" "HERG" "LETE" "SNEG" "SPSA" "WILL"
-  # source("COEI_crech_survey_sum_func.R") # summarizes COEI creche counts per island and all islands
-  # 
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
   if(survey == "nest") df<-as.data.frame(NestSurveyCountsByDate(x)[1])
   
   if(survey == "incubation") df<-as.data.frame(as.data.frame(incub_DCCO_Gull_sumfunc(x)[1]))
   
-  if(survey == "creche") df<-as.data.frame(COEI_creche_sumfunc(x)[2])
+  if(survey == "creche") df<-as.data.frame(CrecheSum(x)[2])
   
   if(survey == "AMOY") df<-as.data.frame(AMOYPairsByDate(x)[1])
   

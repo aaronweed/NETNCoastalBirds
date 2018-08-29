@@ -14,10 +14,7 @@ Collate:
     'AMOYPairsByYear.R'
     'CB_Plot.R'
     'CB_Plot_notgeneric.R'
-<<<<<<< HEAD
-    'GetAMOYData.R'
-    'GetAMOYdata.R'
-=======
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
+    'GetCrecheData.R'
+    'CrecheSum.R'
     'getSurveyMat.R'
 RoxygenNote: 6.0.1

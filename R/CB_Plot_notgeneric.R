@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
 #' @title CBPlot
 #'
 #' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect

@@ -64,7 +64,7 @@ AMOYPairsByDate<-function(x){
   
   
   # output tabular  data
-  write.table(table.final, "./Data/AMOYPairs_TabularByDate.csv", sep=",", row.names= FALSE)
+  #write.table(table.final, "./Data/AMOYPairs_TabularByDate.csv", sep=",", row.names= FALSE)
   
   
   return(list(SumByDate,table.final))
