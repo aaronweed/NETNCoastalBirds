@@ -2,21 +2,21 @@
 
 #' @title AMOYPairsByYear
 #'
-#' @importFrom dplyr summarise mutate filter  group_by select  right_join bind_rows
+#' @importFrom dplyr summarise mutate filter  group_by select  right_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' 
-#' @description This script brings in the raw AMOY survey data and summarizes the AMOY mating pairs data by Year for plotting and analysis.
+#' @description Summarizes the AMOY mating pair survey data from \code{\link{GetAMOYData}} by Year for plotting and analysis.
+#' @section Warning:
+#'User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param x Denote "x" in parentheses to return a \code{data.frame} of a summary of AMOY mating pairs.
 #'
-#' @param survey Dataframe contructed from Access BE. Arguments can be "nest", "creche", "incubation" or "AMOY". If AMOY only returns dates when AMOY mating paris were reported
-#' @param island A  vector of island names. To view summariaes across all islands, "All Islands"
-#' @param species  A  vector of species name codes, e.g. "BCNH"
-#' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
-#'
-#' @details # Return counts of the number of mating AMOY pairs per event
-#'
+#' @return Returns counts of the number of mating AMOY pairs per event as a \code{list}; the first element for plotting and the second for tabular display. 
+#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @examples  
+#' AMOYPairsByYear(x)
 #' @export
 
 
@@ -66,7 +66,7 @@ AMOYPairsByYear<-function(x){
   
   
   # output tabular  data
-  write.table(table.final, "./Data/AMOYPairs_TabularByYear.csv", sep=",", row.names= FALSE)
+  #write.table(table.final, "./Data/AMOYPairs_TabularByYear.csv", sep=",", row.names= FALSE)
   
   
   return(list(SumByYear,table.final))

@@ -3,8 +3,8 @@ Type: Package
 Title: A package for summarizing NETN Coastal Breeding bird monitoring program data.
 Version: 0.1.0
 Author: Aaron Weed
-Maintainer: The package maintainer <aaron_weed@nps.gov>
-Description: This packages produces summary plots and tables to support reporting of the NETN Coastal Breeding bird monitoring program.
+Maintainer: The package maintainer is Aaron Weed <aaron_weed@nps.gov>
+Description: This package supports data analysis and reporting of the NETN Coastal Breeding bird monitoring program (https://www.nps.gov/im/netn/coastal-birds.htm).
 License: No license
 Encoding: UTF-8
 LazyData: true
@@ -14,10 +14,11 @@ Collate:
     'AMOYPairsByYear.R'
     'CB_Plot.R'
     'CB_Plot_notgeneric.R'
-<<<<<<< HEAD
-    'GetAMOYData.R'
-    'GetAMOYdata.R'
-=======
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
+    'GetCrecheData.R'
+    'CrecheSum.R'
+    'GetIncubationData.R'
+    'GetNestData.R'
+    'NestsByDate.R'
+    'NestsByYear.R'
     'getSurveyMat.R'
 RoxygenNote: 6.0.1

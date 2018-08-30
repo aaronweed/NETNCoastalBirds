@@ -1,30 +1,21 @@
-<<<<<<< HEAD
-#' @title GetAMOYdata
-#'
-#' @importFrom plyr join
-#' @importFrom ODBC odbcConnect sqlFetch odbcClose
-=======
 #' @title GetAMOYData
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
 #'  
-#' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data
+#' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data.
+#' @section Warning:
+#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param x Denote "x" in parentheses to return a \code{data.frame} of all AMOY observations.
 #'
-#' @param x Denote in parentheses to return df
-#'
-#' @details This function returns the raw AMOY survey data as a \code{data.frame}.
-#'
+#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @examples
+#' GetAMOYdata(x)
 #' @export
 
-<<<<<<< HEAD
-
-GetAMOYdata<-function(x){
-=======
 GetAMOYData<-function(x){
->>>>>>> 8d3e98618a72735cfdfc81cd4c11d2366ce8dce8
-  
+
   con <- odbcConnect("NETNCB")
   
   ###################### Import data and lookup tables used for the query   ################
