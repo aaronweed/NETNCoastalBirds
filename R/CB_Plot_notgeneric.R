@@ -3,17 +3,23 @@
 #' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect
 #'
 #' @description Plots bird detections over time.
-#'
-#' @param data A \code{data.frame}  of coastal bird observations
-#' @param island A  vector of island names. To view summariaes across all islands, "All Islands"
+#' @section Warning:
+#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{AMOYPairsByDate}}, \code{\link{AMOYPairsByYear}}, \code{\link{CrecheSum}}, \code{\link{NestByDate}}, or \code{\link{NestsByYear}}
+#' @param island A vector of island names (e.g., "Calf"). To view summariaes across all islands, "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param var Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.
 #' @param scale Convert to log scale by entering "log"
 #' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
 #' @param facet Plot the data into separate facets by Island, Species, etc. 
 #'
-#' @details This function produces a graph of species detections over time.
-#'
+#' @return Outputs a ggplot graph of species detections over time.
+#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @examples 
+#' plotCB(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",var = "Nests", year= 2010)
+#' plotCB(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
+#' CBPlot(nests.year, scale = "log", facet= "Island", var = NA)
+#' CBPlot(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
 #' @export
 
 
