@@ -2,13 +2,13 @@
 
 #' @title AMOYPairsByDate
 #'
-#' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows
+#' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' 
-#' @description This script brings in the raw AMOY survey data and summarizes the AMOY mating pairs data by Date for plotting and analysis.
+#' @description This script summarizes the AMOY mating pair survey data from \code{GetAMOYData} by Date for plotting and analysis.
 #'
 #' @param survey Dataframe contructed from Access BE. Arguments can be "nest", "creche", "incubation" or "AMOY". If AMOY only returns dates when AMOY mating paris were reported
 #' @param island A  vector of island names. To view summariaes across all islands, "All Islands"

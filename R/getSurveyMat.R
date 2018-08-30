@@ -1,14 +1,9 @@
 #' @include AMOYPairsByDate.R
-#' #' @include CrecheSum.R
+#' @include CrecheSum.R
+#' @include NestsByDate.R
 
 #' @title getSurveyMat
 #'
-#' @importFrom dplyr summarise mutate filter arrange
-#' @include GetAMOYData.R
-#' @include AMOYPairsByYear.R
-#' @include AMOYPairsByDate.R
-#' 
-#' @title getSurveyMat
 #'
 #' @importFrom dplyr summarise mutate filter arrange group_by
 #' @importFrom tidyr spread
@@ -17,19 +12,19 @@
 #' 
 #' @description Constructs survey matrix to show effort based on the inputs
 #'
-#' @param survey Dataframe contructed from Access BE. Arguments can be "nest", "creche", "incubation" or "AMOY". If AMOY only returns dates when AMOY mating paris were reported
+#' @param survey A character vector. Accepts "nest", "creche", "incubation" or "AMOY". If "AMOY", only returns dates when AMOY mating paris were reported
 #' @param island A  vector of island names. To view summariaes across all islands, "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
 #'
-#' @details This function produces a graph of species detections over time.
+#' @details This function returns a matrix showing dates of surveys for specified arguments indicated as "X"".
 #'
 #' @export
 
 getSurveyMat<-function(survey, island=NA, year= NA, species=NA){
   
   
-  if(survey == "nest") df<-as.data.frame(NestSurveyCountsByDate(x)[1])
+  if(survey == "nest") df<-as.data.frame(NestsByDate(x)[1])
   
   if(survey == "incubation") df<-as.data.frame(as.data.frame(incub_DCCO_Gull_sumfunc(x)[1]))
   

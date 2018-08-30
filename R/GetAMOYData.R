@@ -3,9 +3,9 @@
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #'  
-#' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data
+#' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data.
 #'
-#' @param x Denote in parentheses to return df
+#' @param x Denote "x" in parentheses to return a \code{data.frame} of all AMOY observations.
 #'
 #' @details This function returns the raw AMOY survey data as a \code{data.frame}.
 #'

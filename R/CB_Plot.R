@@ -19,11 +19,11 @@
 
 ########################
 
-setGeneric(name="CBPlot",function(object, island=NA, species=NA,year= NA, var=NA, scale, facet = NA,
-                                 ...){standardGeneric("CBPlot")}, signature="object")
+setGeneric(name="CBPlot_generic",function(object, island=NA, species=NA,year= NA, var=NA, scale, facet = NA,
+                                 ...){standardGeneric("CBPlot_generic")}, signature="object")
 
 #facet="Island"
-setMethod(f="CBPlot",  signature=c(object="data.frame"),
+setMethod(f="CBPlot_generic",  signature=c(object="data.frame"),
           function(object, island, species, year,  var, scale="norm",facet= "Island", ...) {
             
             ## returns the subsetted df based on the inputs
