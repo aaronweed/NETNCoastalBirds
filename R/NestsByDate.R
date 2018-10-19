@@ -2,12 +2,14 @@
 
 #' @title NestsByDate
 #'
+#' @importFrom RODBC odbcConnect sqlFetch odbcClose 
 #' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
+#' @importFrom forcats fct_collapse
 #' 
 #' @description Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} and summarizes it by date for plotting and analysis.
 #' @section Warning:
@@ -50,41 +52,43 @@ NestsByDate<-function(x){
     mutate(year= year(Date), month= month(Date) ) %>% 
     gather(variable, value, -Island,-Date,-year,-month, -Species_Code,-Nest_Status) 
   
-  # filter out nest contents for "Normal" nests only; grab all nests
+  # filter out nest contents for "Normal" nests only; denote which nests were directly counted vs estimated
   
-  eggs<- filter(df.melt, variable %in% "Eggs" & Nest_Status %in% "Normal")
-  chicks<- filter(df.melt, variable %in% "Chicks" & Nest_Status %in% "Normal")
-  nests<-  filter(df.melt, variable %in% "Nests")
-    
+  eggs<-filter(df.melt, variable %in% "Eggs" & Nest_Status %in% "Normal") %>% add_column(Count_Method = "Direct Count")
+  
+  chicks<-filter(df.melt, variable %in% "Chicks" & Nest_Status %in% "Normal") %>% add_column(Count_Method = "Direct Count")
+  
+  nests<-  filter(df.melt, variable %in% "Nests") %>% # collapse nests status to denote nests counted directly vs estimated (e.g., by flushing adults)
+    mutate(Count_Method = fct_collapse(Nest_Status, "Direct Count" = c("Abandoned" , "Depredated","Fledged","Normal","Other","Unknown" ), Estimated = "Estimate"))
+  
   # bind together
   
-  temp<-bind_rows(eggs,chicks, nests)
+  temp<-bind_rows(eggs,chicks, nests) %>% na.omit()# a few NAs in the chicks table for some reason
   
   
   #######################################
   ## Sum the number of nests, eggs and chicks for each DATE at each island
 #################################################
   
-  SumBySelect<- group_by(temp,Island,Species_Code,Date,year,month, variable) %>% 
+  SumBySelect<- group_by(temp,Island,Species_Code,Date,year,month, Count_Method,variable) %>% 
     dplyr::summarise( value= sum(value, na.rm=TRUE))%>% 
     dplyr::rename(time = Date)
   
   ## Sum the number of nests, eggs and chicks for each date across all islands
   ### Calculate for all Islands
-  SumByBOHA<-group_by(temp, Species_Code, Date,year, month, variable) %>% 
+  SumByBOHA<-group_by(temp, Species_Code, Date,year, month, Count_Method, variable) %>% 
     dplyr::summarise( value= sum(value, na.rm=TRUE)) %>% 
     add_column(Island= "All Islands")  %>% 
     dplyr::rename(time = Date)
   
   # bind together
   SumBySelection<-bind_rows(SumBySelect,SumByBOHA) %>% 
-    right_join(species, SumBySelection, by= "Species_Code") %>% # add species names to data
+    inner_join(species, SumBySelection, by= "Species_Code") %>% # add species names to data
     filter(!Species_Code %in% "AMOY")# remove AMOY coming in for some reason
   
   graph.final<- mutate(SumBySelection,FullLatinName=as.character(FullLatinName)) %>% # force as chr
     mutate(CommonName=as.character(CommonName))
-    
-    
+      
   # output graph data
   #write.table(graph.final, "./Data/GroundNestsurveysGraph_ByDate.csv", sep=",", row.names= FALSE)
   
