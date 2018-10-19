@@ -3,7 +3,7 @@
 #' @title NestsByDate
 #'
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose 
-#' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows rename
+#' @importFrom dplyr summarise mutate filter  group_by select inner_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
