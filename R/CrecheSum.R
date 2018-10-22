@@ -2,7 +2,7 @@
 
 #' @title CrecheSum
 #'
-#' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows rename
+#' @importFrom dplyr summarise mutate filter  group_by select right_join left_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
@@ -39,13 +39,16 @@ CrecheSum<-function(x){
   ## create molten data frame (all values are represented for each species_unit*site*time combination)
   # in dplyr
   
-  df.melt<-select(df,Island=Island,Segment, Date=Date,year= year,month=month, Group_Count,  Species_Unit, Unit_Count) %>% 
-    gather(variable, value, -Island,-Segment,-Date,-year,-month, -Group_Count, -Species_Unit) %>% 
+  df.melt<-select(df,Island=Island,Segment, Date,year,month, Survey_Primary, Group_Count, Species_Unit, Unit_Count) %>% 
+    filter(Survey_Primary == "Yes") %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
+    gather(variable, value, -Island,-Segment,-Date,-year,-month, -Survey_Primary, -Group_Count, -Species_Unit) %>% 
     mutate(variable=NULL) %>% 
     mutate(Group_Count= ifelse(Group_Count == 999,NA,Group_Count )) %>% 
-    mutate(ValuePerGroup= round(value/Group_Count,2))# if needed calc the no. of each life stage per group for aggregated counts
-  
-  #View(df.melt)
+    mutate(ValuePerGroup= round(value/Group_Count,2)) # if needed, calc the no. of each life stage per group for aggregated counts
+    
+   df.melt$ValuePerGroup[is.nan(df.melt$ValuePerGroup)] = 0
+   
+   #View(df.melt)
   
   # change Species_Unit levels
   df.melt$Species_Unit<-mapvalues(df.melt$Species_Unit, from= c("Chick","F-Lone","F-Tend"), to =c("COEI Ducklings",  "Adult female COEI alone", "Adult female COEI tending"))
@@ -120,9 +123,9 @@ CrecheSum<-function(x){
     ###### EXPORT DATA #################
     # wide tabular
     
-   # write.table(COEI_ByDate, "./Data/COEI_Table_ByDate.csv", sep=",", row.names= FALSE)
+    write.table(COEI_ByDate, "./Data/COEI_Table_ByDate.csv", sep=",", row.names= FALSE)
 
-    #write.table(COEI_GraphByDate, "./Data/COEI_creche_GraphByDate.csv", sep=",", row.names= FALSE)
+    write.table(COEI_GraphByDate, "./Data/COEI_creche_GraphByDate.csv", sep=",", row.names= FALSE)
     
     
     
@@ -195,9 +198,9 @@ CrecheSum<-function(x){
     ###### EXPORT DATA #################
     # wide tabular
     
-    #write.table(COEI_ByYr, "./Data/COEI_Table_ByYear.csv", sep=",", row.names= FALSE)
+    write.table(COEI_ByYr, "./Data/COEI_Table_ByYear.csv", sep=",", row.names= FALSE)
     
-    #write.table(COEI_GraphByYr, "./Data/COEI_creche_GraphByYear.csv", sep=",", row.names= FALSE) 
+    write.table(COEI_GraphByYr, "./Data/COEI_creche_GraphByYear.csv", sep=",", row.names= FALSE) 
     
     
     

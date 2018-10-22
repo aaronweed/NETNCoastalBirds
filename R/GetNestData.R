@@ -63,16 +63,12 @@ GetNestData<-function(x){
   
   ### convert 999 counts for nest contents to NAs
   
-  temp.nest$Egg_Count[temp.nest$Egg_Count == 999]<- NA
-  temp.nest$Chick_Count[temp.nest$Chick_Count == 999]<- NA
-  
-  
   temp.nest$Unit_Count[temp.nest$Unit_Count == 999] =NA
   temp.nest$Egg_Count[temp.nest$Egg_Count == 999] = NA
   temp.nest$Chick_Count[temp.nest$Chick_Count == 999] =NA
   
   ## subset df to final columns for exporting
-  nest_surveys_raw<-temp.nest[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Date" ,"year", "month","Start_Time" ,"Species_Code","Species_Unit","Contents_Unknown","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count", 
+  nest_surveys_raw<-temp.nest[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Date" ,"year", "month","Start_Time" ,"Species_Code","Species_Unit","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count", 
                                  
                                  "Obs_Coords", "Obs_Notes","Wind_Direction","Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")]  
   
@@ -84,7 +80,7 @@ GetNestData<-function(x){
   write.table(nest_Events, "./Data/nestEvents.csv", sep=",", row.names= FALSE)
   
   ###Nest Data
-  nest_Data<-temp.nest[,c("Park","Island","Segment","Date" ,"year", "month","Start_Time","pk_EventID","Species_Code","Species_Unit","Contents_Unknown","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count")]
+  nest_Data<-temp.nest[,c("Park","Island","Segment","Date" ,"year", "month","Start_Time","pk_EventID","Species_Code","Species_Unit","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count")]
   write.table(nest_Data, "./Data/nestData.csv", sep=",", row.names= FALSE)
   
   

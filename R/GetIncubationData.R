@@ -20,7 +20,6 @@
 
 #https://science.nature.nps.gov/im/units/netn/monitor/vitalSigns/birds/coastalBirds.cfm for further details 
 
-## Version 0.0.1 Aaron Weed 03/06/2018
 
 GetIncubationData<-function(x){
   # Connect to database BE 
@@ -40,7 +39,7 @@ GetIncubationData<-function(x){
   odbcClose(con)
   
   ####### create new vectors to match field names for binding ########
-  names(obs)
+  #names(obs)
   obs$pk_EventID<-obs$fk_EventID 
   
   
@@ -53,7 +52,7 @@ GetIncubationData<-function(x){
   # will need to sum the counts per island, date, species etc.
   
   # Add obs data to  incubation event data
-  intersect(names(event),names(obs))
+  #intersect(names(event),names(obs))
   
   temp.incub<-join(event,obs,  by="pk_EventID")
   #View(temp.incub)
@@ -75,7 +74,7 @@ GetIncubationData<-function(x){
   
   ## subset df to final columns
   #names(temp.incub2)
-  incubation_raw<-temp.incub2[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Date" ,"year", "month","Start_Time" ,"Species_Code","Species_Unit", "Unit_Count", 
+  incubation_raw<-temp.incub2[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Survey_MultiPart","Survey_Duplicate","Survey_Primary","Survey_Complete", "Date" ,"year", "month","Start_Time" ,"Species_Code","Species_Unit", "Unit_Count", 
                                  
                                  "Obs_Notes" , "Recorder", "c_Observer","Data_Source", "Wind_Direction","Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")]  
   # sort df

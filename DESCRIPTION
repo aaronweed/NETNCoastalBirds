@@ -20,5 +20,7 @@ Collate:
     'GetNestData.R'
     'NestsByDate.R'
     'NestsByYear.R'
+    'SumIncubation.R'
+    'SumIncubationByDate.R'
     'getSurveyMat.R'
 RoxygenNote: 6.0.1

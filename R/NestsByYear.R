@@ -2,12 +2,14 @@
 
 #' @title NestsByYear
 #'
-#' @importFrom dplyr summarise mutate filter  group_by select right_join bind_rows rename
+#' @importFrom RODBC odbcConnect sqlFetch odbcClose 
+#' @importFrom dplyr summarise mutate filter  group_by select inner_join bind_rows rename
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
+#' @importFrom forcats fct_collapse
 #' 
 #' @description Brings in the raw ground-based nest survey data from  \code{\link{GetNestData}} and summarizes it by Year for plotting and analysis.
 #' @section Warning:
@@ -51,36 +53,39 @@ NestsByYear<-function(x){
     mutate(year= year(Date), month= month(Date) ) %>% 
     gather(variable, value, -Island,-Date,-year,-month, -Species_Code,-Nest_Status) 
   
-  # filter out nest contents from Normal nests only
+  # filter out nest contents from Normal nests only; denote which nests were directly counted vs estimated
   
-  eggs<-filter(df.melt, variable %in% "Eggs" & Nest_Status %in% "Normal")
-  chicks<-filter(df.melt, variable %in% "Chicks" & Nest_Status %in% "Normal")
-  nests<-  filter(df.melt, variable %in% "Nests")
+  eggs<-filter(df.melt, variable %in% "Eggs" & Nest_Status %in% "Normal") %>% add_column(Count_Method = "Direct Count")
   
+  chicks<-filter(df.melt, variable %in% "Chicks" & Nest_Status %in% "Normal") %>% add_column(Count_Method = "Direct Count")
+  
+  nests<-  filter(df.melt, variable %in% "Nests") %>% # collapse nests status to denote nests counted directly vs estimated (e.g., by flushing adults)
+     mutate(Count_Method = fct_collapse(Nest_Status, "Direct Count" = c("Abandoned" , "Depredated","Fledged","Normal","Other","Unknown" ), Estimated = "Estimate"))
+    
   # bind together
   
-  temp<-bind_rows(eggs,chicks, nests)
+  temp<-bind_rows(eggs,chicks, nests) %>% na.omit()# a few NAs in the chicks table for some reason
   
   #################################
   ## Sum the number of nests, eggs and chicks per YEAR  at each island
   # in dplyr
   ######################################
   SumBySelect<- 
-    group_by(temp,Island,Species_Code,year,variable) %>% 
+    group_by(temp,Island,Species_Code,year,Count_Method, variable) %>% 
     dplyr::summarise( value= sum(value, na.rm=TRUE)) %>%
     dplyr::rename(time = year)
   
   ## Sum the number of nests, eggs and chicks for each date across all islands
   ### Calculate for all Islands
   SumByBOHA<-
-    group_by(temp, Species_Code, year, variable) %>% 
+    group_by(temp, Species_Code, year, Count_Method, variable) %>% 
     dplyr::summarise( value= sum(value, na.rm=TRUE)) %>% 
     add_column(Island= "All Islands")%>% 
     dplyr::rename(time = year)  
   
   # bind together rows and then species labeling info
   SumBySelection<-bind_rows(SumBySelect,SumByBOHA) %>% 
-    right_join(species, SumBySelection, by= "Species_Code") %>% # add species names to data
+    inner_join(species, SumBySelection, by= "Species_Code") %>% # add species names to data
     filter(!Species_Code %in% "AMOY")# remove AMOY coming in for some reason
   
   graph.final<- mutate(SumBySelection,FullLatinName=as.character(FullLatinName)) %>% # force as chr

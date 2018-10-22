@@ -65,7 +65,7 @@ GetCrecheData<-function(x){
   #intersect(names(event.crec),names(group.crec))
   
   temp.crec<-join( event.crec,group.crec,  by="pk_EventID")
-  names(temp.crec)
+  #names(temp.crec)
   
   #count(unique(group_obs[,c("GroupID","Species_Unit")]))
   
@@ -90,15 +90,17 @@ GetCrecheData<-function(x){
  
   
   ## subset df to final 
-  creche_raw<-temp.crec2[,c("Park", "Island","Segment", "Survey_Class" , "Survey_Type","Date","Start_Time", "year", "month", "Obs_Type", "Recorder", "c_Observer","Species_Code" ,"Group_Count","GroupID","Group_Name","Group_Time",
-                            "Group_Repeat","Group_Notes", "Group_Coords", "Species_Unit","Unit_Count","Obs_Notes" ,"Wind_Direction","Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")] 
+  creche_raw<-temp.crec2[,c("Park", "Island","Segment", "Survey_Class" , "Survey_Type","Date","Start_Time", "year", "month", "Survey_MultiPart" , "Survey_Duplicate" ,
+                            "Survey_Primary","Survey_Complete" ,"Obs_Type", "Recorder", "c_Observer","Species_Code" ,"Group_Count","Group_Time",
+                            "Group_Repeat","Group_Notes", "Group_Coords", "Species_Unit","Unit_Count","Obs_Notes" ,"Wind_Direction",
+                            "Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")] 
   
   ## Get rid of blank group obs (Unit_Count == NA)
   
   creche_raw<-creche_raw[!is.na(creche_raw$Unit_Count),]
   
   ### export to use in R viz
-  #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
+  write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
   
   creche_raw
   
