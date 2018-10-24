@@ -7,23 +7,17 @@
 AMOYPairsByDate(x)
 }
 \arguments{
-\item{x}{Denote "x" in parentheses to return a \code{data.frame} of a summary of AMOY mating pairs.}
-}
-\value{
-Returns counts of the number of mating AMOY pairs per event as a \code{list}; the first element for plotting and the second for tabular display.
+\item{survey}{Dataframe contructed from Access BE. Arguments can be "nest", "creche", "incubation" or "AMOY". If AMOY only returns dates when AMOY mating paris were reported}
+
+\item{island}{A  vector of island names. To view summariaes across all islands, "All Islands"}
+
+\item{species}{A  vector of species name codes, e.g. "BCNH"}
+
+\item{year}{Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.}
 }
 \description{
-This script summarizes the AMOY mating pair survey data from \code{\link{GetAMOYData}} by Date for plotting and analysis.
+This script summarizes the AMOY mating pair survey data from \code{GetAMOYData} by Date for plotting and analysis.
 }
-\section{Warning}{
-
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-}
-
-\examples{
- 
-AMOYPairsByDate(x)
-}
-\seealso{
-\url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+\details{
+# Return counts of the number of mating AMOY pairs per event
 }
