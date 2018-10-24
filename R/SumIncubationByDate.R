@@ -1,27 +1,25 @@
 #' @include GetIncubationData.R
 
 #' @title SumInucubationbyDate
-#'
-#' @importFrom dplyr summarise mutate filter group_by select right_join bind_rows rename
+
+#' @importFrom dplyr summarise mutate filter group_by select right_join bind_rows rename ungroup
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
-#' 
-#' @description Brings in the raw creche survey data from \code{\link{GetIncubationData}} and summarizes the data by year and date for plotting and analysis
+#'
+#' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and summarizes the data by date for plotting and analysis.
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param x Denote "x" in parentheses to return a summary of all creche surveys by island, across all islands, and date.
+#' @param x Denote "x" in parentheses to return a summary of all incubation surveys by island, across all islands, and date.
 #' 
-#' @return Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during boat-based surveys per island, and species. The first  \code{list}  element summarizes incubation surveys by Date for graphing. The second element for tabular summary.
+#' @return Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during boat-based surveys per island, species, and date. The first  \code{list}  element summarizes incubation surveys by Date for graphing. The second element for tabular summary.
 #'@seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
 #' @examples  
 #' SumInucubationbyDate(x)
 #' @export
 #' 
-#
-
 
 SumInucubationbyDate<-function(x){
   # this function summarizes the number of adults on nests per island, year, and by observer
