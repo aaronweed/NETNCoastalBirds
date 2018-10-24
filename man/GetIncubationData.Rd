@@ -2,7 +2,7 @@
 % Please edit documentation in R/GetIncubationData.R
 \name{GetIncubationData}
 \alias{GetIncubationData}
-\title{GetIncubationData}
+\title{Return incubation surveys from database}
 \usage{
 GetIncubationData(x)
 }

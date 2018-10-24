@@ -1,4 +1,4 @@
-#' @title GetNestData
+#' @title Return ground-based nest surveys from database
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose

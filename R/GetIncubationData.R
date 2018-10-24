@@ -1,4 +1,4 @@
-#' @title GetIncubationData
+#' @title Return incubation surveys from database
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
@@ -74,11 +74,11 @@ GetIncubationData<-function(x){
   
   ## subset df to final columns
   #names(temp.incub2)
-  incubation_raw<-temp.incub2[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Survey_MultiPart","Survey_Duplicate","Survey_Primary","Survey_Complete", "Date" ,"year", "month","Start_Time" ,"Species_Code","Species_Unit", "Unit_Count", 
+  incubation_raw<-temp.incub2[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Survey_MultiPart","Survey_Duplicate","Survey_Primary","Survey_Complete", "Date" ,"year", "month","Start_Time" ,"c_Observer", "Species_Code","Species_Unit", "Unit_Count", 
                                  
-                                 "Obs_Notes" , "Recorder", "c_Observer","Data_Source", "Wind_Direction","Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")]  
+                                 "Obs_Notes" , "Recorder", "Data_Source", "Wind_Direction","Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")]  
   # sort df
-  incubation_raw<-incubation_raw[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code),]
+  incubation_raw<-incubation_raw[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$c_Observer),]
   
     ### export to use in R viz
   #write.table(incubation_raw, "./Data/incubation_raw.csv", sep=",", row.names= FALSE)

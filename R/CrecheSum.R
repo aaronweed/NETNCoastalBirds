@@ -1,6 +1,6 @@
 #' @include GetCrecheData.R
 
-#' @title CrecheSum
+#' @title Sum creche surveys
 #'
 #' @importFrom dplyr summarise mutate filter  group_by select right_join left_join bind_rows rename
 #' @importFrom tidyr spread gather

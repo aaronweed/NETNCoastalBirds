@@ -1,4 +1,4 @@
-#' @title GetCrecheData
+#' @title Return creche surveys from database
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
