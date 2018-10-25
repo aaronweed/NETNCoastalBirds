@@ -2,7 +2,7 @@
 % Please edit documentation in R/GetNestData.R
 \name{GetNestData}
 \alias{GetNestData}
-\title{GetNestData}
+\title{Return ground-based nest surveys from database}
 \usage{
 GetNestData(x)
 }

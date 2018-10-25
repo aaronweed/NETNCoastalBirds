@@ -2,7 +2,7 @@
 % Please edit documentation in R/GetAMOYData.R
 \name{GetAMOYData}
 \alias{GetAMOYData}
-\title{GetAMOYData}
+\title{Return AMOY surveys from database}
 \usage{
 GetAMOYData(x)
 }

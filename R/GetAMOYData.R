@@ -1,4 +1,4 @@
-#' @title GetAMOYData
+#' @title Return AMOY surveys from database
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose

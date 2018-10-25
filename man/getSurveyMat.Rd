@@ -2,7 +2,7 @@
 % Please edit documentation in R/getSurveyMat.R
 \name{getSurveyMat}
 \alias{getSurveyMat}
-\title{getSurveyMat}
+\title{View survey matrix}
 \usage{
 getSurveyMat(survey, island = NA, year = NA, species = NA)
 }

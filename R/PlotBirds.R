@@ -1,12 +1,16 @@
-#' @title PlotBirds
+#' @include SumIncubation.R
+#' @include SumNestSurvey.R
+#' @include CrecheSum.R
+#' 
+#' @title Plot coastal bird survey data
 #'
 #' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect
 #'
 #' @description Plots bird detections over time.
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubationByDate}}, \code{\link{SumIncubationByYear}}, \code{\link{CrecheSum}}, \code{\link{NestByDate}}, or \code{\link{NestsByYear}}
-#' @param island A vector of island names (e.g., "Calf"). To view summariaes across all islands, "All Islands"
+#' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.
+#' @param island A vector of island names (e.g., "Calf"). To view summaries across all islands, use "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param var Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.
 #' @param scale Convert to log scale by entering "log"
@@ -16,10 +20,28 @@
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' plotCB(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",var = "Nests", year= 2010)
-#' plotCB(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
-#' CBPlot(nests.year, scale = "log", facet= "Island", var = NA)
-#' CBPlot(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
+#' nests.date<-Get
+#' PlotBirds(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",var = "Nests", year= 2010)
+#' PlotBirds(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
+#' PlotBirds(nests.year, scale = "log", facet= "Island", var = NA)
+#' PlotBirds(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
+#' 
+#' # Incubation surveys by year
+#' herg<-SumIncubation(time = "year", species = "HERG")
+#' PlotBirds(herg)
+#' # Incubation surveys by date to view seasonal surveya
+#' herg<-SumIncubation(time = "date", species = "HERG")
+#' PlotBirds(herg, year= "2007")
+#' 
+#' # Creche surveys by date in a year
+#' creche<-CrecheSum(time ="date", stage= "Chicks")
+#' PlotBirds(creche, year = "2011")
+#' 
+#' # Nest surveys
+#' nests<-SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+#' PlotBirds(nests, var = "Nests")
+#' PlotBirds(nests, island "All Islands")
+#' 
 #' @export
 
 

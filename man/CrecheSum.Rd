@@ -2,7 +2,7 @@
 % Please edit documentation in R/CrecheSum.R
 \name{CrecheSum}
 \alias{CrecheSum}
-\title{CrecheSum}
+\title{Sum creche surveys}
 \usage{
 CrecheSum(x)
 }

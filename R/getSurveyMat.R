@@ -1,8 +1,9 @@
 #' @include AMOYPairsByDate.R
 #' @include CrecheSum.R
-#' @include NestsByDate.R
+#' @include SumNestSurveys.R
+#' @include SumIncubation.R
 
-#' @title getSurveyMat
+#' @title View survey matrix
 #'
 #'  
 #' @importFrom dplyr summarise mutate filter arrange group_by

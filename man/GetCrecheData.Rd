@@ -2,7 +2,7 @@
 % Please edit documentation in R/GetCrecheData.R
 \name{GetCrecheData}
 \alias{GetCrecheData}
-\title{GetCrecheData}
+\title{Return creche surveys from database}
 \usage{
 GetCrecheData(x)
 }

@@ -1,4 +1,4 @@
-#' @title GetNestData
+#' @title Return ground-based nest surveys from database
 #'
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
@@ -81,7 +81,7 @@ GetNestData<-function(x){
   
   ###Nest Data
   nest_Data<-temp.nest[,c("Park","Island","Segment","Date" ,"year", "month","Start_Time","pk_EventID","Species_Code","Species_Unit","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count")]
-  write.table(nest_Data, "./Data/nestData.csv", sep=",", row.names= FALSE)
+  #write.table(nest_Data, "./Data/nestData.csv", sep=",", row.names= FALSE)
   
   
    nest_surveys_raw
