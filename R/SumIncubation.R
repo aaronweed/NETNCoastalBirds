@@ -9,7 +9,7 @@
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
 #' 
-#' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and summarizes the data for plotting and analysis.
+#' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and summarizes the data for plotting and analysis. Currently only sums counts from the primary survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param time Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year. 
