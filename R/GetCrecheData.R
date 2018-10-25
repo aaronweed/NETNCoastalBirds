@@ -100,7 +100,7 @@ GetCrecheData<-function(x){
   creche_raw<-creche_raw[!is.na(creche_raw$Unit_Count),]
   
   ### export to use in R viz
-  write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
+  #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
   
   creche_raw
   

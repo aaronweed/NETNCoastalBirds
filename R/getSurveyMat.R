@@ -1,6 +1,7 @@
 #' @include AMOYPairsByDate.R
 #' @include CrecheSum.R
 #' @include SumNestSurveys.R
+#' @include SumIncubation.R
 
 #' @title View survey matrix
 #'
