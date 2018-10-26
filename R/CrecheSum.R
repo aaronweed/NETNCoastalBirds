@@ -33,7 +33,7 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
   # load in functions, look up tables, and R packages
   
   ## import lookup tables for labeling
-  species <- read.csv("./Data/tlu_Species.csv")
+  species_tlu <- read.csv("./Data/tlu_Species.csv")
   
   df<-GetCrecheData(x)
   #head(df)
@@ -51,19 +51,22 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
   if (time == "date" & ByObserver == "yes"){
     graph.final<- group_by(df,Island,Segment, c_Observer, Date,month, year,Survey_Duplicate, Survey_Complete,Group_Time, Group_Count,Species_Unit) %>% 
       dplyr::summarise( value= sum(Unit_Count, na.rm=TRUE))%>% 
-      dplyr::rename(time = Date) %>% 
+      dplyr::rename(time = Date) %>%
+      add_column(Species_Code = "COEI") %>% 
       inner_join(species_tlu,., by= "Species_Code") # add species names to data
     return(graph.final)
   }else{
   
-  df.melt<-select(df,Island=Island,Segment, Date,year,month, Survey_Primary, Group_Count, Species_Unit, Unit_Count) %>% 
+    # Only sum observations made by Carol, exclusing repeat counts
+    
+  df.melt<-select(df,Island,Segment, Date,year,month, Survey_Primary, Group_Count, Species_Unit, Unit_Count) %>% 
     dplyr::filter(Survey_Primary == "Yes") %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
     gather(variable, value, -Island,-Segment,-Date,-year,-month, -Survey_Primary, -Group_Count, -Species_Unit) %>% 
     mutate(variable=NULL) %>% 
-    mutate(Group_Count= ifelse(Group_Count == 999,NA,Group_Count )) %>% 
-    mutate(ValuePerGroup= round(value/Group_Count,2)) # if needed, calc the no. of each life stage per group for aggregated counts
+    mutate(Group_Count= ifelse(Group_Count == 999,NA,Group_Count )) %>% # rename missing/unknown observations
+    mutate(ValuePerGroup= round(value/Group_Count,2))  # if needed, calc the no. of each life stage per group for aggregated counts
     
-   df.melt$ValuePerGroup[is.nan(df.melt$ValuePerGroup)] = 0
+    df.melt$ValuePerGroup[is.nan(df.melt$ValuePerGroup)] = 0 # force NaN's to 0
    
    #View(df.melt)
   
