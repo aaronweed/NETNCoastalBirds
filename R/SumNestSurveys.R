@@ -57,9 +57,11 @@ SumNestSurveys<-function(time, species=  NA, output= "graph"){
   
   
   # create molten df
-  df.melt<-select(df,Island,Date, Species_Code, Nest_Status, Nests, Chicks,Eggs) %>%
+  df.melt<-select(df,Island,Date,Survey_Primary, Survey_Duplicate, Species_Code, Nest_Status, Nests, Chicks,Eggs) %>%
+    dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
+    dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
     mutate(year= year(Date), month= month(Date) ) %>% 
-    gather(variable, value, -Island,-Date,-year,-month, -Species_Code,-Nest_Status) 
+    gather(variable, value, -Island,-Date,-Survey_Primary,- Survey_Duplicate, -year,-month, -Species_Code,-Nest_Status) 
   
   # filter out nest contents for "Normal" nests only; denote which nests were directly counted vs estimated
   

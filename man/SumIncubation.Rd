@@ -19,7 +19,7 @@ SumIncubation(time, species = NA, output = "graph", ByObserver = "no")
 Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during boat-based surveys per island, species, and year. The first  \code{list}  element summarizes incubation surveys by Year for graphing. The second element for tabular summary.
 }
 \description{
-Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and summarizes the data for plotting and analysis.
+Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and summarizes the data for plotting and analysis. Currently only sums counts from the primary survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
 }
 \section{Warning}{
 

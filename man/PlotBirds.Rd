@@ -28,7 +28,7 @@ PlotBirds(data, species = NA, island = NA, year = NA, scale = "norm",
 
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
 
-\item{island}{A vector of island names (e.g., "Calf"). To view summariaes across all islands, "All Islands"}
+\item{island}{A vector of island names (e.g., "Calf"). To view surveys summed across all islands, use "All Islands"}
 
 \item{species}{A  vector of species name codes, e.g. "BCNH"}
 
@@ -63,18 +63,25 @@ plotCB(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",v
 plotCB(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
 CBPlot(nests.year, scale = "log", facet= "Island", var = NA)
 CBPlot(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
-nests.date<-Get
-PlotBirds(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",var = "Nests", year= 2010)
-PlotBirds(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
-PlotBirds(nests.year, scale = "log", facet= "Island", var = NA)
-PlotBirds(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
 
 # Incubation surveys by year
-herg<-SumIncubation(time = "year", species = "HERG")
-PlotBirds(herg)
-# Incubation surveys by date to view seasonal surveya
-herg<-SumIncubation(time = "date", species = "HERG")
-PlotBirds(herg, year= "2007")
+dcco<-SumIncubation(time = "year", species = "DCCO")
+PlotBirds(dcco)
+# Incubation surveys by date to view repeat effort
+lete<-SumIncubation(time = "date", species = "COTE")
+PlotBirds(lete, year= "2012")
+
+# Creche surveys by date; typically to view efforts in a single season
+creche<-CrecheSum(time ="date")
+# View survey counts in 2018
+PlotBirds(creche, year = "2018")
+# surveys summed across all islands
+PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
+
+# Nest surveys
+nests<-SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+PlotBirds(nests, var = "Nests")
+PlotBirds(nests, island = "All Islands")
 
 }
 \seealso{

@@ -17,8 +17,8 @@ Collate:
     'CrecheSum.R'
     'GetIncubationData.R'
     'GetNestData.R'
-    'PlotBirds.R'
-    'SumIncubation.R'
     'SumNestSurveys.R'
+    'SumIncubation.R'
+    'PlotBirds.R'
     'getSurveyMat.R'
 RoxygenNote: 6.0.1
