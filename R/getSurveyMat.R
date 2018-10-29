@@ -21,7 +21,7 @@
 #' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
 #'
 #' @examples
-#'getSurveyMat(survey ="nests", species ="COEI", year = 2009)
+#' getSurveyMat(survey ="nests", species ="COEI", year = 2009)
 #' getSurveyMat(survey ="AMOY")
 #' getSurveyMat(survey ="creche",  year = 2007:2011)
 #' 

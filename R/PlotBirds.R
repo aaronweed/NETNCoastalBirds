@@ -1,5 +1,5 @@
 #' @include SumIncubation.R
-#' @include SumNestSurvey.R
+#' @include SumNestSurveys.R
 #' @include CrecheSum.R
 #' 
 #' @title Plot coastal bird survey data
@@ -10,7 +10,7 @@
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.
-#' @param island A vector of island names (e.g., "Calf"). To view summaries across all islands, use "All Islands"
+#' @param island A vector of island names (e.g., "Calf"). To view surveys summed across all islands, use "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param var Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.
 #' @param scale Convert to log scale by entering "log"
@@ -20,27 +20,25 @@
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' nests.date<-Get
-#' PlotBirds(data= nests.date, species= "LETE",  facet= "Island", island = "Lovells",var = "Nests", year= 2010)
-#' PlotBirds(data= nests.date, species= "BCNH", scale="norm" ,facet= "Island", var = "Eggs")
-#' PlotBirds(nests.year, scale = "log", facet= "Island", var = NA)
-#' PlotBirds(nests.date, scale = "norm", facet= "Island", var = NA, island = NA, year= 2008, species= "COEI")
 #' 
 #' # Incubation surveys by year
-#' herg<-SumIncubation(time = "year", species = "HERG")
-#' PlotBirds(herg)
-#' # Incubation surveys by date to view seasonal surveya
-#' herg<-SumIncubation(time = "date", species = "HERG")
-#' PlotBirds(herg, year= "2007")
+#' dcco<-SumIncubation(time = "year", species = "DCCO")
+#' PlotBirds(dcco)
+#' # Incubation surveys by date to view repeat effort
+#' lete<-SumIncubation(time = "date", species = "COTE")
+#' PlotBirds(lete, year= "2012")
 #' 
-#' # Creche surveys by date in a year
-#' creche<-CrecheSum(time ="date", stage= "Chicks")
-#' PlotBirds(creche, year = "2011")
+#' # Creche surveys by date; typically to view efforts in a single season
+#' creche<-CrecheSum(time ="date")
+#' # View survey counts in 2018
+#' PlotBirds(creche, year = "2018")
+#' # surveys summed across all islands
+#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
 #' 
 #' # Nest surveys
 #' nests<-SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
 #' PlotBirds(nests, var = "Nests")
-#' PlotBirds(nests, island "All Islands")
+#' PlotBirds(nests, island = "All Islands")
 #' 
 #' @export
 

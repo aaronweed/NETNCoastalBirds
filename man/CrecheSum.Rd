@@ -4,16 +4,20 @@
 \alias{CrecheSum}
 \title{Sum creche surveys}
 \usage{
-CrecheSum(x)
+CrecheSum(time, output = "graph", ByObserver = "no")
 }
 \arguments{
-\item{x}{Denote "x" in parentheses to return a summary of all creche surveys by island, across all islands, and date.}
+\item{time}{Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year.}
+
+\item{output}{Defaults to long format ready for ggplot. For wide format use "table"}
+
+\item{ByObserver}{If "yes" will output the survey data counted by each observer for each island segment on each date. Only sums across multiple observations by same observer at each segment. Defaults to "no".}
 }
 \value{
 Returns a \code{list} with the counts of COEI life stages observed during boat-based creche surveys per island, species, and by life stage. The first two \code{list}  elements summarize creche surveys by Date for tabular and graphing display, respectively. The 3rd and 4th \code{list} elements summarize creche surveys by YEAR for tabular and graphing display, respectively.
 }
 \description{
-Brings in the raw creche survey data from \code{\link{GetCrecheData}} and summarizes the data by year and date for plotting and analysis
+Brings in the raw creche survey data from \code{\link{GetCrecheData}} and summarizes the data by year or date for plotting and analysis.Currently only sums counts from the primary survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
 }
 \section{Warning}{
 
@@ -22,7 +26,9 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 
 \examples{
  
-CrecheSum(x)
+CrecheSum(time ="date")
+CrecheSum(time ="date", stage= "Chicks")
+CrecheSum(time= "date", ByObserver = "yes")
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

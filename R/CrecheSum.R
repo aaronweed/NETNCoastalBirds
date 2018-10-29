@@ -13,7 +13,6 @@
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param time Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year. 
-#' @param stage To subset data by life stage; options are "Chick","F-Lone","F-Tend"
 #' @param output Defaults to long format ready for ggplot. For wide format use "table"
 #' @param ByObserver If "yes" will output the survey data counted by each observer for each island segment on each date. Only sums across multiple observations by same observer at each segment. Defaults to "no".
 #'  
@@ -27,7 +26,7 @@
 #' 
 #
 
-CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
+CrecheSum<-function(time, output= "graph", ByObserver = "no"){
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
   # load in functions, look up tables, and R packages
@@ -40,8 +39,6 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
   
   # Setup and create molten dataframe
   ########################################################################################################################################################
-  
-  if(!anyNA(stage)) df<-df[df$Species_Unit %in% stage,] #  subset by stage if provided argument
   
   df<-droplevels(df)# get rid of the unneeded Species_Unit levels (assoc with nest surveys too)
   
@@ -59,9 +56,10 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
   
     # Only sum observations made by Carol, exclusing repeat counts
     
-  df.melt<-select(df,Island,Segment, Date,year,month, Survey_Primary, Group_Count, Species_Unit, Unit_Count) %>% 
-    dplyr::filter(Survey_Primary == "Yes") %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
-    gather(variable, value, -Island,-Segment,-Date,-year,-month, -Survey_Primary, -Group_Count, -Species_Unit) %>% 
+  df.melt<-select(df,Island,Segment, Date,year,month, Survey_Primary, Survey_Duplicate,Group_Count, Species_Unit, Unit_Count) %>% 
+    dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
+    dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
+    gather(variable, value, -Island,-Segment,-Date,-year,-month, -Survey_Primary,-Survey_Duplicate,-Group_Count, -Species_Unit) %>% 
     mutate(variable=NULL) %>% 
     mutate(Group_Count= ifelse(Group_Count == 999,NA,Group_Count )) %>% # rename missing/unknown observations
     mutate(ValuePerGroup= round(value/Group_Count,2))  # if needed, calc the no. of each life stage per group for aggregated counts
@@ -74,6 +72,7 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
   df.melt$Species_Unit<-mapvalues(df.melt$Species_Unit, from= c("Chick","F-Lone","F-Tend"), to =c("COEI Ducklings",  "Adult female COEI alone", "Adult female COEI tending"))
   #levels(df.melt$Species_Unit)
   }
+  
   
   ########################################################################################################################################################
   ############################### Create tabular summary of counts per life stage PER DATE similar to Carol's report #####################
@@ -131,13 +130,13 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
 
     # add species names to data
     
-    COEI_ByDate<-right_join(species_tlu, TEMP, by= "Species_Code") %>% 
+    table.final<-right_join(species_tlu, TEMP, by= "Species_Code") %>% 
       mutate(FullLatinName=as.character(FullLatinName)) %>% # force as chr
       mutate(CommonName=as.character(CommonName))
   
   ### Manip data for graphing (long format)
     
-    graph.final<- gather(COEI_ByDate, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
+    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
     
   }
     
@@ -199,7 +198,7 @@ CrecheSum<-function(time, stage=  NA, output= "graph", ByObserver = "no"){
     
     ### Manip data for graphing (long format)
     
-    graph.final<- gather(COEI_ByYr, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time) 
+    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time) 
     
     
   }
