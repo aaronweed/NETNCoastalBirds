@@ -2,14 +2,13 @@
 % Please edit documentation in R/CB_Plot_notgeneric.R, R/PlotBirds.R
 \name{PlotBirds}
 \alias{PlotBirds}
-\alias{PlotBirds}
 \title{PlotBirds}
 \usage{
-PlotBirds(data, species = NA, island = NA, year = NA, scale = "norm",
-  facet = "Island", var = NA)
+PlotBirds(data, species = NA, island = NA, year = NA,
+  scale = "norm", facet = "Island", var = NA)
 
-PlotBirds(data, species = NA, island = NA, year = NA, scale = "norm",
-  facet = "Island", var = NA)
+PlotBirds(data, species = NA, island = NA, year = NA,
+  scale = "norm", facet = "Island", var = NA)
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubationByDate}}, \code{\link{SumIncubationByYear}}, \code{\link{CrecheSum}}, \code{\link{NestByDate}}, or \code{\link{NestsByYear}}}
