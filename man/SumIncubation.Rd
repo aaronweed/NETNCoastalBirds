@@ -4,7 +4,8 @@
 \alias{SumIncubation}
 \title{sum incubation surveys}
 \usage{
-SumIncubation(time, species = NA, output = "graph", ByObserver = "no")
+SumIncubation(time, species = NA, output = "graph",
+  ByObserver = "no")
 }
 \arguments{
 \item{time}{Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year.}

@@ -76,11 +76,11 @@ GetNestData<-function(x){
   #write.table(nest_surveys_raw, "./Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
  
   ## Events
-  nest_Events<-temp.nest[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Date" ,"year", "month","Start_Time","pk_EventID")]
+  #nest_Events<-temp.nest[,c("Park","Island","Segment", "Survey_Class","Survey_Type","Obs_Type","Date" ,"year", "month","Start_Time","pk_EventID")]
   #write.table(nest_Events, "./Data/nestEvents.csv", sep=",", row.names= FALSE)
   
   ###Nest Data
-  nest_Data<-temp.nest[,c("Park","Island","Segment","Date" ,"year", "month","Start_Time","pk_EventID","Species_Code","Species_Unit","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count")]
+  #nest_Data<-temp.nest[,c("Park","Island","Segment","Date" ,"year", "month","Start_Time","c_Observer", "Recorder", "pk_EventID","Species_Code","Species_Unit","Nest_Status","Unit_Count"  ,"Egg_Count","Chick_Count")]
   #write.table(nest_Data, "./Data/nestData.csv", sep=",", row.names= FALSE)
   
   

@@ -52,7 +52,7 @@ SumIncubation<-function(time, species=  NA, output= "graph", ByObserver = "no"){
   
    df.melt<-select(df, Island,Segment,Date,year,month, Survey_Primary,Survey_Duplicate, Survey_Complete,Species_Code, Unit_Count) %>%
      dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
-     dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
+     #dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
     gather(variable, value, -Island,-Segment,-Date,-year,-month,-Survey_Primary, -Survey_Duplicate, -Survey_Complete,-Species_Code) %>% 
     mutate(variable = NULL)
   
