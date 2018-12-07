@@ -1,4 +1,3 @@
-#' @include AMOYPairsByDate.R
 #' @include CrecheSum.R
 #' @include SumNestSurveys.R
 #' @include SumIncubation.R
@@ -15,14 +14,13 @@
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #'
-#' @param survey A character vector. Accepts "nest", "creche", "incubation" or "AMOY". If "AMOY", only returns dates when AMOY mating paris were reported
+#' @param survey A character vector. Accepts "nest", "creche", "incubation".
 #' @param island A  vector of island names. To view summariaes across all islands, "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param year Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.
 #'
 #' @examples
 #' getSurveyMat(survey ="nests", species ="COEI", year = 2009)
-#' getSurveyMat(survey ="AMOY")
 #' getSurveyMat(survey ="creche",  year = 2007:2011)
 #' 
 #' @return This function returns a matrix showing dates of surveys for specified arguments indicated as "X".

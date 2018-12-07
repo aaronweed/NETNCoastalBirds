@@ -7,7 +7,7 @@
 getSurveyMat(survey, island = NA, year = NA, species = NA)
 }
 \arguments{
-\item{survey}{A character vector. Accepts "nest", "creche", "incubation" or "AMOY". If "AMOY", only returns dates when AMOY mating paris were reported}
+\item{survey}{A character vector. Accepts "nest", "creche", "incubation".}
 
 \item{island}{A  vector of island names. To view summariaes across all islands, "All Islands"}
 
@@ -28,7 +28,6 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 
 \examples{
 getSurveyMat(survey ="nests", species ="COEI", year = 2009)
-getSurveyMat(survey ="AMOY")
 getSurveyMat(survey ="creche",  year = 2007:2011)
 
 }
