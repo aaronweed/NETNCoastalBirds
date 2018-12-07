@@ -32,7 +32,7 @@ CrecheSum<-function(time, output= "graph", ByObserver = "no"){
   # load in functions, look up tables, and R packages
   
   ## import lookup tables for labeling
-  species_tlu <- read.csv("./Data/tlu_Species.csv")
+  species_tlu <- read.csv("./Data/tlu_Species.csv", header= TRUE)
   
   df<-GetCrecheData(x)
   #head(df)

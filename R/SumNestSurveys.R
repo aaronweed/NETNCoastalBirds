@@ -32,7 +32,7 @@ SumNestSurveys<-function(time, species=  NA, output= "graph"){
   # type inputs are "Chicks", "Nests", "Eggs"
   
   ## import lookup tables for labeling
-  species_tlu <- read.csv("./Data/tlu_Species.csv")
+  species_tlu <- read.csv("./Data/tlu_Species.csv", header= TRUE)
   
   df<-GetNestData(x) # bring in raw data
   
