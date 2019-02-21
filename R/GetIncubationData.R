@@ -7,27 +7,18 @@
 #' @description This function connects to the backend of NETN's Coastal Bird 
 #' Access DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
 #' returns the boat-based incubation data. If the Access DB is not
-#' accessible from the ODBC connection, the user may try to connect using the Hmisc
-#' package. If neither connection works, the function returns a saved image of the data.
-#' @param ODBC_connect Should the function connect to the Access DB? The default is to 
+#' accessible from the ODBC connection, the function returns a saved image of the data.
+#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
 #' try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
 #' the function can return the saved data from the package. 
-#' (Set \code{ODBC_connect} and \code{Hmisc_connect} both equal to \code{FALSE}.) 
-#' Note the saved data may not be up-to-date.
-#' @param Hmisc_connect If the Windows ODBC manager is unavaialble/ fails, the function
-#' can try to connect using the Hmisc package. If the connection is not available or not desired, 
-#' the function can return the saved data from the package. 
-#' (Set \code{ODBC_connect} and \code{Hmisc_connect} both equal to \code{FALSE}.) 
 #' Note the saved data may not be up-to-date.
 #' @param export Should the incubation data be exported as a csv file and RData object?
-#' @param DBfile What is the location and file name of the Access Database?  
-#' This argument is required if the user wants to connect to the database using the 
-#' Hmisc package.
+#' (This argument is used to regenerate the RData for the package.)
 #'
 #' @return This function returns the raw boat-based incubation survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' GetIncubationData()
+#' incubation <- GetIncubationData(x)
 #' @export
 
 ### This script connects to the backend of NETN's Coastal Bird Access DB and 
@@ -38,8 +29,7 @@
 #https://science.nature.nps.gov/im/units/netn/monitor/vitalSigns/birds/coastalBirds.cfm for further details 
 
 
-GetIncubationData <- function(ODBC_connect = TRUE, Hmisc_connect = FALSE, export = FALSE,
-                              DBfile = '~/repos/NPS/trunk/Boston_birds/Data/NETN_CoastalBirds_BE_20181010.accdb') {
+GetIncubationData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   if (ODBC_connect == TRUE) {
     # Connect to database BE using odbcConnect (default)
     con <- odbcConnect("NETNCB")
@@ -116,13 +106,13 @@ GetIncubationData <- function(ODBC_connect = TRUE, Hmisc_connect = FALSE, export
     
     ### export to use in R viz and for R package
     if (export == TRUE) {
-      write.table(incubation_raw, "../Data/incubation_raw.csv", sep=",", row.names= FALSE)
-      save(incubation_raw, file = "../Data/incubation_raw.RData")
+      write.table(incubation_raw, "Data/incubation_raw.csv", sep=",", row.names= FALSE)
+      save(incubation_raw, file = "Data/incubation_raw.RData")
     }
   }
   
-  if (ODBC_connect == FALSE & Hmisc_connect == FALSE) {
-    incubation_raw <- data(incubation_raw)
+  if (ODBC_connect == FALSE) {
+    data(incubation_raw)
   }
   
   incubation_raw

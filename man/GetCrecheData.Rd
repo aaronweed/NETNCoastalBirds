@@ -4,24 +4,34 @@
 \alias{GetCrecheData}
 \title{Return creche surveys from database}
 \usage{
-GetCrecheData(x)
+GetCrecheData(x, ODBC_connect = TRUE)
 }
 \arguments{
 \item{x}{Denote in parentheses to return df}
+
+\item{ODBC_connect}{Should the function connect to the Access DB? The default (TRUE) is to 
+try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
+the function can return the saved data from the package. 
+Note the saved data may not be up-to-date.}
+
+\item{export}{Should the incubation data be exported as a csv file and RData object?
+(This argument is used to regenerate the RData for the package.)}
 }
 \description{
-This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw creche survey data of COEI
+This function connects to the backend of NETN's Coastal Bird Access DB 
+and returns the raw creche survey data of COEI
 }
 \details{
 This function returns the raw AMOY survey data as a \code{data.frame}.
 }
 \section{Warning}{
 
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+User must have Access backend entered as 'NETNCB' in Windows ODBC manager. 
+(If ODBC_connect = TRUE).
 }
 
 \examples{
-GetCrecheData(x)
+creche <- GetCrecheData(x)
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
