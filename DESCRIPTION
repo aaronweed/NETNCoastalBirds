@@ -9,6 +9,7 @@ License: No license
 Encoding: UTF-8
 LazyData: true
 Collate: 
+    'CB_Plot_notgeneric.R'
     'GetCrecheData.R'
     'CrecheSum.R'
     'GetAMOYData.R'

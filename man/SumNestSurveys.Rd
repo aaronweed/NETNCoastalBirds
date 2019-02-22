@@ -4,26 +4,35 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(time, species = NA, output = "graph")
+SumNestSurveys(time, species = NA, output = "graph", df = NULL)
 }
 \arguments{
-\item{time}{Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year.}
+\item{time}{Character string equal to "date" or "year". Value must be provided; there is
+no default. Choose to sum counts by "date" or "year". Summing by date will sum counts 
+across segments of each island for each date. Summing by year sums counts across all surveys 
+conducted in that year. Note that some surveys were repeated in the same year.}
 
-\item{species}{To subset data by species, use "BCNH" ,"COEI", "GLIB", "GREG", "SNEG", "DCCO", "GBBG", "HERG", "COTE" or "LETE"}
+\item{species}{To subset data by species, use "BCNH" ,"COEI", "GLIB", "GREG", 
+"SNEG", "DCCO", "GBBG", "HERG", "COTE" or "LETE". Defaults
+to providing output for all species.}
 
-\item{output}{Defaults to long format ready for ggplot. For wide format use "table"}
+\item{output}{Character string equal to "graph" or "table". 
+Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
+function. For wide format use "table".}
+
+\item{df}{The user can optionally load the raw nest data from an R object or connect to the 
+Access database to obtain it. Defaults to NULL, which means the Access database will
+be used to obtain it.}
 }
 \value{
-Returns a \code{list}  with the counts of nests and thier contents (chicks or eggs). The first  \code{list}  element summarizes nest surveys by Date for graphing. The second element for tabular summary.
+Returns a \code{list}  with the counts of nests and their contents (chicks or eggs). 
+The first  \code{list}  element summarizes nest surveys by Date for graphing. The second 
+element for tabular summary.
 }
 \description{
-Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} and summarizes it by date for plotting and analysis.
+Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} 
+and summarizes it by date for plotting and analysis.
 }
-\section{Warning}{
-
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-}
-
 \examples{
 SumNestSurveys(time= "date", species = "BCNH")
 SumNestSurveys(time= "year", species = "BCNH")

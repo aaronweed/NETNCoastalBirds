@@ -4,7 +4,7 @@
 #' 
 #' @title Plot coastal bird survey data
 #'
-#' @importFrom ggplot2 aes element_line geom_point geom_line ggplot ggtitle labs  theme theme_minimal facet_wrap element_text element_rect
+#' @import ggplot2 
 #'
 #' @description Plots bird detections over time.
 #' @section Warning:
@@ -20,9 +20,9 @@
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' 
-#' # Incubation surveys by year of one species
-#' dcco<-SumIncubation(time = "year", species = "DCCO")
+#' # Incubation surveys by year
+#' dcco <- SumIncubation(time = "year", species = "DCCO")
+
 #' PlotBirds(dcco)
 #' 
 #' # Incubation surveys by year of multiple species
@@ -30,18 +30,18 @@
 #' PlotBirds(incub, overlay_spp= TRUE)
 #' 
 #' # Incubation surveys by date to view repeat effort
-#' lete<-SumIncubation(time = "date", species = "COTE")
+#' lete <- SumIncubation(time = "date", species = "COTE")
 #' PlotBirds(lete, year= "2012")
 #' 
 #' # Creche surveys by date; typically to view efforts in a single season
-#' creche<-CrecheSum(time ="date")
+#' creche <- CrecheSum(time ="date")
 #' # View survey counts in 2018
 #' PlotBirds(creche, year = "2018")
 #' # surveys summed across all islands
 #' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
 #' 
-#' # Nest surveys of black-crowned night heron
-#' nests<-SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+#' # Nest surveys
+#' nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
 #' PlotBirds(nests, var = "Nests")
 #' PlotBirds(nests, island = "All Islands", facet= "variable")
 #' 
@@ -51,23 +51,23 @@
 #' 
 #' @export
 
-
-PlotBirds<-function(data, species= NA, island=NA, year= NA, scale="norm", facet= "Island", var= NA, overlay_spp = FALSE){
+PlotBirds<-function(data, species= NA, island=NA, year= NA, 
+                    scale="norm", facet= "Island", var= NA, overlay_spp = FALSE){
   
   library(ggplot2)
   
   # subset data
-  graphdata<-data
+  graphdata <- data
   
-  if(!anyNA(species)) graphdata<-graphdata[graphdata$Species_Code %in% species,]
+  if(!anyNA(species)) graphdata<-graphdata[graphdata$Species_Code %in% species, ]
   
-  if(!anyNA(island)) graphdata<-graphdata[graphdata$Island %in% island,]
+  if(!anyNA(island)) graphdata <- graphdata[graphdata$Island %in% island, ]
   
-  if(!anyNA(var)) graphdata<-graphdata[graphdata$variable %in% var,]
+  if(!anyNA(var)) graphdata<-graphdata[graphdata$variable %in% var, ]
   
-  if(!anyNA(year)) graphdata<-graphdata[graphdata$year %in% year,] # for subsetting data ByDate
+  if(!anyNA(year)) graphdata<-graphdata[graphdata$year %in% year, ] # for subsetting data ByDate
   
-  if(facet == "Island") graphdata<-graphdata[!graphdata$Island %in% "All Islands",]
+  if(facet == "Island") graphdata <- graphdata[!graphdata$Island %in% "All Islands", ]
   
   # graphdata<-graphdata[na.omit(graphdata),]
   # #graphdata<-droplevels(graphdata)
@@ -76,22 +76,28 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA, scale="norm", facet=
   # setup plot
   
   if(!overlay_spp){
-
   
   if(scale == "log"){
+
     
-    y2<-ggplot(graphdata, aes(x=time, y= log(value), colour= variable,group= variable))+geom_point(size=2)+ 
-      geom_line()+
-      labs(y = "log(Number Detected)", x= "")+
-      ggtitle(paste0(if(!anyNA(var)) var, " counts of ",graphdata$CommonName[1], " per ", facet))
+    y2 <- ggplot(graphdata, 
+                 aes(x=time, y= log(value), colour= variable, group= variable)) +
+      geom_point(size = 2) + 
+      geom_line() +
+      labs(y = "log(Number Detected)", x= "") +
+      ggtitle(paste0(if(!anyNA(var)) var, " counts of ", graphdata$CommonName[1], 
+                     " per ", facet))
   }
   
-  if(scale == "norm"){
+  if(scale == "norm") {
     
-    y2<-ggplot(graphdata, aes(x=time, y= value, colour= variable,group= variable))+geom_point(size=2)+ 
-      geom_line()+
-      labs(y = "Number Detected", x= "")+
-      ggtitle(paste0(if(!anyNA(var)) var, " counts of ",graphdata$CommonName[1], " per ", facet))
+    y2 <- ggplot(graphdata, 
+                 aes(x=time, y= value, colour= variable, group= variable)) +
+      geom_point(size=2) + 
+      geom_line() +
+      labs(y = "Number Detected", x= "") +
+      ggtitle(paste0(if(!anyNA(var)) var, " counts of ", graphdata$CommonName[1], 
+                     " per ", facet))
     
     } 
       }else{
@@ -103,21 +109,21 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA, scale="norm", facet=
   
       }
 
+  if(!anyNA(facet)) {
+    y2 <- (y2 + facet_wrap(facet, scales = "free_y" ))
+  }
   
-  if(!anyNA(facet)){
-    
-    y2<-(y2+facet_wrap(facet, scales = "free_y" ))
-  } 
-  
-  y2<-(y2+
-         theme(legend.position = "top", legend.text = element_text(size = 12), legend.title = element_blank()) +
-         theme(axis.text.y = element_text(color="black", vjust= 0.5,size = 13,face="bold"))+
+  y2 <- (y2 +
+         theme(legend.position = "top", legend.text = element_text(size = 12), 
+               legend.title = element_blank()) +
+         theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 13, 
+                                          face="bold")) +
          theme(axis.text.x = element_text(angle = 90,  vjust=0,size = 12 )) +
          theme(strip.text.x= element_text(size=16, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F))+
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F))+
+         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
          theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90"))+
+         theme(panel.grid.major = element_line(colour = "grey90")) +
          theme(plot.title=element_text(size=15, vjust=2, face= "bold")) +
          theme(strip.background= element_rect(size=10, color="gray" )))
   

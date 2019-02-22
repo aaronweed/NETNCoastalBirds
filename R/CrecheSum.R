@@ -2,21 +2,40 @@
 
 #' @title Sum creche surveys
 #'
-#' @importFrom dplyr summarise mutate filter  group_by select right_join left_join inner_join bind_rows rename
+#' @import dplyr 
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
 #' 
-#' @description Brings in the raw creche survey data from \code{\link{GetCrecheData}} and summarizes the data by year or date for plotting and analysis.Currently only sums counts from the primary survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer. 
+#' @description Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
+#' and summarizes the data by year or date for plotting and analysis. Currently only 
+#' sums counts from the primary survey (Carol's) when repeated surveys were conducted. 
+#' If you specify an argument to "ByObserver" this will return sum counts of all 
+#' duplicate surveys by observer. 
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param time Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year. 
-#' @param output Defaults to long format ready for ggplot. For wide format use "table"
-#' @param ByObserver If "yes" will output the survey data counted by each observer for each island segment on each date. Only sums across multiple observations by same observer at each segment. Defaults to "no".
+#' @param time Choose to sum counts by "date" or "year". Summing by date will sum 
+#' counts across segments of each island for each date. Summing by year sums counts 
+#' across all surveys conducted in that year. Note that some sites were surveyed repeated in 
+#' the same year. 
+#' @param output Character string equal to "graph" or "table". 
+#' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
+#' function. For wide format use "table".
+#' @param ByObserver Character string equal to "yes" or "no".  
+#' If "yes" will output the survey data counted by each observer for 
+#' each island segment on each date. Only sums across multiple observations by same 
+#' observer at each segment. Defaults to "no".
+#' #' @param df  The user can optionally load the raw creche data from an R object or connect to the 
+#' Access database to obtain it. Defaults to NULL, which means the Access database will
+#' be used to obtain it.
 #'  
-#' @return Returns a \code{list} with the counts of COEI life stages observed during boat-based creche surveys per island, species, and by life stage. The first two \code{list}  elements summarize creche surveys by Date for tabular and graphing display, respectively. The 3rd and 4th \code{list} elements summarize creche surveys by YEAR for tabular and graphing display, respectively.
+#' @return Returns a \code{list} with the counts of COEI life stages observed 
+#' during boat-based creche surveys per island, species, and by life stage. 
+#' The first two \code{list}  elements summarize creche surveys by Date for tabular 
+#' and graphing display, respectively. The 3rd and 4th \code{list} elements summarize 
+#' creche surveys by YEAR for tabular and graphing display, respectively.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples  
 #' CrecheSum(time ="date")
@@ -26,15 +45,20 @@
 #' 
 #
 
-CrecheSum<-function(time, output= "graph", ByObserver = "no"){
+CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no"){
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
   # load in functions, look up tables, and R packages
   
   ## import lookup tables for labeling
-  species_tlu <- read.csv("./Data/tlu_Species.csv", header= TRUE)
+  ## (instead, dataframe of info is read as part of package)
+  # species_tlu <- read.csv("./Data/tlu_Species.csv")
+  species_tlu <- data("tlu_Species")
   
-  df<-GetCrecheData(x)
+  ## if Creche data aren't inputted by user, pull from database.
+  if (is.null(df)){
+    df <- GetCrecheData(x)
+  } 
   #head(df)
   
   # Setup and create molten dataframe
@@ -45,32 +69,41 @@ CrecheSum<-function(time, output= "graph", ByObserver = "no"){
   
   ### Sum data across each segement as raw numbers by observer 
   
-  if (time == "date" & ByObserver == "yes"){
-    graph.final<- group_by(df,Island,Segment, c_Observer, Date,month, year,Survey_Duplicate, Survey_Complete,Group_Time, Group_Count,Species_Unit) %>% 
-      dplyr::summarise( value= sum(Unit_Count, na.rm=TRUE))%>% 
+  if (time == "date" & ByObserver == "yes") {
+    graph.final <- df %>%
+      group_by(Island, Segment, c_Observer, Date, month, year, 
+               Survey_Duplicate, Survey_Complete, Group_Time, 
+               Group_Count, Species_Unit) %>% 
+      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% 
       dplyr::rename(time = Date) %>%
       add_column(Species_Code = "COEI") %>% 
-      inner_join(species_tlu,., by= "Species_Code") # add species names to data
+      inner_join(species_tlu, ., by= "Species_Code") # add species names to data
     return(graph.final)
-  }else{
-  
-    # Only sum observations made by Carol, exclusing repeat counts
+  } else {
     
-  df.melt<-select(df,Island,Segment, Date,year,month, Survey_Primary, Survey_Duplicate,Group_Count, Species_Unit, Unit_Count) %>% 
-    dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
-    #dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
-    gather(variable, value, -Island,-Segment,-Date,-year,-month, -Survey_Primary,-Survey_Duplicate,-Group_Count, -Species_Unit) %>% 
-    mutate(variable=NULL) %>% 
-    mutate(Group_Count= ifelse(Group_Count == 999,NA,Group_Count )) %>% # rename missing/unknown observations
-    mutate(ValuePerGroup= round(value/Group_Count,2))  # if needed, calc the no. of each life stage per group for aggregated counts
+    # Only sum observations made by Carol, excluding repeat counts
+    df.melt <- df %>%
+      dplyr::select(Island, Segment, Date, year, month, 
+                    Survey_Primary, Survey_Duplicate, Group_Count, 
+                    Species_Unit, Unit_Count) %>% 
+      dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
+      dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
+      gather(variable, value, -Island, -Segment, -Date, -year, -month, 
+             -Survey_Primary, -Survey_Duplicate, -Group_Count, -Species_Unit) %>% 
+      mutate(variable = NULL) %>% 
+      mutate(Group_Count = ifelse(Group_Count == 999, NA, Group_Count )) %>% # rename missing/unknown observations
+      mutate(ValuePerGroup = round(value/Group_Count, 2))  # if needed, calc the no. of each life stage per group for aggregated counts
     
     df.melt$ValuePerGroup[is.nan(df.melt$ValuePerGroup)] = 0 # force NaN's to 0
-   
-   #View(df.melt)
-  
-  # change Species_Unit levels
-  df.melt$Species_Unit<-mapvalues(df.melt$Species_Unit, from= c("Chick","F-Lone","F-Tend"), to =c("COEI Ducklings",  "Adult female COEI alone", "Adult female COEI tending"))
-  #levels(df.melt$Species_Unit)
+    
+    #View(df.melt)
+    
+    # change Species_Unit levels
+    df.melt$Species_Unit <- plyr::mapvalues(df.melt$Species_Unit, 
+                                            from = c("Chick", "F-Lone", "F-Tend"), 
+                                            to = c("COEI Ducklings", "Adult female COEI alone", 
+                                                   "Adult female COEI tending"))
+    #levels(df.melt$Species_Unit)
   }
   
   

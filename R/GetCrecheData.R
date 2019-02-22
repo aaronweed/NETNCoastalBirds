@@ -3,22 +3,30 @@
 #' @importFrom plyr join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #'  
-#' @description This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw creche survey data of COEI
+#' @description This function connects to the backend of NETN's Coastal Bird Access DB 
+#' and returns the raw creche survey data of COEI
 #' @section Warning:
-#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager. 
+#' (If ODBC_connect = TRUE).
 #' @param x Denote in parentheses to return df
+#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
+#' try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
+#' the function can return the saved data from the package. 
+#' Note the saved data may not be up-to-date.
+#' @param export Should the incubation data be exported as a csv file and RData object?
+#' (This argument is used to regenerate the RData for the package.)
 #'
 #' @details This function returns the raw AMOY survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' GetCrecheData(x)
+#' creche <- GetCrecheData(x)
 
 #' @export
 
 
-GetCrecheData<-function(x){
+GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   # Connect to database BE 
-  
+  if  (ODBC_connect == TRUE) {
   con <- odbcConnect("NETNCB")
   
   ###################### Import data and lookup tables used for the query   ################
@@ -97,11 +105,20 @@ GetCrecheData<-function(x){
   
   ## Get rid of blank group obs (Unit_Count == NA)
   
-  creche_raw<-creche_raw[!is.na(creche_raw$Unit_Count),]
+  creche_raw <- creche_raw[!is.na(creche_raw$Unit_Count),]
   
   ### export to use in R viz
   #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
+  if (export == TRUE) {
+    write.table(creche_raw, "Data/creche_raw.csv", sep=",", row.names= FALSE)
+    save(creche_raw, file = "Data/creche_raw.RData")
+  }
+  
+  
+  }
+  if (ODBC_connect == FALSE) {
+    data(creche_raw)
+  }
   
   creche_raw
-  
 }
