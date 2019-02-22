@@ -27,9 +27,11 @@
 #' If "yes" will output the survey data counted by each observer for 
 #' each island segment on each date. Only sums across multiple observations by same 
 #' observer at each segment. Defaults to "no".
-#' #' @param df  The user can optionally load the raw creche data from an R object or connect to the 
+#' @param df  The user can optionally load the raw creche data from an R object or connect to the 
 #' Access database to obtain it. Defaults to NULL, which means the Access database will
 #' be used to obtain it.
+#' @param islands Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
+#'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).
 #'  
 #' @return Returns a \code{list} with the counts of COEI life stages observed 
 #' during boat-based creche surveys per island, species, and by life stage. 
@@ -45,7 +47,7 @@
 #' 
 #
 
-CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no"){
+CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands = "outer"){
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
   # load in functions, look up tables, and R packages
@@ -59,7 +61,27 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no"){
   # Setup and create molten dataframe
   ########################################################################################################################################################
   
-  df<-droplevels(df)# get rid of the unneeded Species_Unit levels (assoc with nest surveys too)
+  ### Handle island naming and denote outer island loop
+  
+  # concatenate Roaring Blls to The Graves
+  df$Island <- plyr::mapvalues(df$Island, 
+                               from = c("Roaring Bulls"), 
+                               to = c("The Graves"))
+  
+  # Sum data to the outer Islands
+  
+  if(islands == "outer"){ 
+    
+    out<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", "Outer Brewster", "Shag Rocks","Little Brewster")
+    
+    df<-df[df$Island %in% out,]
+    
+    df<-droplevels(df)# get rid of the unneeded Species_Unit levels (assoc with nest surveys too)
+    
+  }else{
+    
+    df<-droplevels(df)
+  }
   
   
   ### Sum data across each segement as raw numbers by observer 
@@ -76,6 +98,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no"){
     return(graph.final)
   } else {
     
+  
     # Only sum observations made by Carol, excluding repeat counts
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, 
