@@ -4,20 +4,39 @@
 \alias{CrecheSum}
 \title{Sum creche surveys}
 \usage{
-CrecheSum(time, output = "graph", ByObserver = "no")
+CrecheSum(time, df = NULL, output = "graph", ByObserver = "no")
 }
 \arguments{
-\item{time}{Choose to sum counts by "date" or "year". Summing by date will sum counts across segments of each island for each date. Summing by year sums counts across all surveys conducted in that year. Note that some surveys were repeated in the same year.}
+\item{time}{Choose to sum counts by "date" or "year". Summing by date will sum 
+counts across segments of each island for each date. Summing by year sums counts 
+across all surveys conducted in that year. Note that some sites were surveyed repeated in 
+the same year.}
 
-\item{output}{Defaults to long format ready for ggplot. For wide format use "table"}
+\item{output}{Character string equal to "graph" or "table". 
+Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
+function. For wide format use "table".}
 
-\item{ByObserver}{If "yes" will output the survey data counted by each observer for each island segment on each date. Only sums across multiple observations by same observer at each segment. Defaults to "no".}
+\item{ByObserver}{Character string equal to "yes" or "no".
+If "yes" will output the survey data counted by each observer for 
+each island segment on each date. Only sums across multiple observations by same 
+observer at each segment. Defaults to "no".
+#' @param df  The user can optionally load the raw creche data from an R object or connect to the 
+Access database to obtain it. Defaults to NULL, which means the Access database will
+be used to obtain it.}
 }
 \value{
-Returns a \code{list} with the counts of COEI life stages observed during boat-based creche surveys per island, species, and by life stage. The first two \code{list}  elements summarize creche surveys by Date for tabular and graphing display, respectively. The 3rd and 4th \code{list} elements summarize creche surveys by YEAR for tabular and graphing display, respectively.
+Returns a \code{list} with the counts of COEI life stages observed 
+during boat-based creche surveys per island, species, and by life stage. 
+The first two \code{list}  elements summarize creche surveys by Date for tabular 
+and graphing display, respectively. The 3rd and 4th \code{list} elements summarize 
+creche surveys by YEAR for tabular and graphing display, respectively.
 }
 \description{
-Brings in the raw creche survey data from \code{\link{GetCrecheData}} and summarizes the data by year or date for plotting and analysis.Currently only sums counts from the primary survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
+Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
+and summarizes the data by year or date for plotting and analysis. Currently only 
+sums counts from the primary survey (Carol's) when repeated surveys were conducted. 
+If you specify an argument to "ByObserver" this will return sum counts of all 
+duplicate surveys by observer.
 }
 \section{Warning}{
 

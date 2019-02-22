@@ -2,6 +2,7 @@
 % Please edit documentation in R/PlotBirds.R
 \name{PlotBirds}
 \alias{PlotBirds}
+<<<<<<< HEAD
 \title{Plot coastal bird survey data}
 \usage{
 PlotBirds(data, species = NA, island = NA, year = NA,
@@ -13,16 +14,58 @@ PlotBirds(data, species = NA, island = NA, year = NA,
 \item{species}{A  vector of species name codes, e.g. "BCNH"}
 
 \item{island}{A vector of island names (e.g., "Calf"). To view surveys summed across all islands, use "All Islands". WHen using "All Islands" you need to supply agrument to facet (such as "variable").}
+=======
+\title{PlotBirds}
+\usage{
+PlotBirds(data, species = NA, island = NA, year = NA,
+  scale = "norm", facet = "Island", var = NA)
 
-\item{year}{Calendar year(s) to view data by. Useful when wanting to view seasonal survey data in a year.}
+PlotBirds(data, species = NA, island = NA, year = NA,
+  scale = "norm", facet = "Island", var = NA)
+}
+\arguments{
+\item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting.
+Typically from \code{\link{SumIncubationByDate}}, \code{\link{SumIncubationByYear}}, 
+\code{\link{CrecheSum}}, \code{\link{NestByDate}}, or \code{\link{NestsByYear}}}
+
+\item{species}{A  vector of species name codes, e.g. "BCNH"}
+
+\item{island}{A vector of island names (e.g., "Calf"). To view summaries across all 
+islands, "All Islands"}
+>>>>>>> 975e16eeef5594e886f3415c986f92fb97654702
+
+\item{year}{Calendar year(s) to view data by. Useful when wanting to view seasonal 
+survey data in a year.}
 
 \item{scale}{Convert to log scale by entering "log".}
 
 \item{facet}{Plot the data into separate facets by Island, Species, or variable. Deafults to Island.}
 
-\item{var}{Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.}
+\item{var}{Select a variable to plot, typically a life stage (e.g., Eggs, Nests, 
+Creche size). Defaults to all values.}
 
+<<<<<<< HEAD
 \item{overlay_spp}{Defaults to \code{FALSE}. Enter \code{TRUE} if you would like to overlay time series for each species. This is needed to properly plot data when the \code{data.frame} to be plotted contains multiple species. In cases where the \code{data.frame} has multiple life stages (e.g., nests), provide argument to \code{var} to plot only one life stage at a time}
+=======
+\item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting.
+Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or 
+\code{\link{SumNestSurveys}}.}
+
+\item{island}{A vector of island names (e.g., "Calf"). To view surveys summed 
+across all islands, use "All Islands"}
+
+\item{species}{A  vector of species name codes, e.g. "BCNH"}
+
+\item{var}{Select a variable to plot, typically a life stage 
+(e.g., Eggs, Nests, Creche size). Defaults to all values.}
+
+\item{scale}{Convert to log scale by entering "log"}
+
+\item{year}{Calendar year(s) to view data by. Useful when wanting to view 
+seasonal survey data in a year.}
+
+\item{facet}{Plot the data into separate facets by Island, Species, etc.}
+>>>>>>> 975e16eeef5594e886f3415c986f92fb97654702
 }
 \value{
 Outputs a ggplot graph of species detections over time.
@@ -37,8 +80,13 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 
 \examples{
 
+<<<<<<< HEAD
 # Incubation surveys by year of one species
 dcco<-SumIncubation(time = "year", species = "DCCO")
+=======
+# Incubation surveys by year
+dcco <- SumIncubation(time = "year", species = "DCCO")
+>>>>>>> 975e16eeef5594e886f3415c986f92fb97654702
 PlotBirds(dcco)
 
 # Incubation surveys by year of multiple species
@@ -46,18 +94,23 @@ incub<-SumIncubation(time = "year", species = c("DCCO", "HERG", "GBBG"))
 PlotBirds(incub, overlay_spp= TRUE)
 
 # Incubation surveys by date to view repeat effort
-lete<-SumIncubation(time = "date", species = "COTE")
+lete <- SumIncubation(time = "date", species = "COTE")
 PlotBirds(lete, year= "2012")
 
 # Creche surveys by date; typically to view efforts in a single season
-creche<-CrecheSum(time ="date")
+creche <- CrecheSum(time ="date")
 # View survey counts in 2018
 PlotBirds(creche, year = "2018")
 # surveys summed across all islands
 PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
 
+<<<<<<< HEAD
 # Nest surveys of black-crowned night heron
 nests<-SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+=======
+# Nest surveys
+nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+>>>>>>> 975e16eeef5594e886f3415c986f92fb97654702
 PlotBirds(nests, var = "Nests")
 PlotBirds(nests, island = "All Islands", facet= "variable")
 
