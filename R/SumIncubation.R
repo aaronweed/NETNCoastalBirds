@@ -51,11 +51,6 @@ SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no
     #head(df)
   }
   
-  ## import lookup tables for labeling
-
-  # (RData object already loaded as part of package)
-  # species_tlu <- read.csv("./Data/tlu_Species.csv")
-  data(species_tlu)
 
     # Setup and create molten dataframe
   #############################################################################

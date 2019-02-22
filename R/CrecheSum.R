@@ -50,11 +50,6 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no"){
   # the function will summarize the data by each island (returns all islands)
   # load in functions, look up tables, and R packages
   
-  ## import lookup tables for labeling
-  ## (instead, dataframe of info is read as part of package)
-  # species_tlu <- read.csv("./Data/tlu_Species.csv")
-  species_tlu <- data("tlu_Species")
-  
   ## if Creche data aren't inputted by user, pull from database.
   if (is.null(df)){
     df <- GetCrecheData(x)

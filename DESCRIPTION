@@ -19,4 +19,5 @@ Collate:
     'SumIncubation.R'
     'PlotBirds.R'
     'getSurveyMat.R'
+    'species_tlu_Data.R'
 RoxygenNote: 6.1.1

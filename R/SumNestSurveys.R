@@ -42,11 +42,6 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
   # counts the num. of nests, chicks or eggs (type) per factor level (species, island, segment, date)
   # type inputs are "Chicks", "Nests", "Eggs"
   
-  ## import lookup tables for labeling
-  #(RData object already loaded as part of package)
-  # species_tlu <- read.csv("./Data/tlu_Species.csv")
-  species_tlu <- data("tlu_Species")
-
   
   if (is.null(df))
     df <- GetNestData(x) # bring in raw data
