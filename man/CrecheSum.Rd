@@ -4,13 +4,18 @@
 \alias{CrecheSum}
 \title{Sum creche surveys}
 \usage{
-CrecheSum(time, df = NULL, output = "graph", ByObserver = "no")
+CrecheSum(time, df = NULL, output = "graph", ByObserver = "no",
+  islands = "outer")
 }
 \arguments{
 \item{time}{Choose to sum counts by "date" or "year". Summing by date will sum 
 counts across segments of each island for each date. Summing by year sums counts 
 across all surveys conducted in that year. Note that some sites were surveyed repeated in 
 the same year.}
+
+\item{df}{The user can optionally load the raw creche data from an R object or connect to the 
+Access database to obtain it. Defaults to NULL, which means the Access database will
+be used to obtain it.}
 
 \item{output}{Character string equal to "graph" or "table". 
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
@@ -19,10 +24,10 @@ function. For wide format use "table".}
 \item{ByObserver}{Character string equal to "yes" or "no".
 If "yes" will output the survey data counted by each observer for 
 each island segment on each date. Only sums across multiple observations by same 
-observer at each segment. Defaults to "no".
-#' @param df  The user can optionally load the raw creche data from an R object or connect to the 
-Access database to obtain it. Defaults to NULL, which means the Access database will
-be used to obtain it.}
+observer at each segment. Defaults to "no".}
+
+\item{islands}{Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
+The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).}
 }
 \value{
 Returns a \code{list} with the counts of COEI life stages observed 
