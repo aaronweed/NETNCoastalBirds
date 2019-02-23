@@ -17,6 +17,8 @@ Collate:
     'SumNestSurveys.R'
     'SumIncubation.R'
     'PlotBirds.R'
+    'SumCOTE.R'
+    'SumGulls_DCCO.R'
     'getSurveyMat.R'
     'species_tlu_Data.R'
 RoxygenNote: 6.1.1
