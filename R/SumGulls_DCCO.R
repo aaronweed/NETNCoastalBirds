@@ -3,17 +3,15 @@
 
 #' @title sum Gull and DCCO surveys
 #'
-#' @import dplyr 
+#' @import dplyr
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
-#' @importFrom lubridate year month
 #' 
-#' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
-#'  summarizes the data for plotting and analysis. Currently only sums counts from the primary 
-#'  survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" 
-#'  this will return sum counts of all duplicate surveys by observer.
-#' @section Warning:
-#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @description Brings in the raw incubation and Nest survey data from \code{\link{GetIncubationData}} 
+#' and \code{\link{GetNestData}}, respectively, and summarizes the data for plotting and analysis. 
+#' Currently only sums counts from the primary survey when repeated surveys were conducted. 
+#' If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
+
 #' @param time Character string equal to "date" or "year". Value must be provided; there is
 #' no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
 #' segments of each island for each date. Summing by year sums counts across all surveys conducted 
@@ -40,6 +38,10 @@
 #' SumGulls_DCCO(time= "year", species = "DCCO", output = "graph")
 #' SumGulls_DCCO(time= "date", species = "DCCO", output = "graph")
 #' SumGulls_DCCO(time= "date", ByObserver = "yes")
+#' 
+#' DCCO<-SumGulls_DCCO(time= "year", species= "DCCO")
+#' PlotBirds(DCCO, var= "Incubating adults")
+#' PlotBirds(DCCO, var= "Nests")
 #' @export
 #' 
 #
@@ -48,11 +50,13 @@ SumGulls_DCCO <- function(time = "year", species = c("DCCO","GBBG","HERG"), outp
 ###### Sum  Data ----
   
   df <- 
-    SumIncubation(time= time, species = species) %>% 
+    SumIncubation(time= time, species = species, ...) %>% 
     add_column(Count_Method = "Direct Count") %>% 
     mutate(time= as.numeric(as.character(time)))%>% 
-    {if(!anyNA(islands))filter(.,Island %in% islands)} %>% #### Subset df by Outer Islands per species 
-    bind_rows(SumNestSurveys(time= time,species = species)) 
+    {if(!anyNA(islands))filter(.,Island %in% islands)} #### Subset df by Outer Islands per species 
+    
+  df<- df %>%
+    bind_rows(SumNestSurveys(time= time,species = species,...)) 
           
         }
           

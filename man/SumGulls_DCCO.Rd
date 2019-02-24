@@ -5,7 +5,9 @@
 \title{sum Gull and DCCO surveys}
 \usage{
 SumGulls_DCCO(time = "year", species = c("DCCO", "GBBG", "HERG"),
-  output = "graph", ByObserver = "no", islands = "outer")
+  output = "graph", ByObserver = "no", islands = c("Calf",
+  "Little Calf", "Green", "The Graves", "Middle Brewster",
+  "Outer Brewster", "Shag Rocks", "Little Brewster"))
 }
 \arguments{
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
@@ -38,21 +40,20 @@ boat-based surveys per island, species, and date/year. The first  \code{list}  e
 incubation surveys by Year for graphing. The second element for tabular summary.
 }
 \description{
-Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
- summarizes the data for plotting and analysis. Currently only sums counts from the primary 
- survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" 
- this will return sum counts of all duplicate surveys by observer.
+Brings in the raw incubation and Nest survey data from \code{\link{GetIncubationData}} 
+and \code{\link{GetNestData}}, respectively, and summarizes the data for plotting and analysis. 
+Currently only sums counts from the primary survey when repeated surveys were conducted. 
+If you specify an argument to "ByObserver" this will return sum counts of all duplicate surveys by observer.
 }
-\section{Warning}{
-
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
-}
-
 \examples{
  
 SumGulls_DCCO(time= "year", species = "DCCO", output = "graph")
 SumGulls_DCCO(time= "date", species = "DCCO", output = "graph")
 SumGulls_DCCO(time= "date", ByObserver = "yes")
+
+DCCO<-SumGulls_DCCO(time= "year", species= "DCCO")
+PlotBirds(DCCO, var= "Incubating adults")
+PlotBirds(DCCO, var= "Nests")
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
