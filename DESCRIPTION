@@ -1,7 +1,7 @@
 Package: NETNCoastalBirds
 Type: Package
 Title: A package for summarizing NETN Coastal Breeding bird monitoring program data.
-Version: 0.1.2
+Version: 0.1.3
 Author: Aaron Weed
 Maintainer: The package maintainer is Aaron Weed <aaron_weed@nps.gov>
 Description: This package supports data analysis and reporting of the NETN Coastal Breeding bird monitoring program (https://www.nps.gov/im/netn/coastal-birds.htm).
@@ -17,6 +17,8 @@ Collate:
     'SumNestSurveys.R'
     'SumIncubation.R'
     'PlotBirds.R'
+    'SumCOTE.R'
+    'SumGulls_DCCO.R'
     'getSurveyMat.R'
     'species_tlu_Data.R'
 RoxygenNote: 6.1.1

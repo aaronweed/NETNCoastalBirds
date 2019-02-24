@@ -4,16 +4,20 @@
 \alias{SumIncubation}
 \title{sum incubation surveys}
 \usage{
-SumIncubation(time, species = NA, output = "graph",
-  ByObserver = "no", df = NULL)
+SumIncubation(df = NULL, time, species = NA, output = "graph",
+  ByObserver = "no")
 }
 \arguments{
+\item{df}{The user can optionally load the raw incubation data from an R object or connect to the 
+Access database to obtain it. Defaults to NULL, which means the Access database will
+be used to obtain it.}
+
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
 no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
 segments of each island for each date. Summing by year sums counts across all surveys conducted 
 in that year. Note that some surveys were repeated in the same year.}
 
-\item{species}{To subset data by species, use "COTE", "DCCO","GBBG","HERG","LETE". Defaults
+\item{species}{To subset data by species, use "COTE", "DCCO","GBBG","HERG". Defaults
 to providing output for all species.}
 
 \item{output}{Character string equal to "graph" or "table". 
@@ -24,10 +28,6 @@ function. For wide format use "table".}
 survey data counted by each observer for each island 
 segment on each date. Only sums across multiple observations by same observer at each segment. 
 Defaults to "no".}
-
-\item{df}{The user can optionally load the raw incubation data from an R object or connect to the 
-Access database to obtain it. Defaults to NULL, which means the Access database will
-be used to obtain it.}
 }
 \value{
 Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during 

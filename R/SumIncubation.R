@@ -19,7 +19,7 @@
 #' no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
 #' segments of each island for each date. Summing by year sums counts across all surveys conducted 
 #' in that year. Note that some surveys were repeated in the same year. 
-#' @param species To subset data by species, use "COTE", "DCCO","GBBG","HERG","LETE". Defaults
+#' @param species To subset data by species, use "COTE", "DCCO","GBBG","HERG". Defaults
 #' to providing output for all species.
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
@@ -43,7 +43,7 @@
 #' @export
 #' 
 #
-SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no", df = NULL) {
+SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObserver = "no") {
   # this function summarizes the number of adults on nests per island, year, and by observer
   
   if (is.null(df)) {
@@ -58,6 +58,9 @@ SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no
   # subset by species if provided 
   if(!anyNA(species)) df <- df[df$Species_Code %in% species, ] 
   
+  # exclude LETE
+  df<-df[!df$Species_Code %in% "LETE",]
+ 
   ### Sum data across each segement as raw numbers by observer 
   
   if (time == "date" & ByObserver == "yes") {
@@ -74,7 +77,7 @@ SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no
       dplyr::select(Island, Segment, Date, year, month, Survey_Primary,
                       Survey_Duplicate, Survey_Complete, Species_Code, Unit_Count) %>%
       dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
-      dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
+      #dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
       tidyr::gather(variable, value, -Island, -Segment, -Date, -year, -month, -Survey_Primary, 
              -Survey_Duplicate, -Survey_Complete, -Species_Code) %>% 
       dplyr::mutate(variable = NULL)
@@ -87,37 +90,46 @@ SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no
   #################################################
   
   ### Sum counts per year or across all surveys per island across segements
+    # Note that there can be more than one primary survey per year
+    # Because of thie the summary below first takes the max count per segment per year then sums these values to get the annual count per island.
   
   if (time == "year") {
     SumBySelect <- df.melt %>% 
-      group_by(Island, Species_Code, year, 
-               Survey_Duplicate, Survey_Complete) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% 
+      group_by(Species_Code, Island, Segment,year) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 surveys per year 
+      group_by(Species_Code, Island, year) %>% 
+      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n()) %>% # find the total no. nests per year
       dplyr::rename(time = year)
     
     ## Sum the number of adults in each year across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, year, Survey_Duplicate, Survey_Complete) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% 
+      group_by(Species_Code, Island, Segment,year) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 primarysurveys per year 
+      group_by(Species_Code, year) %>% 
+      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n()) %>% # find the total no. nests per year
       tibble::add_column(Island = "All Islands")  %>% 
       dplyr::rename(time = year)
       }
   
   ### Sum counts per date for all surveys counted on the same island across segements
+    # Note that there can be more than one primary survey per day
+    # Because of thie the summary below first takes the max count per segment per date then sums these values to get the daily count per island.
   
   if (time == "date") {
     SumBySelect <- df.melt %>% 
-      group_by(Island, Species_Code, Date, month, year, 
-                Survey_Duplicate, Survey_Complete) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE))%>% 
+      group_by(Species_Code, Island, Segment, Date, month, year) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 primary surveys per date. 
+      group_by(Species_Code, Island, Date, month,year) %>% 
+      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n())%>% 
       dplyr::rename(time = Date)
     
     ## Sum the number of adults on each date across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, Date, month, year, 
-               Survey_Duplicate, Survey_Complete) %>% 
+      group_by(Species_Code, Island, Segment, Date, month, year) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 primary surveys per date. 
+      group_by(Species_Code, Date, month, year) %>% 
       dplyr::summarise( value = sum(value, na.rm=TRUE)) %>% 
       tibble::add_column(Island = "All Islands") %>% 
       dplyr::rename(time = Date)

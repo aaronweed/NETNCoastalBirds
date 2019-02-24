@@ -63,7 +63,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   
   ### Handle island naming and denote outer island loop
   
-  # concatenate Roaring Blls to The Graves
+  # concatenate Roaring Bulls to The Graves
   df$Island <- plyr::mapvalues(df$Island, 
                                from = c("Roaring Bulls"), 
                                to = c("The Graves"))
@@ -102,12 +102,11 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     # Only sum observations made by Carol, excluding repeat counts
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, 
-                    Survey_Primary, Survey_Duplicate, Group_Count, 
+                    Survey_Primary, Group_Count, 
                     Species_Unit, Unit_Count) %>% 
       dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
-      dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
       gather(variable, value, -Island, -Segment, -Date, -year, -month, 
-             -Survey_Primary, -Survey_Duplicate, -Group_Count, -Species_Unit) %>% 
+             -Survey_Primary, -Group_Count, -Species_Unit) %>% 
       mutate(variable = NULL) %>% 
       mutate(Group_Count = ifelse(Group_Count == 999, NA, Group_Count )) %>% # rename missing/unknown observations
       mutate(ValuePerGroup = round(value/Group_Count, 2))  # if needed, calc the no. of each life stage per group for aggregated counts
@@ -195,7 +194,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   if (time == "year"){  
     StageSumByIslYr<-
       group_by(df.melt, Island,year, Species_Unit) %>% # summarize by Island, Date and Species Unit
-      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
+      dplyr::summarise( sum= sum(value, na.rm=TRUE), n=n()) %>% # calc sum per life stage
       spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
       mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
       dplyr::select(Island, year, 'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
