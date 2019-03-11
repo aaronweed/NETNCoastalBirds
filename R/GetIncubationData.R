@@ -95,14 +95,14 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     incubation_raw <- temp.incub2[, c("Park", "Island", "Segment", "Survey_Class",
                                       "Survey_Type", "Obs_Type", "Survey_MultiPart",
                                       "Survey_Duplicate", "Survey_Primary", "Survey_Complete", 
-                                      "Date", "year", "month", "Start_Time", "c_Observer", 
+                                      "Date", "year", "month", "Start_Time", "Observer", 
                                       "Species_Code", "Species_Unit", "Unit_Count", 
                                       "Obs_Notes", "Recorder", "Data_Source", "Wind_Direction",
                                       "Wind_Speed", "Air_Temp_F", "Cloud_Perc", "Tide_Stage")]  
     # sort df
     incubation_raw <- incubation_raw %>%
-      dplyr::arrange(Island, Segment, Date, Species_Code, c_Observer)
-    #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$c_Observer),]
+      dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
+    #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$Observer),]
     
     ### export to use in R viz and for R package
     if (export == TRUE) {

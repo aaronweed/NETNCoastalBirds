@@ -62,7 +62,7 @@ SumIncubation <- function(time, species = NA, output = "graph", ByObserver = "no
   
   if (time == "date" & ByObserver == "yes") {
     graph.final <- df %>%
-      group_by(Island, Segment, c_Observer, Species_Code, 
+      group_by(Island, Segment, Observer, Species_Code, 
                Date, month, year, Survey_Duplicate, Survey_Complete) %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% 
       dplyr::rename(time = year) %>% 
