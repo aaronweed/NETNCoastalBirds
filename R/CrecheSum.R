@@ -88,7 +88,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   
   if (time == "date" & ByObserver == "yes") {
     graph.final <- df %>%
-      group_by(Island, Segment, c_Observer, Date, month, year, 
+      group_by(Island, Segment, Observer, Date, month, year, 
                Survey_Duplicate, Survey_Complete, Group_Time, 
                Group_Count, Species_Unit) %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% 
@@ -98,7 +98,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     return(graph.final)
   } else {
     
-  
+    
     # Only sum observations made by Carol, excluding repeat counts
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, 

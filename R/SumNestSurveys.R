@@ -108,18 +108,32 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
   ######################################
  
   if (time == "year") {
-   SumBySelect <- temp %>% 
-    group_by(Island, Species_Code, year, Count_Method, variable) %>% 
-    dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%
-    dplyr::rename(time = year)
+   TernMax <- temp %>% 
+     filter(Species_Code %in% "COTE" | Species_Code %in% "LETE") %>% 
+     group_by(Island, Species_Code, Count_Method, variable,year) %>% 
+     dplyr::summarise(value = max(value, na.rm=TRUE))    # calc annual  max for terns
+     
+     SumBySelect <- temp %>% 
+       filter(!Species_Code == "COTE" & !Species_Code == "LETE") %>%  # calc sum for others
+       group_by(Island, Species_Code, year, Count_Method, variable) %>% 
+       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%
+      dplyr::bind_rows(.,TernMax) %>% 
+     dplyr::rename(time = year)
   
   ## Sum the number of nests, eggs and chicks for each date across all islands
   ### Calculate for all Islands
-  SumByBOHA <- temp %>% 
-    group_by(Species_Code, year, Count_Method, variable) %>% 
-    dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
-    add_column(Island = "All Islands") %>% 
-    dplyr::rename(time = year)  
+     TernMax <- temp %>% 
+       filter(Species_Code %in% "COTE" | Species_Code %in% "LETE") %>% 
+       group_by(Species_Code, Count_Method, variable,year) %>% 
+       dplyr::summarise(value = max(value, na.rm=TRUE))    # calc annual  max for terns
+     
+     SumByBOHA <- temp %>% 
+       filter(!Species_Code == "COTE" & !Species_Code == "LETE") %>%  # calc sum for others
+       group_by(Species_Code, year, Count_Method, variable) %>% 
+       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%
+       dplyr::bind_rows(.,TernMax) %>% 
+       dplyr::rename(time = year) %>% 
+       add_column(Island = "All Islands")
   }
   
   #######################################
