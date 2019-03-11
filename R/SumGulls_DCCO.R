@@ -50,13 +50,13 @@ SumGulls_DCCO <- function(time = "year", species = c("DCCO","GBBG","HERG"), outp
 ###### Sum  Data ----
   
   df <- 
-    SumIncubation(time= time, species = species, ...) %>% 
+    SumIncubation(time= time, species = species) %>% 
     add_column(Count_Method = "Direct Count") %>% 
     mutate(time= as.numeric(as.character(time)))%>% 
     {if(!anyNA(islands))filter(.,Island %in% islands)} #### Subset df by Outer Islands per species 
     
   df<- df %>%
-    bind_rows(SumNestSurveys(time= time,species = species,...)) 
+    bind_rows(SumNestSurveys(time= time,species = species)) 
           
         }
           
