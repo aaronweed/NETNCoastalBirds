@@ -4,16 +4,17 @@
 \alias{GetAMOYData}
 \title{Return AMOY surveys from database}
 \usage{
-GetAMOYData(x)
+GetAMOYData(x, ODBC_connect = TRUE, export = FALSE)
 }
 \arguments{
 \item{x}{Denote "x" in parentheses to return a \code{data.frame} of all AMOY observations.}
 }
 \value{
-This function returns the raw AMOY survey data as a \code{data.frame}.
+This function returns the raw AMOY nesting pair survey data as a \code{data.frame}.
 }
 \description{
-This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data.
+This function connects to the backend of NETN's Coastal Bird Access DB and returns the annual end of season estimates of
+American Oystercatcher (AMOY) per Island.
 }
 \section{Warning}{
 
@@ -21,7 +22,7 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
 \examples{
-GetAMOYdata(x)
+GetAMOYData(x, export= TRUE)
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
