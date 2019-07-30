@@ -5,7 +5,8 @@
 \title{Plot coastal bird survey data}
 \usage{
 PlotBirds(data, species = NA, island = NA, year = NA,
-  scale = "norm", facet = "Island", var = NA, overlay_spp = FALSE)
+  scale = "norm", facet = "Island", var = NA, overlay_spp = FALSE,
+  print = "yes", caption = "yes")
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
@@ -23,6 +24,10 @@ PlotBirds(data, species = NA, island = NA, year = NA,
 \item{var}{Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.}
 
 \item{overlay_spp}{Defaults to \code{FALSE}. Enter \code{TRUE} if you would like to overlay time series for each species. This is needed to properly plot data when the \code{data.frame} to be plotted contains multiple species. In cases where the \code{data.frame} has multiple life stages (e.g., nests), provide argument to \code{var} to plot only one life stage at a time}
+
+\item{print}{To not print plot enter "no".}
+
+\item{caption}{Add a caption to the plot? Defaults to \code{TRUE}}
 }
 \value{
 Outputs a ggplot graph of species detections over time.

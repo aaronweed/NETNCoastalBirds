@@ -1,0 +1,157 @@
+---
+title: "Coastal Bird monitoring at Boston Harbor Islands NRA (BOHA)"
+author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
+output: 
+  pdf_document:
+    toc: yes
+    fig_caption: yes
+  html_document:
+    toc: true
+    number_sections: false
+---
+```{r,intro, results='markup', echo=F, include=FALSE}
+cat("\\newpage")
+library(NETNCoastalBirds)
+library(tidyverse)
+library(knitr)
+library(magrittr)
+```
+\pagebreak
+
+# Background
+ 
+Type some description here.
+
+\pagebreak
+
+# **Double-crested Cormorant (*Phalacrocorax auritus*)**
+##Incubation surveys
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+options(knitr.kable.NA = '')
+incub <- SumIncubation(time = "year")
+dcco<- filter(incub,Species_Code == "DCCO")
+PlotBirds(dcco)
+cat("\\newpage")
+kable(dcco[,c("Island","time","value")] %>% spread(time, value), caption= "Annual counts of Double-crested Cormorant",padding =2)
+```
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+cat("\\newpage")
+PlotBirds(dcco, scale = "log")
+```
+
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "DCCO")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak
+
+# **Great Black-backed Gull (*Larus marinus*)**
+##Incubation surveys
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+options(knitr.kable.NA = '')
+#incub <- SumIncubation(time = "year")
+GBBG<- filter(incub,Species_Code == "GBBG")
+PlotBirds(GBBG)
+cat("\\newpage")
+kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Annual counts of Great Black-backed Gull",padding =2)
+```
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+cat("\\newpage")
+PlotBirds(GBBG, scale = "log")
+```
+
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "GBBG")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak 
+
+# **Herring Gull (*Larus argentatus*)**
+##Incubation surveys
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+options(knitr.kable.NA = '')
+#incub <- SumIncubation(time = "year")
+HERG<- filter(incub,Species_Code == "HERG")
+PlotBirds(HERG)
+cat("\\newpage")
+kable(HERG[,c("Island","time","value")] %>% spread(time, value), caption= "Annual counts of Herring Gull",padding =2)
+```
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+cat("\\newpage")
+PlotBirds(HERG, scale = "log")
+```
+
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "HERG")
+PlotBirds(nests, caption = "no")
+```
+
+# Common Eider (*Smateria mollissima*)
+## Creche Surveys
+### Current Year surveys by date
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+options(knitr.kable.NA = '')
+creche <- CrecheSum(time ="date")
+PlotBirds(creche, year= "2019")
+cat("\\newpage")
+yr<-"2019"
+df<- filter(creche, year== yr & !Island == "All Islands") %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
+kable(df, caption = paste0("Creche surveys during ",yr)) 
+```
+
+### Annual counts over time by variable
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+creche_y <- CrecheSum(time ="year")
+VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
+plots<-map(VAR, ~PlotBirds(creche_y, var = . ,print= "no", caption= "no"))
+print(plots[[1]]);cat("\\newpage")
+print(plots[[2]]);cat("\\newpage")
+print(plots[[3]]);cat("\\newpage")
+print(plots[[4]])
+cat("\\newpage")
+```
+
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "COEI")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak
+
+#**Black-crowned night Heron (*Nycticorax nycticorax*)**
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "BCNH")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak 
+
+#**Glossy Ibis (*Plegadis falcinellus*)**
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "GLIB")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak 
+
+#**Great Egret (*Ardea alba*)**
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "GREG")
+PlotBirds(nests, caption = "no")
+```
+\pagebreak 
+
+#**Snowy Egret (*Egretta thula*)**
+## Nest Surveys
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
+nests <- SumNestSurveys(time= "year", species= "SNEG")
+PlotBirds(nests, caption = "no")
+```
