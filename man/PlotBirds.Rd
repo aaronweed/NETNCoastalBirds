@@ -6,7 +6,7 @@
 \usage{
 PlotBirds(data, species = NA, island = NA, year = NA,
   scale = "norm", facet = "Island", var = NA, overlay_spp = FALSE,
-  print = "yes", caption = "yes")
+  print = "yes", plot_title = "yes", legend = FALSE)
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
@@ -27,7 +27,9 @@ PlotBirds(data, species = NA, island = NA, year = NA,
 
 \item{print}{To not print plot enter "no".}
 
-\item{caption}{Add a caption to the plot? Defaults to \code{TRUE}}
+\item{plot_title}{Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.}
+
+\item{legend}{Add legend. Defaults to \code{FALSE}.}
 }
 \value{
 Outputs a ggplot graph of species detections over time.

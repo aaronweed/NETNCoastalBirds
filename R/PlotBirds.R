@@ -18,7 +18,8 @@
 #' @param facet Plot the data into separate facets by Island, Species, or variable. Deafults to Island.
 #' @param overlay_spp Defaults to \code{FALSE}. Enter \code{TRUE} if you would like to overlay time series for each species. This is needed to properly plot data when the \code{data.frame} to be plotted contains multiple species. In cases where the \code{data.frame} has multiple life stages (e.g., nests), provide argument to \code{var} to plot only one life stage at a time
 #' @param print To not print plot enter "no".
-#' @param  caption Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
+#' @param  plot_title Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
+#' @param legend Add legend. Defaults to \code{FALSE}.
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
@@ -54,7 +55,7 @@
 #' @export
 
 PlotBirds<-function(data, species= NA, island=NA, year= NA, 
-                    scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", caption = "yes"){
+                    scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", plot_title = "yes", legend= FALSE){
   
   library(ggplot2)
   
@@ -79,18 +80,18 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
   
   if(!overlay_spp){
   
-  if(scale == "log"){
+  if(scale == "log"){### MAKE LOG SCALE
 
-    
+  ### SETUP PLOT DATA 
     y2 <- ggplot(graphdata, 
                  aes(x=time, y= log(value), colour= variable, group= variable)) +
-      geom_point(size = 2) + 
+      geom_point(size = 2) +
       geom_line() + scale_colour_viridis_d(option="D")+
       labs(y = "log(Number Detected)", x= "")
   }
   
-  if(scale == "norm") {
-    
+  if(scale == "norm") {#### GROUP BY VARIABLE OR COMMONNAME
+    #### GROUP BY VARIABLE
     y2 <- ggplot(graphdata, 
                  aes(x=time, y= value, colour= variable, group= variable)) +
       geom_point(size=2) + 
@@ -101,33 +102,32 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
       }else{
     # group by CommonName
     y2<-ggplot(graphdata, aes(x=time, y= value, colour= CommonName,group= CommonName))+
-    geom_point()+
+    geom_point()+ 
     geom_line()+ scale_colour_viridis_d(option="D")+
     labs(y = "Number Detected", x= "")+
     ggtitle(paste0(if(!anyNA(var)) var, "Counts of ",graphdata$variable[1], " per ", facet))
   
       }
-
+### ADD FACETING 
   if(!anyNA(facet)) {
     y2 <- (y2 + facet_wrap(facet, scales = "fixed", ncol = 3 ))
   }
-  
-  if(caption == "yes"){
+#### TOGGLE CAPTION 
+  if(plot_title == "yes"){
     
     if(scale == "log"){
-      y2<- (y2 + ggtitle(paste0(if(!anyNA(var)) var, " Log-transformed counts of ", graphdata$CommonName[1], 
-                     " per ", facet)))
+      y2<- (y2 + ggtitle(paste0("Log-transformed annual counts of ", graphdata$CommonName[1]," ", if(!anyNA(var)) var, " per ", facet)))
   }else{
-    y2<- (y2 + ggtitle(paste0(if(!anyNA(var)) var, " Counts of ", graphdata$CommonName[1], 
-                   " per ", facet)))
+    y2<- (y2 + ggtitle(paste0("Annual counts of ", graphdata$CommonName[1]," ", if(!anyNA(var)) var," per ", facet)))
   }
     }else{
       y2<- y2
     }
 
+  ###DEFINE THEME
   y2 <- (y2 +
-         theme(legend.position = "top", legend.text = element_text(size = 10), 
-               legend.title = element_blank()) +
+         {if(legend) theme(legend.position = "top", legend.title= element_blank())}+
+         {if(!legend)theme(legend.position = "none")}+
          theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 12)) +
          theme(axis.text.x = element_text(angle = 90,  vjust=0,size = 12 )) +
           theme(axis.text.y = element_text(size = 12 )) +
@@ -136,8 +136,10 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
          theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
          theme(panel.background =  element_rect(fill="white", colour="black")) +
          theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=15, vjust=2, face= "bold")) +
+         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
          theme(strip.background= element_rect(size=10, color="gray" )))
+  
+#### CHOOSE TO PRINT ON EXECUTION OR CREATE OBJECT; THE LATTER HELPFUL WHEN LOOPING  
   
   if(print== "yes"){
     

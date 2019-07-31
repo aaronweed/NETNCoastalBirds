@@ -194,7 +194,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   if (time == "year"){  
     StageSumByIslYr<-
       group_by(df.melt, Island,year, Species_Unit) %>% # summarize by Island, Date and Species Unit
-      dplyr::summarise( sum= sum(value, na.rm=TRUE), n=n()) %>% # calc sum per life stage
+      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
       spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
       mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
       dplyr::select(Island, year, 'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
