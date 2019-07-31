@@ -95,8 +95,7 @@ PlotBirds(nests, plot_title = "yes", legend= TRUE, var= c("Nests", "Eggs", "Chic
 ```
 
 # Common Eider (*Smateria mollissima*)
-##Boat-based Creche Surveys
-### Current Year surveys by date
+##Boat-based Creche Surveys: Current Year surveys by date
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 options(knitr.kable.NA = '')
 creche <- CrecheSum(time ="date")
@@ -107,7 +106,7 @@ df<- filter(creche, year== yr & !Island == "All Islands") %>% select(Island,time
 kable(df, caption = paste0("Creche surveys during ",yr)) 
 ```
 
-### Annual counts over time by variable
+##Boat-based Creche Surveys: Annual counts over time by variable
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 creche_y <- CrecheSum(time ="year")
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
