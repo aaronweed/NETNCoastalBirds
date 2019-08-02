@@ -9,6 +9,7 @@ License: No license
 Encoding: UTF-8
 LazyData: true
 Collate: 
+    'AMOY_MatingPairSumm.R'
     'GetCrecheData.R'
     'CrecheSum.R'
     'GetAMOYData.R'
