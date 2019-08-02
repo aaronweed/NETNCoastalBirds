@@ -2,7 +2,7 @@
 % Please edit documentation in R/GetAMOYData.R
 \name{GetAMOYData}
 \alias{GetAMOYData}
-\title{Return AMOY surveys from database}
+\title{Return in-season AMOY surveys from database}
 \usage{
 GetAMOYData(x, ODBC_connect = TRUE, export = FALSE)
 }
@@ -10,11 +10,10 @@ GetAMOYData(x, ODBC_connect = TRUE, export = FALSE)
 \item{x}{Denote "x" in parentheses to return a \code{data.frame} of all AMOY observations.}
 }
 \value{
-This function returns the raw AMOY nesting pair survey data as a \code{data.frame}.
+This function returns the raw AMOY survey data as a \code{data.frame}.
 }
 \description{
-This function connects to the backend of NETN's Coastal Bird Access DB and returns the annual end of season estimates of
-American Oystercatcher (AMOY) per Island.
+This function connects to the backend of NETN's Coastal Bird Access DB and returns the raw AMOY survey data.
 }
 \section{Warning}{
 
@@ -22,7 +21,7 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
 \examples{
-GetAMOYData(x, export= TRUE)
+GetAMOYdata(x)
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
