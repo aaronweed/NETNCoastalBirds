@@ -1,7 +1,8 @@
 #' @title Return ground-based nest surveys from database
 #'
-#' @importFrom plyr join
+#' @importFrom dplyr left_join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
+#' @import lubridate
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access 
 #' DB and returns the raw ground-based nest survey data for non-AMOY 
@@ -26,7 +27,7 @@
 
 GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   if (ODBC_connect == TRUE) {
-    # Connect to database BE 
+    # Connect to database BE ti bring in tables
     
     con <- odbcConnect("NETNCB")
     
@@ -37,16 +38,13 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
     
     event <- sqlFetch(con, "tbl_Events")
     nests <- sqlFetch(con, "tbl_Nests")
-    
     odbcClose(con)
   
   
   ####### create new vectors to match field names for joining ########
   
   nests$pk_EventID <- nests$fk_EventID
-  
-  
-  #############Join together various dataframes to create queries ##########
+   #############Join together various dataframes to create queries ##########
   
   ###### Nest surveys ###########
   # query ground-based and boat-based (DCCO/gulls) nest surveys and return df 
@@ -59,15 +57,17 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   # bind Events to Nests
   # intersect(names(event),names(nests))
   
-  temp.nest <- join(nests, event, by="pk_EventID")
+   temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
+      left_join(nests, ., by="pk_EventID") %>% 
+      filter(Obs_Type %in% "Target")
+          
   #head(temp.nest)
   
   
-  
   # Convert date to date object and create year and month vars
-  temp.nest$Date  <- as.Date(temp.nest$Date, format = "%Y-%m-%d") #convert to date
-  temp.nest$year  <- as.factor(format(temp.nest$Date, "%Y")) #Create year variable
-  temp.nest$month <- as.factor(format(temp.nest$Date, "%m")) #Create month variable
+  temp.nest$Date  <- ymd(temp.nest$Date) #convert to date
+  temp.nest$year  <- year(temp.nest$Date) #Create year variable
+  temp.nest$month <- month(temp.nest$Date) #Create month variable
   
   # strip off time (this may need to be changed if number of digits varies)
   temp.nest$Start_Time <- substr(temp.nest$Start_Time, 12, 19)
@@ -80,27 +80,13 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   temp.nest$Chick_Count[temp.nest$Chick_Count == 999] = NA
   
   ## subset df to final columns for exporting
-  nest_surveys_raw <- temp.nest[, c("Park", "Island", "Segment", "Survey_Class",
-                                    "Survey_Type", "Survey_MultiPart",
-                                    "Survey_Duplicate", "Survey_Primary", 
-                                    "Survey_Complete", "Obs_Type", "Date", "year", 
-                                    "month", "Start_Time", "Species_Code", "Species_Unit", "Nest_Status", 
-                                    "Unit_Count", "Egg_Count", "Chick_Count", 
-                                    "Obs_Coords", "Obs_Notes", "Wind_Direction", "Wind_Speed", "Air_Temp_F", "Cloud_Perc", "Tide_Stage")]  
-  
-  ### export to use in R viz
-  #write.table(nest_surveys_raw, "./Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
-  
-  ## Events
-  nest_Events <- temp.nest[, c("Park", "Island", "Segment", "Survey_Class", "Survey_Type", 
-                               "Obs_Type", "Date", "year", "month", "Start_Time", "pk_EventID")]
-  #write.table(nest_Events, "./Data/nestEvents.csv", sep=",", row.names= FALSE)
-  
-  ###Nest Data
-  nest_Data <- temp.nest[, c("Park", "Island", "Segment", "Date", "year", "month", "Start_Time", 
-                             "pk_EventID", "Species_Code", "Species_Unit", "Nest_Status", "Unit_Count", "Egg_Count", "Chick_Count")]
-
-  #write.table(nest_Data, "./Data/nestData.csv", sep=",", row.names= FALSE)
+  nest_surveys_raw <- select(temp.nest, Park, Island, Segment, Survey_Class,
+                                    Survey_Type, Survey_MultiPart,
+                                    Survey_Duplicate, Survey_Primary, 
+                                    Survey_Complete, Date, year, 
+                                    month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
+                                    Unit_Count, Egg_Count, Chick_Count, 
+                                    Obs_Coords, Obs_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
   
   ### export to use in R viz and for R package
   if (export == TRUE) {
