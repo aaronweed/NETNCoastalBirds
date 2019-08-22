@@ -186,7 +186,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   
   ### Manip data for graphing (long format)
     
-    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
+    graph.final<- select(table.final, -Comments,-Target_Spp, -TargetSpp_Group) %>% 
+      gather( variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
     
   }
     
@@ -248,8 +249,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     
     ### Manip data for graphing (long format)
     
-    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time) 
-    
+    graph.final<- select(table.final, -Comments,-Target_Spp, -TargetSpp_Group) %>% 
+      gather( variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time)
     
   }
   
