@@ -34,19 +34,20 @@
 #' 
 #' # Incubation surveys by date to view repeat effort
 #' lete <- SumIncubation(time = "date", species = "COTE")
-#' PlotBirds(lete, year= "2012")
+#' PlotBirds(lete, year= "2012", legend =TRUE)
 #' 
 #' # Creche surveys by date; typically to view efforts in a single season
 #' creche <- CrecheSum(time ="date")
 #' # View survey counts in 2018
 #' PlotBirds(creche, year = "2018")
 #' # surveys summed across all islands
-#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
+#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable", legend =TRUE)
 #' 
 #' # Nest surveys
 #' nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
 #' PlotBirds(nests, var = "Nests")
 #' PlotBirds(nests, island = "All Islands", facet= "variable")
+#' PlotBirds(nests, var= "EggsPerNest, legend =TRUE)
 #' 
 #' # Nest surveys of all species
 #' nests<-SumNestSurveys(time= "year")
@@ -72,19 +73,16 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
   
   if(facet == "Island") graphdata <- graphdata[!graphdata$Island %in% "All Islands", ]
   
-  # graphdata<-graphdata[na.omit(graphdata),]
-  # #graphdata<-droplevels(graphdata)
-  # 
+  #if(!anyNA(method)) graphdata <- graphdata[!graphdata$Count_Method %in% "Direct Count", ]
   
-  # setup plot
+  ### SETUP PLOT DATA 
   
   if(!overlay_spp){
   
   if(scale == "log"){### MAKE LOG SCALE
 
-  ### SETUP PLOT DATA 
     y2 <- ggplot(graphdata, 
-                 aes(x=time, y= log(value), colour= variable, group= variable)) +
+                 aes(x=time, y= log(value), color= variable, group= variable)) +
       geom_point(size = 2) +
       geom_line() + scale_colour_viridis_d(option="D")+
       labs(y = "log(Number Detected)", x= "")
@@ -93,7 +91,7 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
   if(scale == "norm") {#### GROUP BY VARIABLE OR COMMONNAME
     #### GROUP BY VARIABLE
     y2 <- ggplot(graphdata, 
-                 aes(x=time, y= value, colour= variable, group= variable)) +
+                 aes(x=time, y= value, color= variable, group= variable)) +
       geom_point(size=2) + 
       geom_line() + scale_colour_viridis_d(option="D")+
       labs(y = "Number Detected", x= "") 
@@ -126,7 +124,7 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
 
   ###DEFINE THEME
   y2 <- (y2 +
-         {if(legend) theme(legend.position = "top", legend.title= element_blank())}+
+         {if(legend) theme(legend.position = "top")}+
          {if(!legend)theme(legend.position = "none")}+
          theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 12)) +
          theme(axis.text.x = element_text(angle = 90,  vjust=0,size = 12 )) +

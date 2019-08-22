@@ -1,7 +1,7 @@
 #' @title Return incubation surveys from database
 #'
-#' @import dplyr
-#' @importFrom plyr join
+#' @importFrom  dplyr select left_join
+#' @importFrom lubridate ymd year month
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird 
@@ -39,7 +39,6 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     # import dataframes of each tables within the DB
     event <- sqlFetch(con, "tbl_Events"); names(event)
     obs <- sqlFetch(con, "tbl_Observations"); names(obs)
-    
     odbcClose(con)
     
     
@@ -53,15 +52,8 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
       names(obs) <- gsub("\\.", "_", names(obs))
     }
     
-    ####### create new vectors to match field names for binding ########
-    # names(obs)
-    obs$pk_EventID <- obs$fk_EventID 
-    unique(event$pk_EventID)  # is NAs...
-    unique(obs$pk_EventID)  # NAs...
-    
-    
     #############Join together various dataframes to create queries ##########
-    
+   
     ##### Boat-based Incubation surveys for nests and adults of target species groups  ###########
     # COTE, DCCO,  GBBG, HERG, LETE, SPSA, WILL 
     # returns df with the counts of adults and nests of target species 
@@ -71,34 +63,32 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     # will need to sum the counts per island, date, species etc.
     
     # Add obs data to  incubation event data
-    # intersect(names(event), names(obs))
     
-    temp.incub <- plyr::join(event, obs, by = "pk_EventID")
+    # intersect(names(event), names(obs))
+    temp.incub <- filter(event, Survey_Type == "Incubation") %>%
+      left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
+      filter(Obs_Type =="Target") %>% 
+      droplevels()
+    
     # View(temp.incub)
     
-    ## remove incidental obs
-    temp.incub2 <- temp.incub[temp.incub$Obs_Type %in% "Target", ]
-    
-    temp.incub2 <- droplevels(temp.incub2) # clean up factor levels
-    # View(temp.incub2)
-    
     # work with dates and time
-    temp.incub2$Date  <- as.Date(temp.incub2$Date, format = "%Y-%m-%d") #convert to date
-    temp.incub2$year  <- as.factor(format(temp.incub2$Date, "%Y")) #Create year variable
-    temp.incub2$month <- as.factor(format(temp.incub2$Date, "%m")) #Create month variable
+    temp.incub$Date  <- ymd(temp.incub$Date) #convert to date
+    temp.incub$year  <- year(temp.incub$Date) #Create year variable
+    temp.incub$month <- month(temp.incub$Date) #Create month variable
     
     # strip time out (this may need to be changed if number of digits varies)
-    temp.incub2$Start_Time <- substr(temp.incub2$Start_Time, 12, 19)
+    temp.incub$Start_Time <- substr(temp.incub$Start_Time, 12, 19)
     
     ## subset df to final columns
-    #names(temp.incub2)
-    incubation_raw <- temp.incub2[, c("Park", "Island", "Segment", "Survey_Class",
-                                      "Survey_Type", "Obs_Type", "Survey_MultiPart",
-                                      "Survey_Duplicate", "Survey_Primary", "Survey_Complete", 
-                                      "Date", "year", "month", "Start_Time", "Observer", 
-                                      "Species_Code", "Species_Unit", "Unit_Count", 
-                                      "Obs_Notes", "Recorder", "Data_Source", "Wind_Direction",
-                                      "Wind_Speed", "Air_Temp_F", "Cloud_Perc", "Tide_Stage")]  
+    #names(temp.incub)
+    incubation_raw <-select(temp.incub ,Park, Island, Segment, Survey_Class,
+                            Survey_Type, Survey_MultiPart,
+                            Survey_Duplicate, Survey_Primary, Survey_Complete,
+                            Date, year, month, Start_Time, Observer, 
+                            Species_Code, Species_Unit, Unit_Count, 
+                            Obs_Notes, Recorder, Data_Source, Wind_Direction,
+                            Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
     # sort df
     incubation_raw <- incubation_raw %>%
       dplyr::arrange(Island, Segment, Date, Species_Code, Observer)

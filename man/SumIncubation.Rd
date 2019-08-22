@@ -36,9 +36,9 @@ incubation surveys by Year for graphing. The second element for tabular summary.
 }
 \description{
 Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
- summarizes the data for plotting and analysis. Currently only sums counts from the primary 
+ summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Currently only sums counts from the primary 
  survey (Carol's) when repeated surveys were conducted. If you specify an argument to "ByObserver" 
- this will return sum counts of all duplicate surveys by observer.
+ this will return sum counts of all repeated surveys by observer.
 }
 \section{Warning}{
 

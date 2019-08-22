@@ -1,7 +1,8 @@
 #' @title Return creche surveys from database
 #'
-#' @importFrom plyr join
+#' @importFrom dplyr left_join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
+#' @importFrom lubridate year ymd
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
 #' and returns the raw creche survey data of COEI
@@ -36,20 +37,17 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   group <- sqlFetch(con, "tbl_Group")
   event <- sqlFetch(con, "tbl_Events")
   group_obs<-sqlFetch(con, "tbl_Group_Observations")
-  
+ 
   odbcClose(con)
   
   ####### create new vectors to match for joining ########
   #names(obs)
-  
   group$pk_EventID<-group$fk_EventID
   group_obs$GroupID<-group_obs$fk_GroupID
   group$GroupID<-group$pk_GroupID
-  
-  
+
   #############Join toegther various dataframes to create queries ##########
-  
-  ##### Boat-based Creche surveys (COEI) ###########
+   ##### Boat-based Creche surveys (COEI) ###########
   # returns df with the counts of COEI adults and ducklings observed during creche surveys per island,  Excludes incidental obs.
   # NOTE: When applicable this query retuns muultiple records of species counts per island/date combination when species was spotted at more than one time.
   
@@ -59,6 +57,7 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   # will need to sum the counts per island, date, species, stage etc.  
   
   ## extract Creche surveys from "events"
+
   event.crec<-event[event$Survey_Type %in% "Creche",]
   
   event.crec<-droplevels(event.crec)
@@ -72,7 +71,7 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   # Add subsetted group data to subsetted creche event data (event.crec)
   #intersect(names(event.crec),names(group.crec))
   
-  temp.crec<-join( event.crec,group.crec,  by="pk_EventID")
+  temp.crec<-left_join( event.crec,group.crec,  by="pk_EventID")
   #names(temp.crec)
   
   #count(unique(group_obs[,c("GroupID","Species_Unit")]))
@@ -80,15 +79,15 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   # add in group obs data for each event/group of COEI
   #intersect(names(temp.crec),names(group_obs))
   
-  temp.crec2<-join( temp.crec,group_obs,  by="GroupID")
+  temp.crec2<-left_join( temp.crec,group_obs,  by="GroupID")
   #names(temp.crec2)
   
   
   # work with dates and time
   
-  temp.crec2$Date<-as.Date(temp.crec2$Date, format= "%Y-%m-%d") #convert to date
-  temp.crec2$year<-as.factor(format(temp.crec2$Date,"%Y")) #Create year variable
-  temp.crec2$month<-as.factor(format(temp.crec2$Date,"%m")) #Create month variable
+  temp.crec2$Date<-ymd(temp.crec2$Date) #convert to date
+  temp.crec2$year<-year(temp.crec2$Date) #Create year variable
+  temp.crec2$month<-month(temp.crec2$Date) #Create month variable
   
   # strip time out (this may need to be changed if number of digits varies)
   temp.crec2$Start_Time<-substr(temp.crec2$Start_Time,12,19)
@@ -98,10 +97,10 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
  
   
   ## subset df to final 
-  creche_raw<-temp.crec2[,c("Park", "Island","Segment", "Survey_Class" , "Survey_Type","Date","Start_Time", "year", "month", "Survey_MultiPart" , "Survey_Duplicate" ,
-                            "Survey_Primary","Survey_Complete" ,"Obs_Type", "Recorder", "Observer","Species_Code" ,"Group_Count","Group_Time",
-                            "Group_NewTerritory","Group_Notes", "Group_Coords", "Species_Unit","Unit_Count","Survey_Notes" ,"Wind_Direction",
-                            "Wind_Speed","Air_Temp_F","Cloud_Perc","Tide_Stage")] 
+  creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
+                            Survey_Primary,Survey_Complete, Recorder, Observer,Species_Code ,Group_Count,Group_Time,
+                            Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,Unit_Count,Survey_Notes ,Wind_Direction,
+                            Wind_Speed,Air_Temp_F,Cloud_Perc,Tide_Stage,pk_EventID) 
   
   
   

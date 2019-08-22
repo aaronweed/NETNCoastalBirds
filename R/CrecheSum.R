@@ -1,4 +1,4 @@
-#' @include GetCrecheData.R
+#' @include GetCrecheData.R GetSurveyData.R
 
 #' @title Sum creche surveys
 #'
@@ -84,18 +84,20 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   }
   
   
-  ### Sum data across each segement as raw numbers by observer 
+  ### Sum data across each segement as raw and effort-adjusted numbers by observer 
   
   if (time == "date" & ByObserver == "yes") {
     graph.final <- df %>%
-      group_by(Island, Segment, Observer, Date, month, year, 
-               Survey_Duplicate, Survey_Complete, Group_Time, 
-               Group_Count, Species_Unit) %>% 
-      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% 
-      dplyr::rename(time = Date) %>%
-      add_column(Species_Code = "COEI") %>% 
-      inner_join(species_tlu, ., by= "Species_Code") # add species names to data
-    return(graph.final)
+      group_by(Island, Segment,  Date,month, year, Species_Code, Survey_Type, Survey_Primary,
+               Survey_Duplicate, Survey_Complete, Species_Unit,Observer,) %>%
+      dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
+      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## Sum counts per Island, Segment and Date
+      dplyr::inner_join(.,GetSurveyData(x, survey="Creche"), by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
+      dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size/1000),2)) %>% # standardize counts by survey effort
+      dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
+      tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
+      dplyr::select(Species_Code, Island, Segment, Survey_Type, time = Date, month, year, Survey_Primary,
+                    Survey_Duplicate, Survey_Complete, Species_Unit, value, valuePerSurveySize,Survey_Size, Survey_Units,Observer)
   } else {
     
     
@@ -186,7 +188,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   
   ### Manip data for graphing (long format)
     
-    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
+    graph.final<- select(table.final, -Comments, -TargetSpp_Group) %>% 
+      gather( variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time,-year,-month) 
     
   }
     
@@ -248,8 +251,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     
     ### Manip data for graphing (long format)
     
-    graph.final<- gather(table.final, variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time) 
-    
+    graph.final<- select(table.final, -Comments,-Target_Spp, -TargetSpp_Group) %>% 
+      gather( variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time)
     
   }
   
