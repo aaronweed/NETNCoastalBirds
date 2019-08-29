@@ -1,33 +1,36 @@
 #' @title Return creche surveys from database
 #'
-#' @importFrom dplyr left_join
+#' @importFrom dplyr select left_join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
-#' @importFrom lubridate year ymd
-#'  
+#' @importFrom lubridate year ymd month date
+#' @importFrom Hmisc mdb.get
+#'   
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
-#' and returns the raw creche survey data of COEI
-#' @section Warning:
-#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager. 
-#' (If ODBC_connect = TRUE).
-#' @param x Denote in parentheses to return df
-#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
-#' try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-#' the function can return the saved data from the package. 
+#' (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
+#' returns the raw creche survey data of COEI. If the Access DB is not
+#' accessible from the ODBC connection, one can try to connect via Hmisc, or
+#' the function returns a saved image of the data.
+#' 
+#' @param connect Should the function connect to the Access DB? The default 
+#' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+#' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+#' and include a patch to a saved version of the database, or
+#' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #'
-#' @details This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' creche <- GetCrecheData(x)
+#' creche <- GetCrecheData()
 
 #' @export
 
 
-GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
-  # Connect to database BE 
-  if  (ODBC_connect == TRUE) {
+GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
+  ## First, get the data depending on the connection option:
+  if (connect == "ODBC") {
   con <- odbcConnect("NETNCB")
   
   ###################### Import data and lookup tables used for the query   ################
@@ -39,6 +42,33 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   group_obs<-sqlFetch(con, "tbl_Group_Observations")
  
   odbcClose(con)
+  
+  ## If connection didn't work, try mdb.get() 
+  } else if (connect == "Hmisc") {
+    if (is.null(DBfile)) {
+      stop("Please specify the database location for this connection option.")
+    }
+    
+    group <- mdb.get(db_path, tables="tbl_Group", 
+                     mdbexportArgs = '', stringsAsFactors = FALSE)
+    event <- mdb.get(DBfile, tables = "tbl_Events", 
+                     mdbexportArgs = '', stringsAsFactors = FALSE)
+    group_obs <- mdb.get(db_path, tables="tbl_Group_Observations", 
+                         mdbexportArgs = '', stringsAsFactors = FALSE)
+    group <- clear.labels(group)
+    event <- clear.labels(event)
+    group_obs <- clear.labels(group_obs)
+    
+    ## The names are imported differently using mdb.get().
+    ## Replace "." with "_"
+    names(group) <- gsub("\\.", "_", names(group))
+    names(event) <- gsub("\\.", "_", names(event))
+    names(group_obs) <- gsub("\\.", "_", names(group_obs))
+  } else if (connect == "No") {
+    return(data(creche_raw))
+  } else {
+    stop("connect must be ODBC, Hmisc, or No.")
+  }
   
   ####### create new vectors to match for joining ########
   #names(obs)
@@ -84,7 +114,8 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   
   
   # work with dates and time
-  
+  ## (different for odbcConnect and HMisc pacakge)
+  if (connect == "ODBC") { 
   temp.crec2$Date<-ymd(temp.crec2$Date) #convert to date
   temp.crec2$year<-year(temp.crec2$Date) #Create year variable
   temp.crec2$month<-month(temp.crec2$Date) #Create month variable
@@ -94,12 +125,22 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   temp.crec2$Group_Time<-substr(temp.crec2$Group_Time,12,19)
   
   #names(temp.crec2)
- 
-  
+  } 
+  if (connect == "Hmisc") {
+    temp.crec2$Date  <- date(mdy_hms(as.character(temp.crec2$Date))) #convert to date
+    temp.crec2$year  <- year(temp.crec2$Date) #Create year variable
+    temp.crec2$month <- month(temp.crec2$Date) #Create month variable
+    
+    temp.crec2$Start_Time <- substr(temp.crec2$Start_Time,10,19)
+    temp.crec2$Group_Time <- substr(temp.crec2$Group_Time,10,19)
+  }
   ## subset df to final 
-  creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
-                            Survey_Primary,Survey_Complete, Recorder, c_Observer,Species_Code ,Group_Count,Group_Time,
-                            Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,Unit_Count,Survey_Notes ,Wind_Direction,
+  creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,
+                     Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
+                            Survey_Primary,Survey_Complete, Recorder, Observer,
+                     Species_Code ,Group_Count,Group_Time,
+                            Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,
+                     Unit_Count,Survey_Notes ,Wind_Direction,
                             Wind_Speed,Air_Temp_F,Cloud_Perc,Tide_Stage,pk_EventID) 
   
   
@@ -115,11 +156,19 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
     save(creche_raw, file = "Data/creche_raw.RData")
   }
   
-  
-  }
-  if (ODBC_connect == FALSE) {
-    data(creche_raw)
-  }
-  
   creche_raw
+}
+
+## Need this help function to remove labels afer using HMisc package:
+## (from: https://stackoverflow.com/questions/2394902/remove-variable-labels-attached-with-foreign-hmisc-spss-import-functions)
+clear.labels <- function(x) {
+  if(is.list(x)) {
+    for(i in 1 : length(x)) class(x[[i]]) <- setdiff(class(x[[i]]), 'labelled') 
+    for(i in 1 : length(x)) attr(x[[i]],"label") <- NULL
+  }
+  else {
+    class(x) <- setdiff(class(x), "labelled")
+    attr(x, "label") <- NULL
+  }
+  return(x)
 }

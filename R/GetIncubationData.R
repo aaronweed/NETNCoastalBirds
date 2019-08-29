@@ -22,7 +22,7 @@
 #' @return The raw boat-based incubation survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' incubation <- GetIncubationData(x)
+#' incubation <- GetIncubationData()
 #' @export
 
 ### This script connects to the backend of NETN's Coastal Bird Access DB and returns 
@@ -33,7 +33,7 @@
 #https://science.nature.nps.gov/im/units/netn/monitor/vitalSigns/birds/coastalBirds.cfm for further details 
 
 
-GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE) {
+GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   ## First, get the data depending on the connection option:
   if (connect == "ODBC") {
     # Connect to database BE using odbcConnect (default)
@@ -66,7 +66,7 @@ GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE
    } else if (connect == "No") {
        return(data(incubation_raw))
    } else {
-     stop("connect must be ODBC, HMisc, or No.")
+     stop("connect must be ODBC, Hmisc, or No.")
    }
     
   ## Keep organizing data from DB:
@@ -138,6 +138,9 @@ GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE
       incubation_raw
 }
 
+
+## Need this help function to remove labels afer using HMisc package:
+## (from: https://stackoverflow.com/questions/2394902/remove-variable-labels-attached-with-foreign-hmisc-spss-import-functions)
 clear.labels <- function(x) {
   if(is.list(x)) {
     for(i in 1 : length(x)) class(x[[i]]) <- setdiff(class(x[[i]]), 'labelled') 

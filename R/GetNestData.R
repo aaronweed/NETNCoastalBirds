@@ -1,32 +1,37 @@
 #' @title Return ground-based nest surveys from database
 #'
-#' @importFrom dplyr left_join
+#' @importFrom dplyr select left_join
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
-#' @import lubridate
+#' @importFrom lubridate ymd year month date
+#' @importFrom Hmisc mdb.get
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access 
-#' DB and returns the raw ground-based nest survey data for non-AMOY 
-#' (BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL).
-#' @section Warning:
-#' User should have Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' (If ODBC_connect = TRUE).
+#' DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
+#' returns the raw ground-based nest survey data for non-AMOY 
+#' (BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL). If the Access DB is not
+#' accessible from the ODBC connection, one can try to connect via Hmisc, or
+#' the function returns a saved image of the data.
 #' 
-#' @param x Denote in parentheses to return all ground-based nest surveys.
-#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
-#' try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-#' the function can return the saved data from the package. 
+#' 
+#' @param connect Should the function connect to the Access DB? The default 
+#' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+#' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+#' and include a patch to a saved version of the database, or
+#' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' @return This function returns the raw nest survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #'@examples 
-#' nests <- GetNestData(x)
+#' nests <- GetNestData()
 #' @export
 
 
-GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
-  if (ODBC_connect == TRUE) {
+GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
+  ## First, get the data depending on the connection option:
+  if (connect == "ODBC") {
+    
     # Connect to database BE ti bring in tables
     
     con <- odbcConnect("NETNCB")
@@ -40,7 +45,30 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
     nests <- sqlFetch(con, "tbl_Nests")
     odbcClose(con)
   
+    ## If connection didn't work, try mdb.get() 
+  } else if (connect == "Hmisc") {
+    if (is.null(DBfile)) {
+      stop("Please specify the database location for this connection option.")
+    }
+    event <- mdb.get(DBfile, tables = "tbl_Events", 
+                     mdbexportArgs = '', stringsAsFactors = FALSE)
+    nests <- mdb.get(DBfile, tables = "tbl_Nests", 
+                   mdbexportArgs = '', stringsAsFactors = FALSE)
+    event <- clear.labels(event)
+    nests   <- clear.labels(nests)
+    
+    ## The names are imported differently using mdb.get().
+    ## Replace "." with "_"
+    names(event) <- gsub("\\.", "_", names(event))
+    names(nests) <- gsub("\\.", "_", names(nests))
+  } else if (connect == "No") {
+    return(data(nest_surveys_raw))
+  } else {
+    stop("connect must be ODBC, Hmisc, or No.")
+  }
   
+  ## Keep organizing data from DB:
+    
   ####### create new vectors to match field names for joining ########
   
   nests$pk_EventID <- nests$fk_EventID
@@ -65,6 +93,8 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   
   
   # Convert date to date object and create year and month vars
+   ## (different for odbcConnect and HMisc pacakge)
+   if (connect == "ODBC") {
   temp.nest$Date  <- ymd(temp.nest$Date) #convert to date
   temp.nest$year  <- year(temp.nest$Date) #Create year variable
   temp.nest$month <- month(temp.nest$Date) #Create month variable
@@ -72,7 +102,15 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
   # strip off time (this may need to be changed if number of digits varies)
   temp.nest$Start_Time <- substr(temp.nest$Start_Time, 12, 19)
   #names(temp.nest)
-  
+   } 
+   if (connect == "Hmisc") {
+     temp.nest$Date  <- date(mdy_hms(as.character(temp.nest$Date))) #convert to date
+     temp.nest$year  <- year(temp.nest$Date) #Create year variable
+     temp.nest$month <- month(temp.nest$Date) #Create month variable
+     
+     temp.nest$Start_Time <- substr(temp.nest$Start_Time, 10, 19)
+   }
+   
   ### convert 999 counts for nest contents to NAs
   
   temp.nest$Unit_Count[temp.nest$Unit_Count == 999] = NA
@@ -94,10 +132,20 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
     save(nest_surveys_raw, file = "Data/nest_surveys_raw.RData")
   }
   
-  } 
-  if (ODBC_connect == FALSE) {
-     data(nest_surveys_raw)
-  }
-  
   return(nest_surveys_raw)
+}
+
+
+## Need this help function to remove labels afer using HMisc package:
+## (from: https://stackoverflow.com/questions/2394902/remove-variable-labels-attached-with-foreign-hmisc-spss-import-functions)
+clear.labels <- function(x) {
+  if(is.list(x)) {
+    for(i in 1 : length(x)) class(x[[i]]) <- setdiff(class(x[[i]]), 'labelled') 
+    for(i in 1 : length(x)) attr(x[[i]],"label") <- NULL
+  }
+  else {
+    class(x) <- setdiff(class(x), "labelled")
+    attr(x, "label") <- NULL
+  }
+  return(x)
 }
