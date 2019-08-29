@@ -89,7 +89,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   if (time == "date" & ByObserver == "yes") {
     graph.final <- df %>%
       group_by(Island, Segment,  Date,month, year, Species_Code, Survey_Type, Survey_Primary,
-               Survey_Duplicate, Survey_Complete, Species_Unit,Observer,) %>%
+               Survey_Duplicate, Survey_Complete, Species_Unit,Observer) %>%
       dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## Sum counts per Island, Segment and Date
       dplyr::inner_join(.,GetSurveyData(x, survey="Creche"), by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
