@@ -3,34 +3,39 @@
 #' @importFrom  dplyr select left_join
 #' @importFrom lubridate ymd year month
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
+#' @importFrom Hmisc mdb.get
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird 
 #' Access DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
 #' returns the boat-based incubation data. If the Access DB is not
-#' accessible from the ODBC connection, the function returns a saved image of the data.
-#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
-#' try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-#' the function can return the saved data from the package. 
+#' accessible from the ODBC connection, one can try to connect via Hmisc, or
+#' the function returns a saved image of the data.
+#' @param connect Should the function connect to the Access DB? The default 
+#' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+#' If the connection is not available or not desired, one can use \code{connect = `HMisc`}
+#' and include a patch to a saved version of the database, or
+#' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
-#' @param Hmisc_connect 
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #'
-#' @return This function returns the raw boat-based incubation survey data as a \code{data.frame}.
+#' @return The raw boat-based incubation survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
 #' incubation <- GetIncubationData(x)
 #' @export
 
-### This script connects to the backend of NETN's Coastal Bird Access DB and returns the raw incubation survey data 
+### This script connects to the backend of NETN's Coastal Bird Access DB and returns 
+### the raw incubation survey data 
 
-## ODBC BE file is: NETN_CoastalBirds_BE_20180309.accdb
+## ODBC BE file is: NETN_CoastalBirds_Master_BE_20180826.accdb
 
 #https://science.nature.nps.gov/im/units/netn/monitor/vitalSigns/birds/coastalBirds.cfm for further details 
 
 
-GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, export = FALSE) {
-  if (ODBC_connect == TRUE) {
+GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE) {
+  ## First, get the data depending on the connection option:
+  if (connect == "ODBC") {
     # Connect to database BE using odbcConnect (default)
     con <- odbcConnect("NETNCB")
     
@@ -43,15 +48,24 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     
     
     ## If connection didn't work, try mdb.get() 
-    if (Hmisc_connect == TRUE) {
-      event <- mdb.get(DBfile, tables = "tbl_Events", stringsAsFactors = FALSE); names(event)
-      obs <- mdb.get(DBfile, tables = "tbl_Observations", stringsAsFactors = FALSE); names(obs)   
+   } else if (connect == "Hmisc") {
+     if (is.null(DBfile)) {
+       stop("please specify a database location for this connection option.")
+     }
+      event <- mdb.get(DBfile, tables = "tbl_Events", stringsAsFactors = FALSE); 
+      obs <- mdb.get(DBfile, tables = "tbl_Observations", stringsAsFactors = FALSE); 
       ## The names are imported differently using mdb.get().
       ## Replace "." with "_"
       names(event) <- gsub("\\.", "_", names(event))
       names(obs) <- gsub("\\.", "_", names(obs))
-    }
+   } else if (connect == "No") {
+       return(data(incubation_raw))
+   } else {
+     stop("connect must be ODBC, HMisc, or No.")
+   }
     
+  ## Keep organizing data from DB:
+  
     ####### create new vectors to match field names for binding ########
     # names(obs)
     obs$pk_EventID <- obs$fk_EventID 
@@ -105,12 +119,6 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
       write.table(incubation_raw, "Data/incubation_raw.csv", sep=",", row.names= FALSE)
       save(incubation_raw, file = "Data/incubation_raw.RData")
     }
-  }
-  
-  if (ODBC_connect == FALSE) {
-    data(incubation_raw)
-  }
-  
-  incubation_raw
-  
+
+      incubation_raw
 }
