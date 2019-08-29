@@ -1,7 +1,7 @@
 #' @title Return incubation surveys from database
 #'
 #' @importFrom  dplyr select left_join
-#' @importFrom lubridate ymd year month
+#' @importFrom lubridate ymd year month date
 #' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom Hmisc mdb.get
 #'  
@@ -12,7 +12,7 @@
 #' the function returns a saved image of the data.
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
-#' If the connection is not available or not desired, one can use \code{connect = `HMisc`}
+#' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
 #' and include a patch to a saved version of the database, or
 #' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
@@ -50,10 +50,15 @@ GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE
     ## If connection didn't work, try mdb.get() 
    } else if (connect == "Hmisc") {
      if (is.null(DBfile)) {
-       stop("please specify a database location for this connection option.")
+       stop("Please specify the database location for this connection option.")
      }
-      event <- mdb.get(DBfile, tables = "tbl_Events", stringsAsFactors = FALSE); 
-      obs <- mdb.get(DBfile, tables = "tbl_Observations", stringsAsFactors = FALSE); 
+      event <- mdb.get(DBfile, tables = "tbl_Events", 
+                       mdbexportArgs = '', stringsAsFactors = FALSE)
+      obs <- mdb.get(DBfile, tables = "tbl_Observations", 
+                     mdbexportArgs = '', stringsAsFactors = FALSE)
+      event <- clear.labels(event)
+      obs   <- clear.labels(obs)
+      
       ## The names are imported differently using mdb.get().
       ## Replace "." with "_"
       names(event) <- gsub("\\.", "_", names(event))
@@ -93,25 +98,35 @@ GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE
    # View(temp.incub)
     
     # work with dates and time
+    ## (different for odbcConnect and HMisc pacakge)
+    if (connect == "ODBC") {
     temp.incub$Date  <- ymd(temp.incub$Date) #convert to date
     temp.incub$year  <- year(temp.incub$Date) #Create year variable
     temp.incub$month <- month(temp.incub$Date) #Create month variable
     
     # strip time out (this may need to be changed if number of digits varies)
-    temp.incub$Start_Time <- substr(temp.incub$Start_Time, 12, 19)
+      temp.incub$Start_Time <-substr(temp.incub$Start_Time, 12, 19)
+    } 
+    if (connect == "Hmisc") {
+      temp.incub$Date  <- date(mdy_hms(as.character(temp.incub$Date))) #convert to date
+      temp.incub$year  <- year(temp.incub$Date) #Create year variable
+      temp.incub$month <- month(temp.incub$Date) #Create month variable
+      
+      temp.incub$Start_Time <- substr(temp.incub$Start_Time, 10, 19)
+    }
     
     ## subset df to final columns
     #names(temp.incub)
-    incubation_raw <-select(temp.incub ,Park, Island, Segment, Survey_Class,
+    incubation_raw <- dplyr::select(temp.incub, Park, Island, Segment, Survey_Class,
                                       Survey_Type, Survey_MultiPart,
                                       Survey_Duplicate, Survey_Primary, Survey_Complete,
-                                      Date, year, month, Start_Time, c_Observer, 
+                                      Date, year, month, Start_Time, Observer, 
                                       Species_Code, Species_Unit, Unit_Count, 
                                       Obs_Notes, Recorder, Data_Source, Wind_Direction,
                                       Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
     # sort df
     incubation_raw <- incubation_raw %>%
-      dplyr::arrange(Island, Segment, Date, Species_Code, c_Observer)
+      dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
     #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$Observer),]
     
     ### export to use in R viz and for R package
@@ -121,4 +136,16 @@ GetIncubationData <- function(x, connect = "ODBC", DBfile = NULL, export = FALSE
     }
 
       incubation_raw
+}
+
+clear.labels <- function(x) {
+  if(is.list(x)) {
+    for(i in 1 : length(x)) class(x[[i]]) <- setdiff(class(x[[i]]), 'labelled') 
+    for(i in 1 : length(x)) attr(x[[i]],"label") <- NULL
+  }
+  else {
+    class(x) <- setdiff(class(x), "labelled")
+    attr(x, "label") <- NULL
+  }
+  return(x)
 }
