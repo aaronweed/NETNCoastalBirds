@@ -19,7 +19,7 @@
 #' no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
 #' segments of each island for each date. Summing by year sums counts across all surveys conducted 
 #' in that year. Note that some surveys were repeated in the same year. 
-#' @param species To subset data by species, use "COTE", "DCCO","GBBG","HERG". Defaults
+#' @param species To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 #' to providing output for all species.
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
@@ -72,11 +72,11 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
     graph.final <- df %>%
       group_by(Island, Segment, Date,month, year, Species_Code, Survey_Type, Survey_Primary,
                Survey_Duplicate, Survey_Complete, Observer) %>% 
-      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% 
+      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## sum counts across observers
       dplyr::left_join(.,GetSurveyData(x, survey="Incubation", species = {if(!anyNA(species)) species else NA}),by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
-      dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size),3)) %>% # standardize counts by survey effort
-      dplyr::mutate(Survey_Size = Survey_Size) %>% # added in case I want to scale to other units
-      tibble::add_column(Survey_Units = "m2") %>% # denote what survey effort units are reported
+      dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
+      dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
+      tibble::add_column(Survey_Units = "km2") %>% # denote what survey effort units are reported
       dplyr::select(Species_Code, Island, Segment, time = Date, month, year, Survey_Type, Survey_Primary,
                     Survey_Duplicate, Survey_Complete, value, valuePerSurveySize,Survey_Size, Survey_Units, Observer)
     return(graph.final)
@@ -98,22 +98,22 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   #################################################
   
   ########### Sum counts per date for all surveys counted on the same island across segements  #######################################
-  # Note that there can be more than one primary survey per day
+  # Note that in some years (mainly 2007-2009) there can be more than one primary survey per day for a segment (Little Calf and Calf). This is because of how the data 
+  # were translated from past recording at the island scale to how we handle data in the segments in the current database BE. 
+  # These are NOT to be considerd duplicate surveys but complomete the survey for that island so they should be summed together. 
   #######################################
   if (time == "date") {
     SumBySegment <- df.melt %>% 
       group_by(Species_Code, Island, Segment, Date, month, year) %>% 
-      dplyr::summarise(value = max(value, na.rm = TRUE), n=n()) %>% # find the maximum nest count per segment when >1 primary surveys per date. 
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # sum per segment when >1 primary surveys per date. 
       dplyr::rename(time = Date)
     
     ## Sum the number of adults on each date across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, Island, Segment, Date, month, year) %>% 
-      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 primary surveys per date. 
-      group_by(Species_Code, Date, month, year) %>% 
-      dplyr::summarise( value = sum(value, na.rm=TRUE)) %>% 
-      tibble::add_column(Island = "All Islands") %>% 
+      group_by(Species_Code,  Date, month, year) %>% 
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% #  sum per segment when >1 primary surveys per date.
+      tibble::add_column(Island = "All Islands", Segment="All") %>% 
       dplyr::rename(time = Date)
   }
   
@@ -124,39 +124,50 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   if (time == "year") {
     SumBySegment <- df.melt %>% 
       group_by(Species_Code, Island, Segment,year) %>% 
-      dplyr::summarise(value = max(value, na.rm = TRUE), n=n()) %>% # find the maximum nest count per segment when >1 surveys per year 
+      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n()) %>% # find the sum count per segment when >1 surveys per year 
       dplyr::rename(time = year)
     
     ## Sum the number of adults in each year across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, Island, Segment,year) %>% 
-      dplyr::summarise(value = max(value, na.rm = TRUE)) %>% # find the maximum nest count per segment when >1 primarysurveys per year 
       group_by(Species_Code, year) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n()) %>% # find the total no. nests per year
-      tibble::add_column(Island = "All Islands")  %>% 
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # find the sum count per segment when >1 primary surveys per year 
+      tibble::add_column(Island = "All Islands", Segment="All")  %>% 
       dplyr::rename(time = year)
   }
   
     #################################
   # bind together the results aggregated by time AT the SEGMENT-SCALE
-  
+  ## CALCULATE  VALUES PER ISLAND BASED ON SURVEY-ADJUSTED ESTIMATES 
+  ## for islands with >1 segments, sums raw counts and survey area by island and then divides sum counts / sum survey area
+  ## for many surveys there is only one segment surveys, but there are a few with >1 segement per island surevyed in a given year
   #################################
   AllData <- bind_rows(SumBySegment, SumByBOHA) %>% 
     tibble::add_column(Survey_Type = "Incubation") %>% # add in for correct binding of survey effort
     dplyr::left_join(.,GetSurveyData(x, survey="Incubation", species = {if(!anyNA(species)) species else NA}),
                      by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
-    dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size),3)) %>% # standardize counts by survey effort
-    dplyr::mutate(Survey_Size = Survey_Size) %>% # added in case I want to scale to other units
-    tibble::add_column(Survey_Units = "m2") %>% # denote what survey effort units are reported
-    dplyr::select(Species_Code, Island, Segment, time, month, year, Survey_Type, Survey_Primary,
-                  Survey_Duplicate, Survey_Complete, value, valuePerSurveySize,Survey_Size, Survey_Units, Observer)
+    group_by(Species_Code, Island, time, Size_Units) %>% ## first summarize data by Island
+    dplyr::summarise(value= sum(value), # sum raw counts
+                     Survey_Size = sum(Survey_Size)) %>% # , ## sum survey effort per island, 
+    dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
+    dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
+    tibble::add_column(Survey_Units = "km2", variable = "Incubating Adults") %>% # denote what survey effort units are reported  
+    dplyr::select(Species_Code, Island,  time, variable,
+                  value, valuePerSurveySize,Survey_Size, Survey_Units) %>% 
     inner_join(species_tlu, ., by = "Species_Code") # add species names to data
   
   graph.final <- AllData %>%
     mutate(FullLatinName = as.character(FullLatinName),
            CommonName = as.character(CommonName),
-           variable = "Incubating adults")
+           variable = "Incubating adults") 
+  
+  if(time  == "year"){
+    graph.final<-graph.final %>% 
+      mutate(year= time)}else{
+        
+        graph.final<-graph.final %>% 
+          mutate(year= year(time))
+      }
   
   # output data for graphing
   

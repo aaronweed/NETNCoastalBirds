@@ -41,16 +41,28 @@ GetSurveyData<-function(x,species = NA, survey = NA,ODBC_connect = TRUE){
       tbl_df()
     
     ##### Join together information on segments to bring in area/distance surveyed per island. ----
-    seg_event<- 
+    Spec_Isl<- 
       left_join(Isl_Seg, Seg_Size, by= c(pk_SegmentID= "fk_SegmentID"))%>% # joins tables to create table of survey effort per segement
       select(Island, Segment, Survey_Class, Survey_Type, Target_Spp, Survey_Size, Size_Units, Active) %>% 
       left_join(event,., by=c("Survey_Class", "Survey_Type" , "Island","Segment")) %>% tbl_df() %>% # add on segment survey data
       regex_inner_join(.,species_tlu, by=c(Target_Spp = "TargetSpp_Group")) %>%   #Add species codes to survey effort to remove target species grouping for later joining
-      {if (!anyNA(species)) filter(.,Species_Code == species) else .} %>% # filter by selected species, defaults to all species
-      {if (!anyNA(survey)) filter(.,Survey_Type == survey) else .} %>% # filter by selected survey, defaults to all 
+      {if (!anyNA(species)) filter(.,Species_Code %in% species) else .} %>% # filter by selected species, defaults to all species
+      {if (!anyNA(survey)) filter(.,Survey_Type %in% survey) else .} %>% # filter by selected survey, defaults to all 
       select(Species_Code, Island, Segment, Survey_Class, Survey_Type,Survey_Size, Size_Units) %>% 
-      droplevels() %>% 
-      distinct()  
+      droplevels() %>% distinct() 
+    
+    ## sum survey sizes across BOHA to append to All island summaries
+    
+    All_Isl<- Spec_Isl %>%
+      dplyr::group_by(Species_Code,Survey_Class,Survey_Type) %>% 
+      dplyr::summarise(Survey_Size = sum(Survey_Size)) %>% 
+      dplyr::mutate(Size_Units = ifelse(Survey_Type %in% "Creche","m","m2")) %>% 
+      tibble::add_column(Island = "All Islands", Segment= "All")
+      
+    # bind together dfs
+    
+    seg_event <-bind_rows(Spec_Isl,All_Isl) %>% 
+      select(Species_Code, Island, Segment, Survey_Class, Survey_Type,Survey_Size, Size_Units)
     
   }
   

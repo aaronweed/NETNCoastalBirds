@@ -4,12 +4,15 @@
 \alias{PlotBirds}
 \title{Plot coastal bird survey data}
 \usage{
-PlotBirds(data, species = NA, island = NA, year = NA,
-  scale = "norm", facet = "Island", var = NA, overlay_spp = FALSE,
-  print = "yes", plot_title = "yes", legend = FALSE)
+PlotBirds(data, raw_count = FALSE, species = NA, island = NA,
+  year = NA, scale = "norm", facet = "Island", var = NA,
+  overlay_spp = FALSE, print = "yes", plot_title = "yes",
+  legend = FALSE)
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
+
+\item{raw_count}{\code{TRUE} or \code{FALSE}. Plot effort-adjusted (default) or raw count data?}
 
 \item{species}{A  vector of species name codes, e.g. "BCNH"}
 

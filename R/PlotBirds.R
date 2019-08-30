@@ -10,6 +10,7 @@
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.
+#' @param raw_count \code{TRUE} or \code{FALSE}. Plot effort-adjusted (default) or raw count data?
 #' @param island A vector of island names (e.g., "Calf"). To view surveys summed across all islands, use "All Islands". WHen using "All Islands" you need to supply agrument to facet (such as "variable").
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param var Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.
@@ -55,7 +56,7 @@
 #' 
 #' @export
 
-PlotBirds<-function(data, species= NA, island=NA, year= NA, 
+PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA, 
                     scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", plot_title = "yes", legend= FALSE){
   
   library(ggplot2)
@@ -77,7 +78,15 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
   
   ### SETUP PLOT DATA 
   
-  if(!overlay_spp){
+  ## what value should be plotted? 
+  #The raw counts (value) or effort-adjusted counts (valuePerSurveySize)
+  if(!raw_count){
+    # just rename the vector
+    graphdata$value<- graphdata$valuePerSurveySize
+  }
+  
+  
+  if(!overlay_spp){## overlay species
   
   if(scale == "log"){### MAKE LOG SCALE
 
@@ -85,7 +94,7 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
                  aes(x=time, y= log(value), color= variable, group= variable)) +
       geom_point(size = 2) +
       geom_line() + scale_colour_viridis_d(option="D")+
-      labs(y = "log(Number Detected)", x= "")
+      labs(y = paste0("log(Number Detected"), x= "")
   }
   
   if(scale == "norm") {#### GROUP BY VARIABLE OR COMMONNAME
@@ -98,13 +107,22 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
     
     } 
       }else{
-    # group by CommonName
+        if(scale == "log"){### MAKE LOG SCALE
+          # group by CommonName
+          y2 <- ggplot(graphdata, 
+                       aes(x=time, y= log(value), color= CommonName, group= CommonName)) +
+            geom_point(size = 2) +
+            geom_line() + scale_colour_viridis_d(option="D")+
+            labs(y = paste0("log(Number Detected"), x= "")
+        }else{
+        
+          # group by CommonName
     y2<-ggplot(graphdata, aes(x=time, y= value, colour= CommonName,group= CommonName))+
     geom_point()+ 
     geom_line()+ scale_colour_viridis_d(option="D")+
     labs(y = "Number Detected", x= "")+
     ggtitle(paste0(if(!anyNA(var)) var, "Counts of ",graphdata$variable[1], " per ", facet))
-  
+        }
       }
 ### ADD FACETING 
   if(!anyNA(facet)) {

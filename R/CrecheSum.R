@@ -251,7 +251,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     
     ### Manip data for graphing (long format)
     
-    graph.final<- select(table.final, -Comments,-Target_Spp, -TargetSpp_Group) %>% 
+    graph.final<- select(table.final, -Comments, -TargetSpp_Group) %>% 
       gather( variable, value, -Species_Code,-FullLatinName, -CommonName,-Island,-time)
     
   }
