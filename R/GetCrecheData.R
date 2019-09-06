@@ -98,7 +98,7 @@ GetCrecheData <- function(x, ODBC_connect = TRUE, export= FALSE) {
   
   ## subset df to final 
   creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
-                            Survey_Primary,Survey_Complete, Recorder, c_Observer,Species_Code ,Group_Count,Group_Time,
+                            Survey_Primary,Survey_Complete, Recorder, Observer,Species_Code ,Group_Count,Group_Time,
                             Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,Unit_Count,Survey_Notes ,Wind_Direction,
                             Wind_Speed,Air_Temp_F,Cloud_Perc,Tide_Stage,pk_EventID) 
   

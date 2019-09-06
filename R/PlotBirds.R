@@ -10,6 +10,7 @@
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param data A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.
+#' @param raw_count \code{TRUE} or \code{FALSE}. Plot effort-adjusted (default) or raw count data?
 #' @param island A vector of island names (e.g., "Calf"). To view surveys summed across all islands, use "All Islands". WHen using "All Islands" you need to supply agrument to facet (such as "variable").
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param var Select a variable to plot, typically a life stage (e.g., Eggs, Nests, Creche size). Defaults to all values.
@@ -21,32 +22,32 @@
 #' @param  plot_title Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
 #' @param legend Add legend. Defaults to \code{FALSE}.
 #' @return Outputs a ggplot graph of species detections over time.
-#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @seealso \url{https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' # Incubation surveys by year
+#' #Incubation surveys by year
 #' dcco <- SumIncubation(time = "year", species = "DCCO")
-
 #' PlotBirds(dcco)
 #' 
 #' # Incubation surveys by year of multiple species
 #' incub<-SumIncubation(time = "year", species = c("DCCO", "HERG", "GBBG"))
-#' PlotBirds(incub, overlay_spp= TRUE)
+#' PlotBirds(incub, overlay_spp= TRUE, raw_count= FALSE)
 #' 
 #' # Incubation surveys by date to view repeat effort
-#' lete <- SumIncubation(time = "date", species = "COTE")
-#' PlotBirds(lete, year= "2012")
+#' gbbg <- SumIncubation(time = "date", species = "GBBG")
+#' PlotBirds(gbbg, year= "2012", legend =TRUE)
 #' 
 #' # Creche surveys by date; typically to view efforts in a single season
 #' creche <- CrecheSum(time ="date")
 #' # View survey counts in 2018
 #' PlotBirds(creche, year = "2018")
 #' # surveys summed across all islands
-#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable")
+#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable", legend = TRUE)
 #' 
 #' # Nest surveys
 #' nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
 #' PlotBirds(nests, var = "Nests")
-#' PlotBirds(nests, island = "All Islands", facet= "variable")
+#' PlotBirds(nests, island = "All Islands", facet= "variable", raw_counts= FALSE)
+#' PlotBirds(nests, var= "EggsPerNest", legend =TRUE)
 #' 
 #' # Nest surveys of all species
 #' nests<-SumNestSurveys(time= "year")
@@ -54,7 +55,7 @@
 #' 
 #' @export
 
-PlotBirds<-function(data, species= NA, island=NA, year= NA, 
+PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA, 
                     scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", plot_title = "yes", legend= FALSE){
   
   library(ggplot2)
@@ -72,41 +73,55 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
   
   if(facet == "Island") graphdata <- graphdata[!graphdata$Island %in% "All Islands", ]
   
-  # graphdata<-graphdata[na.omit(graphdata),]
-  # #graphdata<-droplevels(graphdata)
-  # 
+  #if(!anyNA(method)) graphdata <- graphdata[!graphdata$Count_Method %in% "Direct Count", ]
   
-  # setup plot
+  ### SETUP PLOT DATA 
   
-  if(!overlay_spp){
+  ## what value should be plotted? 
+  #The raw counts (value) or effort-adjusted counts (valuePerSurveySize)
+  if(!raw_count){
+    # just rename the vector
+    graphdata$value<- graphdata$valuePerSurveySize
+  }
+  
+  
+  if(!overlay_spp){## overlay species
   
   if(scale == "log"){### MAKE LOG SCALE
 
-  ### SETUP PLOT DATA 
     y2 <- ggplot(graphdata, 
-                 aes(x=time, y= log(value), colour= variable, group= variable)) +
+                 aes(x=time, y= log(value), color= variable, group= variable)) +
       geom_point(size = 2) +
       geom_line() + scale_colour_viridis_d(option="D")+
-      labs(y = "log(Number Detected)", x= "")
+      labs(y = paste0("log(Number Detected"), x= "")
   }
   
   if(scale == "norm") {#### GROUP BY VARIABLE OR COMMONNAME
     #### GROUP BY VARIABLE
     y2 <- ggplot(graphdata, 
-                 aes(x=time, y= value, colour= variable, group= variable)) +
+                 aes(x=time, y= value, color= variable, group= variable)) +
       geom_point(size=2) + 
       geom_line() + scale_colour_viridis_d(option="D")+
       labs(y = "Number Detected", x= "") 
     
     } 
       }else{
-    # group by CommonName
+        if(scale == "log"){### MAKE LOG SCALE
+          # group by CommonName
+          y2 <- ggplot(graphdata, 
+                       aes(x=time, y= log(value), color= CommonName, group= CommonName)) +
+            geom_point(size = 2) +
+            geom_line() + scale_colour_viridis_d(option="D")+
+            labs(y = paste0("log(Number Detected"), x= "")
+        }else{
+        
+          # group by CommonName
     y2<-ggplot(graphdata, aes(x=time, y= value, colour= CommonName,group= CommonName))+
     geom_point()+ 
     geom_line()+ scale_colour_viridis_d(option="D")+
     labs(y = "Number Detected", x= "")+
     ggtitle(paste0(if(!anyNA(var)) var, "Counts of ",graphdata$variable[1], " per ", facet))
-  
+        }
       }
 ### ADD FACETING 
   if(!anyNA(facet)) {
@@ -126,7 +141,7 @@ PlotBirds<-function(data, species= NA, island=NA, year= NA,
 
   ###DEFINE THEME
   y2 <- (y2 +
-         {if(legend) theme(legend.position = "top", legend.title= element_blank())}+
+         {if(legend) theme(legend.position = "top")}+
          {if(!legend)theme(legend.position = "none")}+
          theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 12)) +
          theme(axis.text.x = element_text(angle = 90,  vjust=0,size = 12 )) +

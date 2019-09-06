@@ -10,8 +10,8 @@ CrecheSum(time, df = NULL, output = "graph", ByObserver = "no",
 \arguments{
 \item{time}{Choose to sum counts by "date" or "year". Summing by date will sum 
 counts across segments of each island for each date. Summing by year sums counts 
-across all surveys conducted in that year. Note that some sites were surveyed repeated in 
-the same year.}
+across all surveys conducted in that year. Note that some sites were surveyed more than once in 
+the same year (primarily terns COTE and LETE).}
 
 \item{df}{The user can optionally load the raw creche data from an R object or connect to the 
 Access database to obtain it. Defaults to NULL, which means the Access database will
@@ -21,37 +21,33 @@ be used to obtain it.}
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
 
-\item{ByObserver}{Character string equal to "yes" or "no".
-If "yes" will output the survey data counted by each observer for 
-each island segment on each date. Only sums across multiple observations by same 
+\item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
+If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
+each island segment on each date. Sums counts across multiple observations by same 
 observer at each segment. Defaults to "no".}
 
 \item{islands}{Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
 The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).}
 }
 \value{
-Returns a \code{list} with the counts of COEI life stages observed 
-during boat-based creche surveys per island, species, and by life stage. 
-The first two \code{list}  elements summarize creche surveys by Date for tabular 
-and graphing display, respectively. The 3rd and 4th \code{list} elements summarize 
-creche surveys by YEAR for tabular and graphing display, respectively.
+Returns a \code{data.frame} with the raw and effort-adjusted counts of COEI life stages observed 
+during boat-based creche surveys per island, life stage, and time.
 }
 \description{
 Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
-and summarizes the data by year or date for plotting and analysis. Currently only 
-sums counts from the primary survey (Carol's) when repeated surveys were conducted. 
-If you specify an argument to "ByObserver" this will return sum counts of all 
-duplicate surveys by observer.
+and summarizes the counts by year or date and life stage for plotting and analysis. Currently sums counts from the primary 
+ survey conducted by the lead biologist when repeated surveys were conducted.  If you specify  \code{ByObserver}=\code{TRUE} 
+  the  counts of all duplicate surveys will be summed by observer.
 }
 \section{Warning}{
 
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
 \examples{
  
 CrecheSum(time ="date")
-CrecheSum(time ="date", stage= "Chicks")
+CrecheSum(time ="year")
 CrecheSum(time= "date", ByObserver = "yes")
 }
 \seealso{

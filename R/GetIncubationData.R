@@ -52,13 +52,6 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
       names(obs) <- gsub("\\.", "_", names(obs))
     }
     
-    ####### create new vectors to match field names for binding ########
-    # names(obs)
-    obs$pk_EventID <- obs$fk_EventID 
-    #unique(event$pk_EventID)  # is NAs...
-    #unique(obs$pk_EventID)  # NAs...
-  
-    
     #############Join together various dataframes to create queries ##########
    
     ##### Boat-based Incubation surveys for nests and adults of target species groups  ###########
@@ -72,11 +65,12 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     # Add obs data to  incubation event data
     
     # intersect(names(event), names(obs))
-    temp.incub <- filter(event, Survey_Type == "Incubation") %>% 
-      left_join(.,obs, by = c("pk_EventID")) %>% 
-      filter(Obs_Type =="Target")
-     
-   # View(temp.incub)
+    temp.incub <- filter(event, Survey_Type == "Incubation") %>%
+      left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
+      filter(Obs_Type =="Target") %>% 
+      droplevels()
+    
+    # View(temp.incub)
     
     # work with dates and time
     temp.incub$Date  <- ymd(temp.incub$Date) #convert to date
@@ -89,15 +83,15 @@ GetIncubationData <- function(x, ODBC_connect = TRUE, Hmisc_connect = FALSE, exp
     ## subset df to final columns
     #names(temp.incub)
     incubation_raw <-select(temp.incub ,Park, Island, Segment, Survey_Class,
-                                      Survey_Type, Survey_MultiPart,
-                                      Survey_Duplicate, Survey_Primary, Survey_Complete,
-                                      Date, year, month, Start_Time, c_Observer, 
-                                      Species_Code, Species_Unit, Unit_Count, 
-                                      Obs_Notes, Recorder, Data_Source, Wind_Direction,
-                                      Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+                            Survey_Type, Survey_MultiPart,
+                            Survey_Duplicate, Survey_Primary, Survey_Complete,
+                            Date, year, month, Start_Time, Observer, 
+                            Species_Code, Species_Unit, Unit_Count, 
+                            Obs_Notes, Recorder, Data_Source, Wind_Direction,
+                            Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
     # sort df
     incubation_raw <- incubation_raw %>%
-      dplyr::arrange(Island, Segment, Date, Species_Code, c_Observer)
+      dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
     #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$Observer),]
     
     ### export to use in R viz and for R package

@@ -39,64 +39,61 @@ GetNestData <- function(x, ODBC_connect = TRUE, export = FALSE) {
     event <- sqlFetch(con, "tbl_Events")
     nests <- sqlFetch(con, "tbl_Nests")
     odbcClose(con)
-  
-  
-  ####### create new vectors to match field names for joining ########
-  
-  nests$pk_EventID <- nests$fk_EventID
-   #############Join together various dataframes to create queries ##########
-  
-  ###### Nest surveys ###########
-  # query ground-based and boat-based (DCCO/gulls) nest surveys and return df 
-  # with counts of chicks and eggs per species, island, and year. 
-  ## BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL 
-  # NOTE: When applicable this query retuns multiple records of species counts 
-  # per island/date combination when a species was spotted at more than one time per event.
-  # will need to sum the number of nests and counts nest per island, date, species etc.
-  
-  # bind Events to Nests
-  # intersect(names(event),names(nests))
-  
-   temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
-      left_join(nests, ., by="pk_EventID") %>% 
+    
+    
+    #############Join together various dataframes to create queries ##########
+    
+    ###### Nest surveys ###########
+    # query ground-based nest surveys and return df 
+    # with counts of nests, chicks and eggs per species, island, and year. 
+    ## BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL 
+    # NOTE: When applicable this query retuns multiple records of species counts 
+    # per island/date combination when a species was spotted at more than one time per event.
+    # will need to sum the number of nests and counts nest per island, date, species etc.
+    
+    # bind Events to Nests
+    # intersect(names(event),names(nests))
+    
+    temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
+      left_join(nests, ., by= c(fk_EventID = "pk_EventID")) %>% 
       filter(Obs_Type %in% "Target")
-          
-  #head(temp.nest)
-  
-  
-  # Convert date to date object and create year and month vars
-  temp.nest$Date  <- ymd(temp.nest$Date) #convert to date
-  temp.nest$year  <- year(temp.nest$Date) #Create year variable
-  temp.nest$month <- month(temp.nest$Date) #Create month variable
-  
-  # strip off time (this may need to be changed if number of digits varies)
-  temp.nest$Start_Time <- substr(temp.nest$Start_Time, 12, 19)
-  #names(temp.nest)
-  
-  ### convert 999 counts for nest contents to NAs
-  
-  temp.nest$Unit_Count[temp.nest$Unit_Count == 999] = NA
-  temp.nest$Egg_Count[temp.nest$Egg_Count == 999] = NA
-  temp.nest$Chick_Count[temp.nest$Chick_Count == 999] = NA
-  
-  ## subset df to final columns for exporting
-  nest_surveys_raw <- select(temp.nest, Park, Island, Segment, Survey_Class,
-                                    Survey_Type, Survey_MultiPart,
-                                    Survey_Duplicate, Survey_Primary, 
-                                    Survey_Complete, Date, year, 
-                                    month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
-                                    Unit_Count, Egg_Count, Chick_Count, 
-                                    Obs_Coords, Obs_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
-  
-  ### export to use in R viz and for R package
-  if (export == TRUE) {
-    write.table(nest_surveys_raw, "Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
-    save(nest_surveys_raw, file = "Data/nest_surveys_raw.RData")
-  }
-  
+    
+    #head(temp.nest)
+    
+    
+    # Convert date to date object and create year and month vars
+    temp.nest$Date  <- ymd(temp.nest$Date) #convert to date
+    temp.nest$year  <- year(temp.nest$Date) #Create year variable
+    temp.nest$month <- month(temp.nest$Date) #Create month variable
+    
+    # strip off time (this may need to be changed if number of digits varies)
+    temp.nest$Start_Time <- substr(temp.nest$Start_Time, 12, 19)
+    #names(temp.nest)
+    
+    ### convert 999 counts for nest contents to NAs
+    
+    temp.nest$Unit_Count[temp.nest$Unit_Count == 999] = NA
+    temp.nest$Egg_Count[temp.nest$Egg_Count == 999] = NA
+    temp.nest$Chick_Count[temp.nest$Chick_Count == 999] = NA
+    
+    ## subset df to final columns for exporting
+    nest_surveys_raw <- select(temp.nest, Park, Island, Segment, Survey_Class,
+                               Survey_Type, Survey_MultiPart,
+                               Survey_Duplicate, Survey_Primary, 
+                               Survey_Complete, Date, year, 
+                               month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
+                               Unit_Count, Egg_Count, Chick_Count, Observer,
+                               Obs_Coords, Obs_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+    
+    ### export to use in R viz and for R package
+    if (export == TRUE) {
+      write.table(nest_surveys_raw, "Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
+      save(nest_surveys_raw, file = "Data/nest_surveys_raw.RData")
+    }
+    
   } 
   if (ODBC_connect == FALSE) {
-     data(nest_surveys_raw)
+    data(nest_surveys_raw)
   }
   
   return(nest_surveys_raw)
