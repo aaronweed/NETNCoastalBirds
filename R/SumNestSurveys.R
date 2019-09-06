@@ -169,9 +169,9 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
     group_by(Species_Code, Island, time, variable, Size_Units, Count_Method) %>% ## first summarize data by Island
      dplyr::summarise(value= sum(value), # sum raw counts
                       Survey_Size = sum(Survey_Size)) %>% ## sum survey effort per island,  
-    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size)*1000000,3)) %>% # Then standardize counts by survey effort
-    dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
-    tibble::add_column(Survey_Units = "km2") # denote what survey effort units are reported
+    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size),3)) %>% # Then standardize counts by survey effort
+    dplyr::mutate(Survey_Size = Survey_Size) %>% # added in case I want to scale to other units
+    tibble::add_column(Survey_Units = "m2") # denote what survey effort units are reported
   
   # Calc eggs per nest and chicks per nest and bind to nest count data
   
