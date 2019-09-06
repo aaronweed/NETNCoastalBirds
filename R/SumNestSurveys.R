@@ -15,7 +15,7 @@
 #' @param time Character string equal to "date" or "year".
 #' Choose to sum effort-adjusted counts (no. / km2) by "date" or "year". Summing by date will sum counts 
 #' across segments of each island for each date. Summing by year sums counts across all surveys 
-#' conducted in that year per island. Note that some surveys were repeated in the same year, primarily terns COTE and LETE. 
+#' conducted in that year per island; however, since there are multiple surveys per year for terns COTE and LETE, the maximum nest count among surveys is returned per year.  
 #' @param species To subset data by species, use "BCNH" ,"COEI", "GLIB", "GREG", 
 #' "SNEG", "DCCO", "GBBG", "HERG", "COTE" or "LETE". Defaults
 #' to providing output for all species.
