@@ -22,33 +22,32 @@
 #' @param  plot_title Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
 #' @param legend Add legend. Defaults to \code{FALSE}.
 #' @return Outputs a ggplot graph of species detections over time.
-#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @seealso \url{https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
-#' # Incubation surveys by year
+#' #Incubation surveys by year
 #' dcco <- SumIncubation(time = "year", species = "DCCO")
-
 #' PlotBirds(dcco)
 #' 
 #' # Incubation surveys by year of multiple species
 #' incub<-SumIncubation(time = "year", species = c("DCCO", "HERG", "GBBG"))
-#' PlotBirds(incub, overlay_spp= TRUE)
+#' PlotBirds(incub, overlay_spp= TRUE, raw_count= FALSE)
 #' 
 #' # Incubation surveys by date to view repeat effort
-#' lete <- SumIncubation(time = "date", species = "COTE")
-#' PlotBirds(lete, year= "2012", legend =TRUE)
+#' gbbg <- SumIncubation(time = "date", species = "GBBG")
+#' PlotBirds(gbbg, year= "2012", legend =TRUE)
 #' 
 #' # Creche surveys by date; typically to view efforts in a single season
 #' creche <- CrecheSum(time ="date")
 #' # View survey counts in 2018
 #' PlotBirds(creche, year = "2018")
 #' # surveys summed across all islands
-#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable", legend =TRUE)
+#' PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable", legend = TRUE)
 #' 
 #' # Nest surveys
 #' nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
 #' PlotBirds(nests, var = "Nests")
-#' PlotBirds(nests, island = "All Islands", facet= "variable")
-#' PlotBirds(nests, var= "EggsPerNest, legend =TRUE)
+#' PlotBirds(nests, island = "All Islands", facet= "variable", raw_counts= FALSE)
+#' PlotBirds(nests, var= "EggsPerNest", legend =TRUE)
 #' 
 #' # Nest surveys of all species
 #' nests<-SumNestSurveys(time= "year")

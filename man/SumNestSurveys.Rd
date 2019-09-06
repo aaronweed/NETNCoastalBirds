@@ -4,14 +4,13 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(time = "date", species = NA, output = "graph",
-  df = NULL)
+SumNestSurveys(time, species = NA, output = "graph", df = NULL)
 }
 \arguments{
-\item{time}{Character string equal to "date" or "year". Defaults to "date".
+\item{time}{Character string equal to "date" or "year".
 Choose to sum effort-adjusted counts (no. / km2) by "date" or "year". Summing by date will sum counts 
 across segments of each island for each date. Summing by year sums counts across all surveys 
-conducted in that year. Note that some surveys were repeated in the same year.}
+conducted in that year per island. Note that some surveys were repeated in the same year, primarily terns COTE and LETE.}
 
 \item{species}{To subset data by species, use "BCNH" ,"COEI", "GLIB", "GREG", 
 "SNEG", "DCCO", "GBBG", "HERG", "COTE" or "LETE". Defaults
@@ -31,8 +30,13 @@ and estimates the Eggs and Chicks per Nest per island and time. Life stages are 
 }
 \description{
 Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} 
-and summarizes it by date or year for plotting and analysis.
+and summarizes it by date or year and island for plotting and analysis.
 }
+\section{Warning}{
+
+Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+}
+
 \examples{
 SumNestSurveys(time= "date", species = "BCNH")
 SumNestSurveys(time= "year", species = "BCNH")

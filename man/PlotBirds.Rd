@@ -45,6 +45,37 @@ Plots bird detections over time.
 User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
+\examples{
+#Incubation surveys by year
+dcco <- SumIncubation(time = "year", species = "DCCO")
+PlotBirds(dcco)
+
+# Incubation surveys by year of multiple species
+incub<-SumIncubation(time = "year", species = c("DCCO", "HERG", "GBBG"))
+PlotBirds(incub, overlay_spp= TRUE, raw_count= FALSE)
+
+# Incubation surveys by date to view repeat effort
+gbbg <- SumIncubation(time = "date", species = "GBBG")
+PlotBirds(gbbg, year= "2012", legend =TRUE)
+
+# Creche surveys by date; typically to view efforts in a single season
+creche <- CrecheSum(time ="date")
+# View survey counts in 2018
+PlotBirds(creche, year = "2018")
+# surveys summed across all islands
+PlotBirds(creche, year = "2018", island= "All Islands", facet= "variable", legend = TRUE)
+
+# Nest surveys
+nests <- SumNestSurveys(time= "year", species = "BCNH")# annual counts of BCNH
+PlotBirds(nests, var = "Nests")
+PlotBirds(nests, island = "All Islands", facet= "variable", raw_counts= FALSE)
+PlotBirds(nests, var= "EggsPerNest", legend =TRUE)
+
+# Nest surveys of all species
+nests<-SumNestSurveys(time= "year")
+PlotBirds(nests, var = "Nests", overlay_spp= TRUE)
+
+}
 \seealso{
-\url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+\url{https://www.nps.gov/im/netn/coastal-birds.htm}
 }

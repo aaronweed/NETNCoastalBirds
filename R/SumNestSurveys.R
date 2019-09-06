@@ -11,11 +11,11 @@
 #' @importFrom forcats fct_collapse
 #' 
 #' @description Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} 
-#' and summarizes it by date or year for plotting and analysis.
-#' @param time Character string equal to "date" or "year". Defaults to "date".
+#' and summarizes it by date or year and island for plotting and analysis.
+#' @param time Character string equal to "date" or "year".
 #' Choose to sum effort-adjusted counts (no. / km2) by "date" or "year". Summing by date will sum counts 
 #' across segments of each island for each date. Summing by year sums counts across all surveys 
-#' conducted in that year. Note that some surveys were repeated in the same year. 
+#' conducted in that year per island. Note that some surveys were repeated in the same year, primarily terns COTE and LETE. 
 #' @param species To subset data by species, use "BCNH" ,"COEI", "GLIB", "GREG", 
 #' "SNEG", "DCCO", "GBBG", "HERG", "COTE" or "LETE". Defaults
 #' to providing output for all species.
@@ -25,7 +25,8 @@
 #' @param df  The user can optionally load the raw nest data from an R object or connect to the 
 #' Access database to obtain it. Defaults to NULL, which means the Access database will
 #' be used to obtain it.
-#'
+#' @section Warning:
+#' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @return Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
 #' and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest".
 #'  
@@ -37,7 +38,7 @@
 #' @export
 
 
-SumNestSurveys <- function(time ="date", species=  NA, output= "graph", df = NULL) {
+SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
   # counts the num. of nests, chicks or eggs (type) per factor level (species, island, segment, date)
   # type inputs are "Chicks", "Nests", "Eggs"
   
@@ -98,7 +99,7 @@ SumNestSurveys <- function(time ="date", species=  NA, output= "graph", df = NUL
   # bind togetherand exclude nests that were estimated vs directly counted
   
   temp <- bind_rows(eggs,chicks, nests) %>% 
-    filter(Count_Method == "Direct Count") %>% 
+    filter(Count_Method == "Direct Count") %>%  # only take records when nests were counted directly
     na.omit() # a few NAs in the chicks table for some reason
   
   #######################################
@@ -165,8 +166,6 @@ SumNestSurveys <- function(time ="date", species=  NA, output= "graph", df = NUL
      tibble::add_column(Survey_Type = "Nest") %>% # add in for correct binding of survey effort
     dplyr::left_join(.,GetSurveyData(x, survey="Nest", species = {if(!anyNA(species)) species else NA}),# bind on survey effort #
     by=c("Species_Code","Island","Segment", "Survey_Type")) %>% ## append survey effort per segment (Segment == Other not binding and should be excluded)
-    
-    ## when time= "date" this will introduce some missing survey values but choosing to keep in, but won't be able to adjust by effort
     group_by(Species_Code, Island, time, variable, Size_Units, Count_Method) %>% ## first summarize data by Island
      dplyr::summarise(value= sum(value), # sum raw counts
                       Survey_Size = sum(Survey_Size)) %>% ## sum survey effort per island,  
@@ -174,7 +173,7 @@ SumNestSurveys <- function(time ="date", species=  NA, output= "graph", df = NUL
     dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
     tibble::add_column(Survey_Units = "km2") # denote what survey effort units are reported
   
-  # setup eggs per nest and chicks per nest data and bind to nest data
+  # Calc eggs per nest and chicks per nest and bind to nest count data
   
   temp2 <-  SumNests %>%  
     group_by(Species_Code, Island, time, Count_Method, variable) %>% 
@@ -194,10 +193,10 @@ SumNestSurveys <- function(time ="date", species=  NA, output= "graph", df = NUL
     inner_join(species_tlu, ., by= "Species_Code") %>%   # add species names to data
     mutate(FullLatinName = as.character(FullLatinName),CommonName = as.character(CommonName))
     
-    # subset by species if provided argument
+    #subset by species if provided argument to species
     if(!anyNA(species)) graph.final<-graph.final %>% 
-      filter(Species_Code %in% species) %>% droplevels() 
-    
+      filter(Species_Code %in% species) %>% droplevels()
+  
     # need to add back "year" to subset by year for "PlotBirds" 
     if(time  == "year"){
       graph.final<-graph.final %>% 

@@ -5,7 +5,8 @@
 #' @importFrom lubridate month year
 #' @importFrom fuzzyjoin regex_inner_join
 #' 
-#' @description This function returns the survey effort per species for each island segment. This information can be filtered by species if desired.
+#' @description This function returns the survey effort per species for each island segment. 
+#' This information can be filtered by species and survey type if desired.
 #' 
 #' @section Warning:
 #' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
@@ -19,7 +20,7 @@
 #' 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples  
-#' GetSurveyData()
+#' GetSurveyData(survey= "Nest")
 #' GetSurveyData(species ="DCCO")
 #' @export
 
