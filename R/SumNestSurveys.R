@@ -3,7 +3,7 @@
 #' @title Sum nest surveys
 #'
 #' @import dplyr
-#' @importFrom tidyr spread gather
+#' @importFrom tidyr spread pivot_longer
 #' @importFrom magrittr %>% %<>%
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
@@ -28,7 +28,7 @@
 #' @section Warning:
 #' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @return Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
-#' and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest".
+#' and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
 #'  
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
 #' @examples 
@@ -73,8 +73,8 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
     dplyr::filter(Survey_Duplicate %in% "No" ) %>%  # grab only records from the first survey if repeated
     dplyr::filter(Survey_Complete %in% "Yes") %>% ## remove some surveys that weren't completed and that we don't have estimates of area searched
     mutate(year = year(Date),month = month(Date) ) %>% # create month and year fields
-    gather(variable, value, -Island,-Segment,-Date,-month, -year, -Survey_Primary, -Survey_Duplicate, -Survey_Complete,-Survey_MultiPart,
-          -Species_Code, -Nest_Status,-Observer) 
+    tidyr::pivot_longer(cols=c(-Island,-Segment,-Date,-month, -year, -Survey_Primary, -Survey_Duplicate, -Survey_Complete,-Survey_MultiPart,
+          -Species_Code, -Nest_Status,-Observer), names_to = "variable",values_to = "value",values_drop_na = TRUE) 
   
   # Set up variable naming to denote counting method per life stage and  
   # filter out nest contents for "Normal" nests only; denote which nests were directly counted vs estimated
@@ -111,6 +111,11 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
       dplyr::rename(time = Date)
     
+    SumNormalNests<-temp %>% filter(variable == "Nests" & Nest_Status =="Normal") %>% 
+      group_by(Island, Segment, Species_Code, Date, month, Count_Method, variable) %>% 
+      dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
+      dplyr::rename(time = Date)
+    
     ## Sum the number of nests, eggs and chicks for each date across all islands
     ### Calculate for all Islands (note, not all segments may have been surveyed in a year)
     SumByBOHA <- temp %>% 
@@ -118,6 +123,14 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
       add_column(Island = "All Islands", Segment = "All")  %>% 
       dplyr::rename(time = Date)
+    
+    SumNormNestsBOHA<-temp %>% filter(variable == "Nests" & Nest_Status =="Normal") %>% 
+      group_by(Species_Code, Date,month, Count_Method, variable) %>% 
+      dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
+      dplyr::rename(time = Date) %>% 
+      add_column(Island = "All Islands", Segment = "All") %>% 
+      bind_rows(SumNormalNests) # add in segement level data
+   
   }
   
   #################################
@@ -128,30 +141,43 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
   if (time == "year") {
     TernMax <- temp %>% # First calculate the max tern counts among surveys
       filter(Species_Code %in% "COTE" | Species_Code %in% "LETE") %>% 
-      group_by(Island, Segment, Species_Code, Count_Method, variable,year, month) %>% 
+      group_by(Island, Segment, Species_Code, Count_Method, variable,year) %>% 
       dplyr::summarise(value = max(value, na.rm=TRUE))    # calc annual  max for terns
     
     SumBySegment <- temp %>%  # calc sum for other species
       filter(!Species_Code == "COTE" & !Species_Code == "LETE") %>% 
-      group_by(Island, Segment,Species_Code, year, month, Count_Method, variable) %>% 
+      group_by(Island, Segment,Species_Code, year,  Count_Method, variable) %>% 
       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% # sum stages
       dplyr::bind_rows(.,TernMax) %>% # bind back in tern max counts
       dplyr::rename(time = year)
     
+    SumNormalNests<-temp %>% filter(variable == "Nests" & Nest_Status =="Normal") %>%
+      group_by(Island, Segment, Species_Code, year,  Count_Method, variable) %>% 
+      dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
+      dplyr::rename(time = year)
+    
     ## Sum the number of nests, eggs and chicks for each date across all islands
     ### Calculate for all Islands (note, not all segments may have been surveyed in a year)
-    TernMax <- temp %>% 
+    TernMaxBOHA <- temp %>% 
       filter(Species_Code %in% "COTE" | Species_Code %in% "LETE") %>% 
-      group_by(Species_Code, Count_Method, variable,year, month) %>% 
+      group_by(Species_Code, Count_Method, variable,year) %>% 
       dplyr::summarise(value = max(value, na.rm=TRUE))    # calc annual  max for terns
     
     SumByBOHA <- temp %>% 
       filter(!Species_Code == "COTE" & !Species_Code == "LETE") %>%  # calc sum for others
-      group_by(Species_Code, year, month, Count_Method, variable) %>% 
+      group_by(Species_Code, year,  Count_Method, variable) %>% 
       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%
-      dplyr::bind_rows(.,TernMax) %>% 
+      dplyr::bind_rows(.,TernMaxBOHA) %>% 
       dplyr::rename(time = year) %>% 
       add_column(Island = "All Islands", Segment = "All")
+    
+    SumNormNestsBOHA<-temp %>% filter(variable == "Nests" & Nest_Status =="Normal") %>% 
+      group_by(Species_Code, year, Count_Method, variable) %>% 
+      dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
+      dplyr::rename(time = year) %>% 
+      add_column(Island = "All Islands", Segment = "All") %>% 
+      bind_rows(SumNormalNests)# add in segement level data
+    
   }
   
   #################################
@@ -169,23 +195,25 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
     group_by(Species_Code, Island, time, variable, Size_Units, Count_Method) %>% ## first summarize data by Island
      dplyr::summarise(value= sum(value), # sum raw counts
                       Survey_Size = sum(Survey_Size)) %>% ## sum survey effort per island,  
-    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size),3)) %>% # Then standardize counts by survey effort
+    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size)*1000000,3)) %>% # Then standardize counts by survey effort
     dplyr::mutate(Survey_Size = Survey_Size) %>% # added in case I want to scale to other units
-    tibble::add_column(Survey_Units = "m2") # denote what survey effort units are reported
+    tibble::add_column(Survey_Units = "km2") # denote what survey effort units are reported
   
-  # Calc eggs per nest and chicks per nest and bind to nest count data
+  # Calc eggs per nest and chicks per nest (for nests status == normal) and bind to nest count data
   
-  temp2 <-  SumNests %>%  
+  temp2 <-  SumNests %>% filter(!variable %in% "Nests") %>% # remove the counts of all nests (multiple statuses) 
+    bind_rows(.,SumNormNestsBOHA) %>% # add in counts of "normal" nests to divide egg and chick counts by
     group_by(Species_Code, Island, time, Count_Method, variable) %>% 
     dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%  # because there are 4 cases of duplicate key combos, sum
-    spread(variable, value, drop=TRUE) %>%  # make wide to divide chicks and eggs by nest count
-    mutate(EggsPerNest = round(Eggs/Nests,2), ChicksPerNest = round(Chicks/Nests,2)) %>%  # calc avg chicks or eggs per nest
-    gather(variable, value, -Island, -Species_Code,-time,-Count_Method) %>% 
+    tidyr::pivot_wider(names_from= variable, values_from= value) %>%  # make wide to divide chicks and eggs by nest count
+    mutate(ClutchSize = Eggs+Chicks) %>% 
+    mutate(EggsPerNest = round(Eggs/Nests,2), ChicksPerNest = round(Chicks/Nests,2), ClutchPerNest = round(ClutchSize/Nests,2)) %>%  # calc avg chicks or eggs per nest
+    tidyr::pivot_longer(cols=c(-Island, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE) %>% 
     na.omit()  # remove NAs added when no chicks or eggs found and Nests =0
   
   ### Now bind to data above
   graph.final<- temp2 %>% 
-     dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest")) %>% # just select eggs and chicks per nest
+     dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest","ClutchPerNest")) %>% # just select nest contents
      mutate(valuePerSurveySize= value) %>% # create new variable for plotting (will plot)
      #mutate(recode(variable, EggsPerNest = "Eggs", ChicksPerNest = "Chicks")) %>% # now rename and use 
      tibble::add_column(Survey_Size = 1, Survey_Units = "Nest") %>% 
@@ -205,6 +233,9 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
         graph.final<-graph.final %>% 
           mutate(year= year(time))
       }
+  
+    
+  
   
   # output data for graphing
   
