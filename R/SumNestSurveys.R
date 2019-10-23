@@ -25,6 +25,7 @@
 #' @param df  The user can optionally load the raw nest data from an R object or connect to the 
 #' Access database to obtain it. Defaults to NULL, which means the Access database will
 #' be used to obtain it.
+#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.
 #' @section Warning:
 #' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @return Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
@@ -38,13 +39,10 @@
 #' @export
 
 
-SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
-  # counts the num. of nests, chicks or eggs (type) per factor level (species, island, segment, date)
-  # type inputs are "Chicks", "Nests", "Eggs"
-  
-  
+SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segment= FALSE) {
+  # bring in raw data from ODBC connection
   if (is.null(df))
-    df <- GetNestData(x) %>%  # bring in raw data
+    df <- GetNestData(x) %>% 
           droplevels()
   
 
@@ -70,7 +68,7 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
     dplyr::select(Island, Segment,Date, Survey_Primary, Survey_Duplicate, Survey_Complete,Survey_MultiPart,
                   Species_Code, Nest_Status, Nests, Chicks, Eggs, Observer) %>%
     dplyr::filter(Survey_Primary %in% "Yes" ) %>%  # grab only records from the primary survey to avoid counting multi-obs of same event
-    dplyr::filter(Survey_Duplicate %in% "No" ) %>%  # grab only records from the first survey if repeated
+    #dplyr::filter(Survey_Duplicate %in% "No" ) %>%  # grab only records from the first survey if repeated
     dplyr::filter(Survey_Complete %in% "Yes") %>% ## remove some surveys that weren't completed and that we don't have estimates of area searched
     mutate(year = year(Date),month = month(Date) ) %>% # create month and year fields
     tidyr::pivot_longer(cols=c(-Island,-Segment,-Date,-month, -year, -Survey_Primary, -Survey_Duplicate, -Survey_Complete,-Survey_MultiPart,
@@ -192,7 +190,8 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
      tibble::add_column(Survey_Type = "Nest") %>% # add in for correct binding of survey effort
     dplyr::left_join(.,GetSurveyData(x, survey="Nest", species = {if(!anyNA(species)) species else NA}),# bind on survey effort #
     by=c("Species_Code","Island","Segment", "Survey_Type")) %>% ## append survey effort per segment (Segment == Other not binding and should be excluded)
-    group_by(Species_Code, Island, time, variable, Size_Units, Count_Method) %>% ## first summarize data by Island
+    {if(segment) group_by(.,Species_Code, Island, Segment, time, variable, Size_Units, Count_Method) else ## first summarize data by Island-Segment or Island
+      group_by(.,Species_Code, Island, time, variable, Size_Units, Count_Method)} %>% 
      dplyr::summarise(value= sum(value), # sum raw counts
                       Survey_Size = sum(Survey_Size)) %>% ## sum survey effort per island,  
     dplyr::mutate(valuePerSurveySize = round((value/Survey_Size)*1000000,3)) %>% # Then standardize counts by survey effort
@@ -203,17 +202,19 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
   
   temp2 <-  SumNests %>% filter(!variable %in% "Nests") %>% # remove the counts of all nests (multiple statuses) 
     bind_rows(.,SumNormNestsBOHA) %>% # add in counts of "normal" nests to divide egg and chick counts by
-    group_by(Species_Code, Island, time, Count_Method, variable) %>% 
+    {if(segment) group_by(.,Species_Code, Island, Segment, time, Count_Method, variable) else ## first summarize data by Island-Segment or Island
+      group_by(.,Species_Code, Island, time, Count_Method, variable)} %>% 
     dplyr::summarise(value = sum(value, na.rm=TRUE)) %>%  # because there are 4 cases of duplicate key combos, sum
     tidyr::pivot_wider(names_from= variable, values_from= value) %>%  # make wide to divide chicks and eggs by nest count
     mutate(ClutchSize = Eggs+Chicks) %>% 
     mutate(EggsPerNest = round(Eggs/Nests,2), ChicksPerNest = round(Chicks/Nests,2), ClutchPerNest = round(ClutchSize/Nests,2)) %>%  # calc avg chicks or eggs per nest
-    tidyr::pivot_longer(cols=c(-Island, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE) %>% 
+    {if(segment) tidyr::pivot_longer(.,cols=c(-Island,-Segment, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE) else 
+      tidyr::pivot_longer(.,cols=c(-Island, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE)} %>% 
     na.omit()  # remove NAs added when no chicks or eggs found and Nests =0
   
   ### Now bind to data above
   graph.final<- temp2 %>% 
-     dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest","ClutchPerNest")) %>% # just select nest contents
+     dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest","ClutchSize")) %>% # just select nest contents
      mutate(valuePerSurveySize= value) %>% # create new variable for plotting (will plot)
      #mutate(recode(variable, EggsPerNest = "Eggs", ChicksPerNest = "Chicks")) %>% # now rename and use 
      tibble::add_column(Survey_Size = 1, Survey_Units = "Nest") %>% 
@@ -233,8 +234,6 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL) {
         graph.final<-graph.final %>% 
           mutate(year= year(time))
       }
-  
-    
   
   
   # output data for graphing

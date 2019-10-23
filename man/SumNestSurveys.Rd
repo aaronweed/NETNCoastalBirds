@@ -4,7 +4,8 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(time, species = NA, output = "graph", df = NULL)
+SumNestSurveys(time, species = NA, output = "graph", df = NULL,
+  segment = FALSE)
 }
 \arguments{
 \item{time}{Character string equal to "date" or "year".
@@ -23,6 +24,8 @@ function. For wide format use "table".}
 \item{df}{The user can optionally load the raw nest data from an R object or connect to the 
 Access database to obtain it. Defaults to NULL, which means the Access database will
 be used to obtain it.}
+
+\item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
 Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time

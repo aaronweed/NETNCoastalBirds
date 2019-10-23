@@ -27,7 +27,7 @@
 #' @param species  A  vector of species name codes, e.g. "BCNH"
 #' @param year Calendar year(s) to view effort by. Useful when wanting to view seasonal surveys with time = "Date".
 #' survey data in a year.
-#' @parma time Select whether to show effort by year ("year) or for individual dates ("Date"). Defaults to "year". 
+#' @param time Select whether to show effort by year ("year) or for individual dates ("Date"). Defaults to "year". 
 #'
 #' @examples
 #' GGetSurveyMat(survey ="Nests", species ="COEI", year = 2009, time="Date")

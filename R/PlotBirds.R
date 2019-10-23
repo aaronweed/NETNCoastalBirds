@@ -21,6 +21,7 @@
 #' @param print To not print plot enter "no".
 #' @param  plot_title Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
 #' @param legend Add legend. Defaults to \code{FALSE}.
+#' @param Y_scale Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
@@ -56,7 +57,7 @@
 #' @export
 
 PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA, 
-                    scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", plot_title = "yes", legend= FALSE){
+                    scale="norm", facet= "Island", var= NA, overlay_spp = FALSE, print= "yes", plot_title = "yes", legend= FALSE, Y_scale ="fixed"){
   
   library(ggplot2)
   
@@ -75,15 +76,14 @@ PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA,
   
   #if(!anyNA(method)) graphdata <- graphdata[!graphdata$Count_Method %in% "Direct Count", ]
   
-  ### SETUP PLOT DATA 
+  ### SETUP PLOTS 
   
   ## what value should be plotted? 
   #The raw counts (value) or effort-adjusted counts (valuePerSurveySize)
   if(!raw_count){
-    # just rename the vector
+    # just rename the vector to grab effort adjusted counts
     graphdata$value<- graphdata$valuePerSurveySize
   }
-  
   
   if(!overlay_spp){## overlay species
   
@@ -92,8 +92,7 @@ PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA,
     y2 <- ggplot(graphdata, 
                  aes(x=time, y= log(value), color= variable, group= variable)) +
       geom_point(size = 2) +
-      geom_line() + scale_colour_viridis_d(option="D")+
-      labs(y = paste0("log(Number Detected"), x= "")
+      geom_line() + scale_colour_viridis_d(option="D")
   }
   
   if(scale == "norm") {#### GROUP BY VARIABLE OR COMMONNAME
@@ -101,8 +100,7 @@ PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA,
     y2 <- ggplot(graphdata, 
                  aes(x=time, y= value, color= variable, group= variable)) +
       geom_point(size=2) + 
-      geom_line() + scale_colour_viridis_d(option="D")+
-      labs(y = "Number Detected", x= "") 
+      geom_line() + scale_colour_viridis_d(option="D")
     
     } 
       }else{
@@ -111,23 +109,39 @@ PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA,
           y2 <- ggplot(graphdata, 
                        aes(x=time, y= log(value), color= CommonName, group= CommonName)) +
             geom_point(size = 2) +
-            geom_line() + scale_colour_viridis_d(option="D")+
-            labs(y = paste0("log(Number Detected"), x= "")
+            geom_line() + scale_colour_viridis_d(option="D")
         }else{
         
           # group by CommonName
     y2<-ggplot(graphdata, aes(x=time, y= value, colour= CommonName,group= CommonName))+
     geom_point()+ 
     geom_line()+ scale_colour_viridis_d(option="D")+
-    labs(y = "Number Detected", x= "")+
     ggtitle(paste0(if(!anyNA(var)) var, "Counts of ",graphdata$variable[1], " per ", facet))
         }
       }
+  
+ 
+## Setup y-axis labels
+  
+  if(!raw_count & scale =="log"){
+    y2<-(y2+ labs(y = paste0("log(Number Detected) per ", graphdata$Survey_Units[1]), x= ""))}
+  
+  else if(!raw_count & scale =="norm"){
+    y2<-(y2+ labs(y = paste0("Number Detected per ", graphdata$Survey_Units[1]), x= ""))}
+  
+  else if(raw_count & scale =="log"){
+    y2<-(y2+ labs(y = "log(Number Detected) per Survey", x= ""))}
+  
+  else if(raw_count & scale =="norm"){
+    y2<-(y2+ labs(y = "Number Detected per Survey", x= ""))}
+  
+  
 ### ADD FACETING 
   if(!anyNA(facet)) {
-    y2 <- (y2 + facet_wrap(facet, scales = "fixed", ncol = 3 ))
+    y2 <- (y2 + facet_wrap(facet, scales = Y_scale, ncol = 3 ))
+    
   }
-#### TOGGLE CAPTION 
+#### TOGGLE plot title (above plot) 
   if(plot_title == "yes"){
     
     if(scale == "log"){
