@@ -23,6 +23,8 @@ SumNestSurveys() function.}
 survey data in a year.}
 
 \item{species}{A  vector of species name codes, e.g. "BCNH"}
+
+\item{time}{Select whether to show effort by year ("year) or for individual dates ("Date"). Defaults to "year".}
 }
 \value{
 This function returns a matrix showing dates of surveys for 
