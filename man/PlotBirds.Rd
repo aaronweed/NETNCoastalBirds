@@ -7,7 +7,7 @@
 PlotBirds(data, raw_count = FALSE, species = NA, island = NA,
   year = NA, scale = "norm", facet = "Island", var = NA,
   overlay_spp = FALSE, print = "yes", plot_title = "yes",
-  legend = FALSE)
+  legend = FALSE, Y_scale = "fixed")
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
@@ -33,6 +33,8 @@ PlotBirds(data, raw_count = FALSE, species = NA, island = NA,
 \item{plot_title}{Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.}
 
 \item{legend}{Add legend. Defaults to \code{FALSE}.}
+
+\item{Y_scale}{Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?}
 }
 \value{
 Outputs a ggplot graph of species detections over time.

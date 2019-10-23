@@ -5,7 +5,7 @@
 \title{sum incubation surveys}
 \usage{
 SumIncubation(df = NULL, time, species = NA, output = "graph",
-  ByObserver = "no")
+  ByObserver = "no", segment = FALSE)
 }
 \arguments{
 \item{df}{The user can optionally load the raw incubation data from an R object or connect to the 
@@ -27,6 +27,8 @@ function. For wide format use "table".
 If "yes" and \code{time}= "date", the function will output the survey data counted by each observer for 
 each island segment on each date. Sums counts across multiple observations by same 
 observer at each segment. Defaults to "no".}
+
+\item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
 Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 

@@ -31,7 +31,7 @@
 #' @param df  The user can optionally load the raw incubation data from an R object or connect to the 
 #' Access database to obtain it. Defaults to NULL, which means the Access database will
 #' be used to obtain it.
-#' 
+#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.
 #' @return Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 
 #' during boat-based incubation surveys per island, life stage, and time. 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
@@ -42,7 +42,7 @@
 #' @export
 #' 
 #
-SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObserver = "no") {
+SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   # this function summarizes the number of adults on nests per island, year, and by observer
   
   if (is.null(df)) {
@@ -137,7 +137,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   
     #################################
   # bind together the results aggregated by time AT the SEGMENT-SCALE
-  ## CALCULATE  VALUES PER ISLAND BASED ON SURVEY-ADJUSTED ESTIMATES 
+  ## CALCULATE  VALUES PER ISLAND or SEGMENT BASED ON SURVEY-ADJUSTED ESTIMATES 
   ## for islands with >1 segments, sums raw counts and survey area by island and then divides sum counts / sum survey area
   ## for many surveys there is only one segment surveys, but there are a few with >1 segement per island surevyed in a given year
   #################################
@@ -145,14 +145,15 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
     tibble::add_column(Survey_Type = "Incubation") %>% # add in for correct binding of survey effort
     dplyr::left_join(.,GetSurveyData(x, survey="Incubation", species = {if(!anyNA(species)) species else NA}),
                      by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
-    group_by(Species_Code, Island, time, Size_Units) %>% ## first summarize data by Island
+    {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units) else
+      group_by(.,Species_Code, Island, time, Size_Units) } %>% ## first summarize data by Island
     dplyr::summarise(value= sum(value), # sum raw counts
                      Survey_Size = sum(Survey_Size)) %>% # , ## sum survey effort per island, 
     dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
     dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
     tibble::add_column(Survey_Units = "km2", variable = "Incubating Adults") %>% # denote what survey effort units are reported  
-    dplyr::select(Species_Code, Island,  time, variable,
-                  value, valuePerSurveySize,Survey_Size, Survey_Units) %>% 
+    {if(segment) dplyr::select(.Species_Code, Island, Segment, time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units) else
+      dplyr::select(.Species_Code, Island,  time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units)}%>% 
     inner_join(species_tlu, ., by = "Species_Code") # add species names to data
   
   graph.final <- AllData %>%
