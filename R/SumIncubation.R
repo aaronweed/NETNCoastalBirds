@@ -152,8 +152,8 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
     dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
     dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
     tibble::add_column(Survey_Units = "km2", variable = "Incubating Adults") %>% # denote what survey effort units are reported  
-    {if(segment) dplyr::select(.Species_Code, Island, Segment, time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units) else
-      dplyr::select(.Species_Code, Island,  time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units)}%>% 
+    {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units) else
+      dplyr::select(.,Species_Code, Island,  time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units)}%>% 
     inner_join(species_tlu, ., by = "Species_Code") # add species names to data
   
   graph.final <- AllData %>%
