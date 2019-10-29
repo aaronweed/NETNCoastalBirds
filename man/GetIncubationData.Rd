@@ -4,28 +4,28 @@
 \alias{GetIncubationData}
 \title{Return incubation surveys from database}
 \usage{
-GetIncubationData(x, ODBC_connect = TRUE, Hmisc_connect = FALSE,
-  export = FALSE)
+GetIncubationData(x, connect = "ODBC", DBfile = NULL, export = FALSE)
 }
 \arguments{
-\item{ODBC_connect}{Should the function connect to the Access DB? The default (TRUE) is to 
-try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-the function can return the saved data from the package. 
+\item{connect}{Should the function connect to the Access DB? The default 
+(\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+If the connection is not available or not desired, one can use \code{connect = `HMisc`}
+and include a patch to a saved version of the database, or
+the function can return the saved data from the package (\code{connect = `No`}). 
 Note the saved data may not be up-to-date.}
-
-\item{Hmisc_connect}{}
 
 \item{export}{Should the incubation data be exported as a csv file and RData object?
 (This argument is used to regenerate the RData for the package.)}
 }
 \value{
-This function returns the raw boat-based incubation survey data as a \code{data.frame}.
+The raw boat-based incubation survey data as a \code{data.frame}.
 }
 \description{
 This function connects to the backend of NETN's Coastal Bird 
 Access DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
 returns the boat-based incubation data. If the Access DB is not
-accessible from the ODBC connection, the function returns a saved image of the data.
+accessible from the ODBC connection, one can try to connect via Hmisc, or
+the function returns a saved image of the data.
 }
 \examples{
 incubation <- GetIncubationData(x)

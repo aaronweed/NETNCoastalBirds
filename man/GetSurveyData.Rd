@@ -23,6 +23,7 @@ Returns a \code{data.frame} of survey effort (area and distance searched) by spe
 \description{
 This function returns the survey effort per species for each island segment. 
 This information can be filtered by species and survey type if desired.
+
 }
 \section{Warning}{
 
