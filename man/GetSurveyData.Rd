@@ -21,7 +21,9 @@ the function can return the saved data from the package.}
 Returns a \code{data.frame} of survey effort (area and distance searched) by species for each survey event.
 }
 \description{
-This function returns the survey effort per species for each island segment. This information can be filtered by species if desired.
+This function returns the survey effort per species for each island segment. 
+This information can be filtered by species and survey type if desired.
+
 }
 \section{Warning}{
 
@@ -30,7 +32,7 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
 
 \examples{
  
-GetSurveyData()
+GetSurveyData(survey= "Nest")
 GetSurveyData(species ="DCCO")
 }
 \seealso{

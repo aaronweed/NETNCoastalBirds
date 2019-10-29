@@ -69,15 +69,6 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
      stop("connect must be ODBC, Hmisc, or No.")
    }
     
-  ## Keep organizing data from DB:
-  
-    ####### create new vectors to match field names for binding ########
-    # names(obs)
-    obs$pk_EventID <- obs$fk_EventID 
-    #unique(event$pk_EventID)  # is NAs...
-    #unique(obs$pk_EventID)  # NAs...
-  
-    
     #############Join together various dataframes to create queries ##########
    
     ##### Boat-based Incubation surveys for nests and adults of target species groups  ###########
@@ -91,11 +82,12 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     # Add obs data to  incubation event data
     
     # intersect(names(event), names(obs))
-    temp.incub <- filter(event, Survey_Type == "Incubation") %>% 
-      left_join(.,obs, by = c("pk_EventID")) %>% 
-      filter(Obs_Type =="Target")
-     
-   # View(temp.incub)
+    temp.incub <- filter(event, Survey_Type == "Incubation") %>%
+      left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
+      filter(Obs_Type =="Target") %>% 
+      droplevels()
+    
+    # View(temp.incub)
     
     # work with dates and time
     ## (different for odbcConnect and HMisc pacakge)

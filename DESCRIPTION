@@ -9,17 +9,27 @@ License: No license
 Encoding: UTF-8
 LazyData: true
 Collate: 
+=======
+    'AMOY_MatingPairSumm.R'
+    'CrecheByObserver.R'
+    'GetSurveyData.R'
     'GetCrecheData.R'
     'CrecheSum.R'
+    'CrecheSurveysByDate.R'
     'GetAMOYData.R'
     'GetIncubationData.R'
     'GetNestData.R'
-    'GetSurveyData.R'
+    'IncubationByObserver.R'
+    'IncubationByYear.R'
+    'NestSurveysByDate.R'
+    'NestSurveysByYear.R'
     'SumNestSurveys.R'
     'SumIncubation.R'
     'PlotBirds.R'
     'SumCOTE.R'
     'SumGulls_DCCO.R'
+    'SurveyEffortBySpecies.R'
+    'creche_raw.R'
     'getSurveyMat.R'
     'species_tlu_Data.R'
 RoxygenNote: 6.1.1
