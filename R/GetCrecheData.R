@@ -141,6 +141,8 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
                      Species_Code ,Group_Count,Group_Time,
                             Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,
                      Unit_Count,Survey_Notes ,Wind_Direction,
+                     Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)
+                     
 
   
   
@@ -150,6 +152,7 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   
   ### export to use in R viz
   #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
+  
   if (export == TRUE) {
     write.table(creche_raw, "Data/creche_raw.csv", sep=",", row.names= FALSE)
     save(creche_raw, file = "Data/creche_raw.RData")

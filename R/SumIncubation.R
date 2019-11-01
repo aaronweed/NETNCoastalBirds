@@ -42,13 +42,19 @@
 #' @export
 #' 
 #
-SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
+SumIncubation <- function(df = NULL, time, survey_data = NULL,
+                          species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   # this function summarizes the number of adults on nests per island, year, and by observer
   
   if (is.null(df)) {
     df <- GetIncubationData(x) # import data from the database if needed
     #head(df)
   }
+  ## if  Survey data aren't inputted by user, pull from database
+  if (is.null(survey_data)){
+    survey_data <- GetSurveyData(x, survey = "Incubation", 
+                                 species = {if(!anyNA(species)) species else NA})
+  } 
   
   
   # Setup and create molten dataframe
@@ -72,7 +78,8 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
       group_by(Island, Segment, Date,month, year, Species_Code, Survey_Type, Survey_Primary,
                Survey_Duplicate, Survey_Complete, Observer) %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## sum counts across observers
-      dplyr::left_join(.,GetSurveyData(x, survey="Incubation", species = {if(!anyNA(species)) species else NA}),by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
+      dplyr::left_join(., survey_data, 
+                       by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
       tibble::add_column(Survey_Units = "km2") %>% # denote what survey effort units are reported
@@ -143,7 +150,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   #################################
   AllData <- bind_rows(SumBySegment, SumByBOHA) %>% 
     tibble::add_column(Survey_Type = "Incubation") %>% # add in for correct binding of survey effort
-    dplyr::left_join(.,GetSurveyData(x, survey="Incubation", species = {if(!anyNA(species)) species else NA}),
+    dplyr::left_join(., survey_data,
                      by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
     {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units) else
       group_by(.,Species_Code, Island, time, Size_Units) } %>% ## first summarize data by Island
