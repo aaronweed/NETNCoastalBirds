@@ -44,7 +44,8 @@
 #' 
 #
 
-CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands = "outer"){
+CrecheSum<-function(time, df = NULL, survey_data = NULL,
+                    output = "graph", ByObserver = "no", islands = "outer") {
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
   # load in functions, look up tables, and R packages
@@ -54,9 +55,13 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     df <- GetCrecheData(x)
   } 
   #head(df)
+  ## if Creche Survey data aren't inputted by user, pull from database
+  if (is.null(survey_data)){
+    survey_data <- GetSurveyData(x, survey = "Creche")
+  } 
   
   # Setup and create molten dataframe
-  ########################################################################################################################################################
+  #############################################################################
   
   ### Handle island naming and denote outer island loop
   
@@ -69,7 +74,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   
   if(islands == "outer"){ 
     
-    out<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", "Outer Brewster", "Shag Rocks","Little Brewster")
+    out<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", 
+            "Outer Brewster", "Shag Rocks","Little Brewster")
     
     df<-df[df$Island %in% out,]
     
@@ -89,12 +95,16 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
                Survey_Duplicate, Survey_Complete, Species_Unit,Observer) %>%
       dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## Sum counts per Island, Segment and Date
-      dplyr::inner_join(.,GetSurveyData(x, survey="Creche"), by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
+      dplyr::inner_join(., survey_data, 
+                        by = c("Species_Code", "Island", "Segment", "Survey_Type")) %>% ## append survey effort per segment
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size/1000),2)) %>% # standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
       dplyr::select(Species_Code, Island, Segment, Survey_Type, time = Date, month, year, Survey_Primary,
                     Survey_Duplicate, Survey_Complete, Species_Unit, value, valuePerSurveySize,Survey_Size, Survey_Units,Observer)
+    
+    return(graph.final)
+    
   } else {
     
     
@@ -129,7 +139,7 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
   # this will only summarize results from the primary survey
   
   ### Sum by Island for each date
-  if (time == "date"){
+  if (time == "date") {
     StageSumBySegment<-
       group_by(df.melt, Island,Segment, Date,Species_Unit) %>% # summarize all life stages by Island, Segment,Date and Species Unit
       dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
@@ -228,7 +238,8 @@ CrecheSum<-function(time, df = NULL, output= "graph", ByObserver = "no", islands
     
     graph.final<-bind_rows(COEI_BySegment,COEI_ByTime)%>% # this is the final table output for a selected time period (date or year)
       tibble::add_column(Survey_Type = "Creche") %>% # add in for correct binding of survey effort 
-      dplyr::left_join(.,GetSurveyData(x, survey="Creche"), by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
+      dplyr::left_join(., survey_data, 
+                       by = c("Species_Code", "Island", "Segment", "Survey_Type")) %>% ## append survey effort per segment
       tidyr::gather( variable, value, -Species_Code, -Island,-Segment,-time, -Survey_Type,-Survey_Class, -Survey_Size,-Size_Units) %>% # bring data back together
       group_by(Species_Code, Island, time, variable) %>% ## first summarize data by Island
       dplyr::summarise(value= sum(value, na.rm = TRUE), # sum raw counts per island

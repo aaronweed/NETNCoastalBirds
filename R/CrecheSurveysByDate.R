@@ -23,4 +23,4 @@
 #' \dontrun{
 #'  CrecheSurveysByDate
 #' }
-"CrecheSurveysByDate"
+# "CrecheSurveysByDate"

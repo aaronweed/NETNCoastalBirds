@@ -13,9 +13,14 @@
 #' @param x Denote in parentheses to return all surveys
 #' @param species Enter species code as character if you would like to filter by species (e.g., "DCCO")
 #' @param survey Enter survey type to filter for species detected within that survey type. Options are "Incubation","Nest", and "Creche".
-#' @param ODBC_connect Should the function connect to the Access DB? The default (TRUE) is to 
-#' try to connect using the Windows ODBC manager to get survey data. If the connection is not available or not desired, 
-#' the function can return the saved data from the package. 
+#' @param connect Should the function connect to the Access DB? The default 
+#' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+#' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+#' and include a patch to a saved version of the database, or
+#' the function can return the saved data from the package (\code{connect = `No`}). 
+#' Note the saved data may not be up-to-date.
+#' @param DBfile If \code{connect = `Hmisc`}, user must provide a location of the DB from which
+#' it will grab the data.
 #' @return Returns a \code{data.frame} of survey effort (area and distance searched) by species for each survey event. 
 #' 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
@@ -24,10 +29,10 @@
 #' GetSurveyData(species ="DCCO")
 #' @export
 
-GetSurveyData<-function(x,species = NA, survey = NA,ODBC_connect = TRUE){
+GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile = NULL) {
   
   #### Import dataframes from DB to access survey effort by event per species ----
-  if  (ODBC_connect == TRUE) {
+  if  (connect == "ODBC") {
     con <- odbcConnect("NETNCB")# establish connection to DB
     
     event <- sqlFetch(con, "tbl_Events")
@@ -36,6 +41,38 @@ GetSurveyData<-function(x,species = NA, survey = NA,ODBC_connect = TRUE){
     species_tlu<-sqlFetch(con,"tlu_Species")
     
     odbcClose(con)
+    ## If connection didn't work, try mdb.get() 
+  } else if (connect == "Hmisc") {
+    if (is.null(DBfile)) {
+      stop("Please specify the database location for this connection option.")
+    }
+    
+    event <- mdb.get(DBfile, tables = "tbl_Events", 
+                     mdbexportArgs = '', stringsAsFactors = FALSE)
+    Isl_Seg <- mdb.get(db_path, tables="tbl_Islands_Segments", 
+                         mdbexportArgs = '', stringsAsFactors = FALSE)
+    Seg_Size <- mdb.get(db_path, tables="tbl_Segments_Size", 
+                         mdbexportArgs = '', stringsAsFactors = FALSE)
+    species_tlu <- mdb.get(db_path, tables="tlu_Species", 
+                         mdbexportArgs = '', stringsAsFactors = FALSE)
+    event <- clear.labels(event)
+    Isl_Seg <- clear.labels(Isl_Seg)
+    Seg_Size <- clear.labels(Seg_Size)
+    species_tlu <- clear.labels(species_tlu)
+    
+    ## The names are imported differently using mdb.get().
+    ## Replace "." with "_"
+    names(event) <- gsub("\\.", "_", names(event))
+    names(Isl_Seg) <- gsub("\\.", "_", names(Isl_Seg))
+    names(Seg_Size) <- gsub("\\.", "_", names(Seg_Size))
+    names(species_tlu) <- gsub("\\.", "_", names(species_tlu))
+  } else if (connect == "No") {
+    return(data(seg_event))
+  } else {
+    stop("connect must be ODBC, Hmisc, or No.")
+  }
+  
+  
     
     # drop unneeded species
     species_tlu<-filter(species_tlu, !Species_Code %in% "ROTE" & !Species_Code %in% "PIPL") %>% 
@@ -65,11 +102,5 @@ GetSurveyData<-function(x,species = NA, survey = NA,ODBC_connect = TRUE){
     seg_event <-bind_rows(Spec_Isl,All_Isl) %>% 
       select(Species_Code, Island, Segment, Survey_Class, Survey_Type,Survey_Size, Size_Units)
     
-  }
-  
-  if  (ODBC_connect == FALSE) { 
-    
-    data(seg_event)
-  }
   return(seg_event)
 }

@@ -130,7 +130,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   if (export == TRUE) {
     write.table(nest_surveys_raw, "Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
     save(nest_surveys_raw, file = "Data/nest_surveys_raw.RData")
-=======
+  }
     
     
     #############Join together various dataframes to create queries ##########
@@ -182,11 +182,6 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
       write.table(nest_surveys_raw, "Data/nest_surveys_raw.csv", sep=",", row.names= FALSE)
       save(nest_surveys_raw, file = "Data/nest_surveys_raw.RData")
     }
-    
-  } 
-  if (ODBC_connect == FALSE) {
-    data(nest_surveys_raw)
-  }
   
   return(nest_surveys_raw)
 }
