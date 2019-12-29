@@ -4,12 +4,12 @@
 \alias{CrecheSum}
 \title{Sum creche surveys}
 \usage{
-CrecheSum(time, df = NULL, output = "graph", ByObserver = "no",
-  islands = "outer")
+CrecheSum(time, df = NULL, survey_data = NULL, segment = FALSE,
+  output = "graph", ByObserver = "no", islands = "outer")
 }
 \arguments{
-\item{time}{Choose to sum counts by "date" or "year". Summing by date will sum 
-counts across segments of each island for each date. Summing by year sums counts 
+\item{time}{Character string equal to "date" or "year". Summing by date will sum 
+counts (and associated densities) across segments of each island for each date. Summing by year sums counts 
 across all surveys conducted in that year. Note that some sites were surveyed more than once in 
 the same year (primarily terns COTE and LETE).}
 
@@ -17,17 +17,20 @@ the same year (primarily terns COTE and LETE).}
 Access database to obtain it. Defaults to NULL, which means the Access database will
 be used to obtain it.}
 
+\item{segment}{Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
+Defaults to \code{FALSE}.}
+
 \item{output}{Character string equal to "graph" or "table". 
-Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
-function. For wide format use "table".}
+Defaults to exporting a data frame in long format (output= "graph") ready for ggplot and \code{\link{PlotBirds}}
+For wide format enter "table" but note this currently just returns raw count values per life stage, not density.}
 
 \item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
 If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 each island segment on each date. Sums counts across multiple observations by same 
 observer at each segment. Defaults to "no".}
 
-\item{islands}{Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
-The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).}
+\item{islands}{Character. Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
+The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster) or a vector of island names can be provided.}
 }
 \value{
 Returns a \code{data.frame} with the raw and effort-adjusted counts of COEI life stages observed 
@@ -35,13 +38,13 @@ during boat-based creche surveys per island, life stage, and time.
 }
 \description{
 Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
-and summarizes the counts by year or date and life stage for plotting and analysis. Currently sums counts from the primary 
- survey conducted by the lead biologist when repeated surveys were conducted.  If you specify  \code{ByObserver}=\code{TRUE} 
-  the  counts of all duplicate surveys will be summed by observer.
+and summarizes life stage counts by year or date to support analysis and reporting as defined in ####. Raw counts are also converted to
+densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
+ When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
 }
 \section{Warning}{
 
-Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
 \examples{

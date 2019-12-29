@@ -10,18 +10,18 @@
 #' @importFrom plyr mapvalues
 #' 
 #' @description Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
-#' and summarizes the counts by year or date and life stage for plotting and analysis. Currently sums counts from the primary 
-#'  survey conducted by the lead biologist when repeated surveys were conducted.  If you specify  \code{ByObserver}=\code{TRUE} 
-#'   the  counts of all duplicate surveys will be summed by observer.
+#' and summarizes life stage counts by year or date to support analysis and reporting as defined in ####. Raw counts are also converted to
+#' densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
+#'  When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
 #' @section Warning:
-#' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param time Choose to sum counts by "date" or "year". Summing by date will sum 
-#' counts across segments of each island for each date. Summing by year sums counts 
+#' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param time Character string equal to "date" or "year". Summing by date will sum 
+#' counts (and associated densities) across segments of each island for each date. Summing by year sums counts 
 #' across all surveys conducted in that year. Note that some sites were surveyed more than once in 
 #' the same year (primarily terns COTE and LETE). 
 #' @param output Character string equal to "graph" or "table". 
-#' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
-#' function. For wide format use "table".
+#' Defaults to exporting a data frame in long format (output= "graph") ready for ggplot and \code{\link{PlotBirds}}
+#'For wide format enter "table" but note this currently just returns raw count values per life stage, not density.
 #' @param ByObserver Character string equal to \code{"yes"} or \code{"no"}.
 #' If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 #' each island segment on each date. Sums counts across multiple observations by same 
@@ -29,9 +29,10 @@
 #' @param df  The user can optionally load the raw creche data from an R object or connect to the 
 #' Access database to obtain it. Defaults to NULL, which means the Access database will
 #' be used to obtain it.
-#' @param islands Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
-#'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).
-#'  
+#' @param islands Character. Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
+#'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster) or a vector of island names can be provided.
+#' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
+#'  Defaults to \code{FALSE}.
 #' @return Returns a \code{data.frame} with the raw and effort-adjusted counts of COEI life stages observed 
 #' during boat-based creche surveys per island, life stage, and time. 
 #
@@ -44,7 +45,7 @@
 #' 
 #
 
-CrecheSum<-function(time, df = NULL, survey_data = NULL,
+CrecheSum<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
                     output = "graph", ByObserver = "no", islands = "outer") {
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
@@ -52,10 +53,10 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
   
   ## if Creche data aren't inputted by user, pull from database.
   if (is.null(df)){
-    df <- GetCrecheData(x)
+    df <- GetCrecheData()
   } 
   #head(df)
-  ## if Creche Survey data aren't inputted by user, pull from database
+  ## if Creche Survey data aren't input by user, pull from database
   if (is.null(survey_data)){
     survey_data <- GetSurveyData(x, survey = "Creche")
   } 
@@ -83,9 +84,9 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
     
   }else{
     
-    df<-droplevels(df)
+    df<-df[df$Island %in% islands,] 
+    droplevels(df)
   }
-  
   
   ### Sum data across each segement as raw and effort-adjusted numbers by observer 
   
@@ -108,7 +109,7 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
   } else {
     
     
-    # Only sum observations made by Carol, excluding repeat counts
+    # Only sum observations made by lead biologist, excluding repeat counts
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, 
                     Survey_Primary, Group_Count, 
@@ -142,8 +143,8 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
   if (time == "date") {
     StageSumBySegment<-
       group_by(df.melt, Island,Segment, Date,Species_Unit) %>% # summarize all life stages by Island, Segment,Date and Species Unit
-      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
-      spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
+      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum of each life stage by island segment
+      spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide to add female COEI vectors
       mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
       dplyr::select(Island, Segment,Date,'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
     
@@ -157,78 +158,103 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
   
     COEI_BySegment<-left_join(StageSumBySegment,CrecheSizeBySegment, by= c("Island","Segment", "Date")) %>% # bind tables 
       dplyr::select(Island,Segment, Date, 'Adult female COEI tending','COEI Ducklings' , `Average creche size`, 'Total Number of Female COEI Observed')%>% 
-      add_column(Species_Code = "COEI") %>% 
-      dplyr::rename(time = Date)
+      tibble::add_column(Species_Code = "COEI") %>% 
+      dplyr::rename(time = Date)%>% 
+      dplyr::mutate(stat ="sum")
     
     
   ### Sum by Date across all islands
     
     StageSumByTime<-
-      group_by(df.melt,Date,Species_Unit) %>% # summarize by Date and Species Unit across ALL islands
+      dplyr::group_by(df.melt,Date,Species_Unit) %>% # summarize by Date and Species Unit across ALL islands
       dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
-      spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
-      mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
-      add_column(Island = "All Islands", Segment ="All") %>%
+      tidyr::spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
+      dplyr::mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
+      tibble::add_column(Island = "All Islands", Segment ="All") %>%
       dplyr::select(Island,Segment, Date, 'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
     
     CrecheSizeByTime<-filter(df.melt, Species_Unit == "COEI Ducklings") %>% # sum ducklings and no. of observations
       na.omit() %>% # remove any entries where Group_Count isn't specified
-      group_by(Date,year,month) %>% # summarize by Island and date
+      dplyr::group_by(Date,year,month) %>% # summarize by Island and date
       dplyr::summarise(Total_Ducklings = sum(value), No_groups = sum(Group_Count))%>% # sum ducklings and no. of observations
-      mutate(`Average creche size`=  round(Total_Ducklings/No_groups,2)) %>% 
-      add_column(Island = "All Islands", Segment ="All") %>%
+      dplyr::mutate(`Average creche size`=  round(Total_Ducklings/No_groups,2)) %>% 
+      tibble::add_column(Island = "All Islands", Segment ="All") %>%
       dplyr::select(Island,Segment, Date,`Average creche size` )
     
     COEI_ByTime<-left_join(StageSumByTime,CrecheSizeByTime, by= c("Island","Segment", "Date")) %>% 
-    dplyr::select(Island,Segment, Date,'Adult female COEI tending','COEI Ducklings' , `Average creche size`, 'Total Number of Female COEI Observed') %>% 
-      add_column(Species_Code = "COEI") %>% 
-      dplyr::rename(time = Date)
+      dplyr::select(Island,Segment, Date,'Adult female COEI tending','COEI Ducklings' , `Average creche size`, 'Total Number of Female COEI Observed') %>% 
+      tibble::add_column(Species_Code = "COEI") %>% 
+      dplyr::rename(time = Date)%>% 
+      dplyr::mutate(stat ="sum")
   }
     
 ##### Sum by Island for each year##########
   
   if (time == "year"){  
-    StageSumBySegment<-
-      group_by(df.melt, Island,Segment,year, Species_Unit) %>% # summarize by Island, Date and Species Unit
-      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
-      spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
-      mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
-      dplyr::select(Island, Segment,year, 'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
+   
+     # summarize counts by Date first for each Island and Species Unit
+    StageSumByDay<-
+      dplyr::group_by(df.melt, Island,Segment,year, Date, Species_Unit) %>% 
+      dplyr::summarise( value= sum(value, na.rm=TRUE)) # calc sum per stage per day
+      
+      # now create new variable corresponding to the total females (lone + tending)  
+    TotFemales<-StageSumByDay %>% 
+      filter( Species_Unit == "Adult female COEI alone" | Species_Unit == "Adult female COEI tending")%>% 
+      group_by(Island, Segment, year, Date) %>%
+      summarise(value= sum(value)) %>% # sum by date
+      add_column(Species_Unit = "Total Number of Female COEI Observed")# create new life stage variable name
     
+    StageSumBySegment<- bind_rows(StageSumByDay, TotFemales) %>%     # bind daily summaries from above 
+      dplyr::group_by(Island, Segment, year, Species_Unit) %>% # now summarize data by year to calc daily mean/max and overall sum
+      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value,na.rm = TRUE),2),
+                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+      tidyr::gather(stat, value, -Island, -Segment,-year,-Species_Unit, -surveys) # gather data into one value vector for spread
+      
+      
+    # calculate the average creche size (groupings of ducklings) across all survey dates when counted in discrete groupings
     CrecheSizeBySegment<-filter(df.melt, Species_Unit == "COEI Ducklings") %>%
       na.omit() %>% # remove any entries where Group_Count isn't specified
-      group_by(Island,Segment,year) %>% # summarize by Island and date
+      dplyr::group_by(Island,Segment,year, Date) %>% # summarize by Island and date
       dplyr::summarise(Total_Ducklings = sum(value), No_groups = sum(Group_Count))%>% # sum ducklings and no. of observations
-      mutate(`Average creche size`=  round(Total_Ducklings/No_groups,2)) %>% 
-      dplyr::select(Island, Segment,year,`Average creche size` )
+      dplyr::mutate(value=  round(Total_Ducklings/No_groups,2)) %>% # calc mean creche size for each date
+      group_by(Island, Segment, year) %>% 
+      dplyr::summarise(value= round(mean(value, na.rm = TRUE),2), No_groups = sum(No_groups)) %>% #calc daily avg creche size across surveys
+      tibble::add_column(Species_Unit="Average creche size", stat= "max") %>% 
+      dplyr::select(Island, Segment,year,stat,surveys= No_groups,Species_Unit,value )
     
-    COEI_BySegment<-left_join(StageSumBySegment,CrecheSizeBySegment, by= c("Island","Segment", "year")) %>% 
-      dplyr::select(Island,Segment, year, 'Adult female COEI tending','COEI Ducklings' , `Average creche size`, 'Total Number of Female COEI Observed')%>% 
-      add_column(Species_Code = "COEI") %>% 
+    # bind life stage counts and creche size calc together
+    COEI_BySegment<-bind_rows(StageSumBySegment,CrecheSizeBySegment) %>% select(-surveys) %>% 
+      group_by(Island, Segment, year, stat) %>% 
+      tidyr::spread(Species_Unit, value,fill=0, drop=T) %>% # make data wide
+      dplyr::select(Island,Segment, year, stat, 'Adult female COEI tending','COEI Ducklings' , 'Average creche size', 'Total Number of Female COEI Observed')%>% 
+      tibble::add_column(Species_Code = "COEI") %>% 
       dplyr::rename(time = year)
     
     
     ### Sum by year across all islands
     
-    StageSumByTime<-
-      group_by(df.melt,year,Species_Unit) %>% # summarize by Island, Date and Species Unit
-      dplyr::summarise( sum= sum(value, na.rm=TRUE)) %>% # calc sum per life stage
-      spread(Species_Unit, sum, drop= TRUE, fill= 0) %>% # make wide 
-      mutate(`Total Number of Female COEI Observed`= `Adult female COEI alone` + `Adult female COEI tending` )%>% 
-      add_column(Island = "All Islands", Segment ="All") %>%
-      dplyr::select(Island,Segment, year, 'Adult female COEI tending','COEI Ducklings' ,  'Total Number of Female COEI Observed') # grab final columns
+    StageSumByTime<- bind_rows(StageSumByDay, TotFemales) %>%     # bind daily summaries from above 
+      dplyr::group_by(year, Species_Unit) %>% # now summarize data by year to calc daily mean/max and overall sum
+      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value,na.rm = TRUE),2),
+                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+      tidyr::gather(stat, value, -year,-Species_Unit, -surveys) %>% # gather data into one value vector for spread
+      add_column(Island = "All Islands", Segment ="All")
     
     CrecheSizeByTime<-filter(df.melt, Species_Unit == "COEI Ducklings") %>%
       na.omit() %>% # remove any entries where Group_Count isn't specified
-      group_by(year) %>% # summarize by Island and date
+      dplyr::group_by(Island,Segment,year, Date) %>% # summarize by Island and date
       dplyr::summarise(Total_Ducklings = sum(value), No_groups = sum(Group_Count))%>% # sum ducklings and no. of observations
-      mutate(`Average creche size`=  round(Total_Ducklings/No_groups,2)) %>% 
-      add_column(Island = "All Islands", Segment ="All") %>%
-      dplyr::select(Island,Segment,  year,`Average creche size` )
+      dplyr::mutate(value=  round(Total_Ducklings/No_groups,2)) %>% # calc mean creche size for each date
+      group_by(year) %>% # summarize by year
+      dplyr::summarise(value= round(mean(value, na.rm = TRUE),2), No_groups = sum(No_groups)) %>% #calc daily avg creche size across surveys
+      tibble::add_column(Species_Unit="Average creche size", stat= "max", Island="All Islands", Segment= "All") %>% 
+      dplyr::select(Island, Segment,year,stat,surveys= No_groups,Species_Unit,value )
     
-    COEI_ByTime<-left_join(StageSumByTime,CrecheSizeByTime, by= c("Island", "Segment","year")) %>% 
-      dplyr::select(Island, Segment, year, 'Adult female COEI tending','COEI Ducklings' , `Average creche size`, 'Total Number of Female COEI Observed') %>% 
-      add_column(Species_Code = "COEI") %>% 
+    COEI_ByTime<-bind_rows(StageSumByTime,CrecheSizeByTime) %>% select(-surveys) %>% 
+      group_by(Island, Segment, year, stat) %>% 
+      tidyr::spread(Species_Unit, value, fill=0, drop=T) %>% # make data wide
+      dplyr::select(Island,Segment, year, stat, 'Adult female COEI tending','COEI Ducklings' , 'Average creche size', 'Total Number of Female COEI Observed')%>% 
+      tibble::add_column(Species_Code = "COEI") %>% 
       dplyr::rename(time = year)
     
   }
@@ -240,14 +266,16 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
       tibble::add_column(Survey_Type = "Creche") %>% # add in for correct binding of survey effort 
       dplyr::left_join(., survey_data, 
                        by = c("Species_Code", "Island", "Segment", "Survey_Type")) %>% ## append survey effort per segment
-      tidyr::gather( variable, value, -Species_Code, -Island,-Segment,-time, -Survey_Type,-Survey_Class, -Survey_Size,-Size_Units) %>% # bring data back together
-      group_by(Species_Code, Island, time, variable) %>% ## first summarize data by Island
+      tidyr::gather( variable, value, -Species_Code, -Island,-Segment,-time, -Survey_Type,-Survey_Class, -Survey_Size,-Size_Units,-stat) %>% # bring data back together
+      {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units, stat) else # sum by segment if needed
+          group_by(.,Species_Code, Island, time, stat, variable)} %>% ## first summarize data by Island
       dplyr::summarise(value= sum(value, na.rm = TRUE), # sum raw counts per island
-                       Survey_Size = sum(Survey_Size, na.rm = TRUE), n=n()) %>% # , ## sum survey effort per island,
+                       Survey_Size = sum(Survey_Size, na.rm = TRUE)) %>% # , ## sum survey effort per island,
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size/1000),2)) %>% # standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
-      dplyr::select(Species_Code, Island, time,  variable, value, valuePerSurveySize,Survey_Size, Survey_Units) %>% 
+      {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, stat, value, valuePerSurveySize,Survey_Size, Survey_Units) else
+      dplyr::select(.,Species_Code, Island, time,  variable,stat, value, valuePerSurveySize,Survey_Size, Survey_Units)} %>% 
       inner_join(species_tlu, ., by = "Species_Code") %>% # add species names to data
       mutate(FullLatinName=as.character(FullLatinName),CommonName=as.character(CommonName)) # force as chr
  
@@ -270,11 +298,9 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL,
     ### make wide for tabular display
     if(output == "table") {
       table.final <- graph.final %>% 
-        select(-Species_Code, -CommonName, -FullLatinName) %>% 
-        group_by(Island, )
-        spread( CommonName, value, drop = TRUE) %>% 
-        ungroup() %>%  
-        mutate(Species_Code = NULL, FullLatinName = NULL)
+        { if(segment) select(.,Island, Segment,time, variable, stat, value) else
+          select(.,Island, time, variable, stat, value)} %>% 
+        spread( variable, value, drop = TRUE)
       #write.table(table.final, "./Data/Incubationsurveys.csv", sep=",", row.names= FALSE)
       return(table.final)
     }

@@ -4,7 +4,8 @@
 \alias{GetSurveyData}
 \title{Get survey effort per species}
 \usage{
-GetSurveyData(x, species = NA, survey = NA, ODBC_connect = TRUE)
+GetSurveyData(x, species = NA, survey = NA, connect = "ODBC",
+  DBfile = NULL)
 }
 \arguments{
 \item{x}{Denote in parentheses to return all surveys}
@@ -13,9 +14,15 @@ GetSurveyData(x, species = NA, survey = NA, ODBC_connect = TRUE)
 
 \item{survey}{Enter survey type to filter for species detected within that survey type. Options are "Incubation","Nest", and "Creche".}
 
-\item{ODBC_connect}{Should the function connect to the Access DB? The default (TRUE) is to 
-try to connect using the Windows ODBC manager to get survey data. If the connection is not available or not desired, 
-the function can return the saved data from the package.}
+\item{connect}{Should the function connect to the Access DB? The default 
+(\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+and include a patch to a saved version of the database, or
+the function can return the saved data from the package (\code{connect = `No`}). 
+Note the saved data may not be up-to-date.}
+
+\item{DBfile}{If \code{connect = `Hmisc`}, user must provide a location of the DB from which
+it will grab the data.}
 }
 \value{
 Returns a \code{data.frame} of survey effort (area and distance searched) by species for each survey event.
@@ -23,7 +30,6 @@ Returns a \code{data.frame} of survey effort (area and distance searched) by spe
 \description{
 This function returns the survey effort per species for each island segment. 
 This information can be filtered by species and survey type if desired.
-
 }
 \section{Warning}{
 

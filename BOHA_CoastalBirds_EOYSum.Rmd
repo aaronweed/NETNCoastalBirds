@@ -2,12 +2,12 @@
 title: "Coastal Bird monitoring at Boston Harbor Islands NRA (BOHA)"
 author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
 output: 
-  pdf_document:
-    toc: yes
-    fig_caption: yes
   html_document:
    
    toc: true
+  pdf_document:
+    toc: yes
+    fig_caption: yes
 ---
 ```{r,intro, results='markup', echo=F, include=FALSE}
 cat("\\newpage")
@@ -23,18 +23,19 @@ library(magrittr)
 ## Boat-based Incubation surveys
 
 ```{r figs, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
-incub <- SumIncubation(time = "year")
-dcco<- filter(incub,Species_Code == "DCCO")
-PlotBirds(dcco, plot_title = "yes", legend = FALSE, var= "Incubating adults")
+library(magrittr)
+incub <- NETNCoastalBirds::SumIncubation(time = "year") %>% mutate(value= round(value,0))
+dcco<- filter(incub,Species_Code == "DCCO") %>% filter(stat== "mean") 
+NETNCoastalBirds::PlotBirds(dcco, plot_title = "yes", legend = FALSE,  stat = "mean")
 #in Figure \ref{fig:figs}
 cat("\\newpage")
 options(knitr.kable.NA = '')
-kable(dcco[,c("Island","time","value")] %>% spread(time, value), caption= "Annual raw counts of Double-crested Cormorant Incubating adults",padding =2)
+knitr::kable(dcco[,c("Island","time","value")]  %>% spread(time, value), caption= "Annual raw counts of Double-crested Cormorant Incubating adults",padding =2)
 ```
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 cat("\\newpage")
-PlotBirds(dcco, scale = "log", plot_title = "yes", legend = FALSE, var= "Incubating adults")
+PlotBirds(dcco, scale = "log", plot_title = "yes", legend = FALSE,  stat = "mean")
 ```
 
 ## Ground-based Nest Surveys
@@ -49,15 +50,15 @@ PlotBirds(nests, plot_title = "yes", legend= TRUE, var= c("Nests", "Eggs", "Chic
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
-GBBG<- filter(incub,Species_Code == "GBBG")
-PlotBirds(GBBG, plot_title = "yes", legend = FALSE,var= "Incubating adults")
+GBBG<- filter(incub,Species_Code == "GBBG")%>% filter(stat == "mean")
+PlotBirds(GBBG, plot_title = "yes", legend = FALSE,stat = "mean")
 cat("\\newpage")
 kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Annual raw counts of Great Black-backed Gull Incubating adults",padding =2)
 ```
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 cat("\\newpage")
-PlotBirds(GBBG, scale = "log", plot_title = "yes", legend = FALSE, var= "Incubating adults")
+PlotBirds(GBBG, scale = "log", plot_title = "yes", legend = FALSE, stat = "mean")
 ```
 
 ## Ground-based Nest Surveys
@@ -72,15 +73,15 @@ PlotBirds(nests, plot_title = "yes", legend= TRUE, var= c("Nests", "Eggs", "Chic
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
-HERG<- filter(incub,Species_Code == "HERG")
-PlotBirds(HERG, plot_title = "yes", legend = FALSE, var= "Incubating adults")
+HERG<- filter(incub,Species_Code == "HERG")%>% filter(stat== "mean") 
+PlotBirds(HERG, plot_title = "yes", legend = FALSE,  stat = "mean")
 cat("\\newpage")
 kable(HERG[,c("Island","time","value")] %>% spread(time, value), caption= "Annual raw counts of Herring Gull Incubating adults.",padding =2)
 ```
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 cat("\\newpage")
-PlotBirds(HERG, scale = "log", plot_title = "yes", legend = FALSE, var= "Incubating adults")
+PlotBirds(HERG, scale = "log", plot_title = "yes", legend = FALSE,  stat = "mean")
 ```
 
 ## Ground-based Nest Surveys
@@ -94,7 +95,7 @@ PlotBirds(nests, plot_title = "yes", legend= TRUE, var= c("Nests", "Eggs", "Chic
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 options(knitr.kable.NA = '')
 creche <- CrecheSum(time ="date")
-PlotBirds(creche, year= "2019", plot_title = "no", legend = TRUE)
+PlotBirds(creche, year= "2019", plot_title = "no", legend = TRUE, stat="sum")
 cat("\\newpage")
 yr<-"2019"
 df<- filter(creche, year== yr & !Island == "All Islands") %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
@@ -105,7 +106,7 @@ kable(df, caption = paste0("Creche surveys during ",yr))
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 7.5,message=FALSE}
 creche_y <- CrecheSum(time ="year")
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
-plots<-map(VAR, ~PlotBirds(creche_y, var = . ,print= "no", plot_title = "yes"))
+plots<-map(VAR, ~PlotBirds(creche_y, var = . ,print= "no", plot_title = "yes", stat="max"))
 print(plots[[1]]);cat("\\newpage")
 print(plots[[2]]);cat("\\newpage")
 print(plots[[3]]);cat("\\newpage")

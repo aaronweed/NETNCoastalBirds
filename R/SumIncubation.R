@@ -7,31 +7,30 @@
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
-#' @importFrom plyr mapvalues
 #' 
 #' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
-#'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Currently sums counts from the primary 
-#'  survey conducted by the lead biologist when repeated surveys were conducted.  If you specify  \code{ByObserver}=\code{TRUE} 
-#'   the  counts of all duplicate surveys will be summed by observer.
+#'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day (sum) or by year 
+#'  (sum, mean, max, and min) from the primary survey conducted by the lead biologist.  
+#'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
 #' @section Warning:
-#' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' Unless df or survey_date are specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param df Dataframe. Defaults to \code{NULL} which requires ODBC connection to generate df. 
+#' Otherwise, provide a \code{data.frame} similar to \code{\link{GetIncubationData}}. 
 #' @param time Character string equal to "date" or "year". Value must be provided; there is
-#' no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
-#' segments of each island for each date. Summing by year sums counts across all surveys conducted 
-#' in that year. Note that some surveys were repeated in the same year. 
+#' no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
+#' segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
+#' in that year. Note that some surveys were repeated in the same year so mean is best to use for reporting because it accounts for seasonal variation in repeat counts. 
 #' @param species To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 #' to providing output for all species.
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 #' function. For wide format use "table".
-#'#' @param ByObserver Character string equal to \code{"yes"} or \code{"no"}.
-#' If "yes" and \code{time}= "date", the function will output the survey data counted by each observer for 
+#' @param ByObserver Character string equal to \code{"yes"} or \code{"no"}.
+#' If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 #' each island segment on each date. Sums counts across multiple observations by same 
 #' observer at each segment. Defaults to "no".
-#' @param df  The user can optionally load the raw incubation data from an R object or connect to the 
-#' Access database to obtain it. Defaults to NULL, which means the Access database will
-#' be used to obtain it.
-#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.
+#' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
+#'  Defaults to \code{FALSE}.
 #' @return Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 
 #' during boat-based incubation surveys per island, life stage, and time. 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
@@ -47,10 +46,10 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   # this function summarizes the number of adults on nests per island, year, and by observer
   
   if (is.null(df)) {
-    df <- GetIncubationData(x) # import data from the database if needed
+    df <- GetIncubationData() # import data from the database if needed
     #head(df)
   }
-  ## if  Survey data aren't inputted by user, pull from database
+  ## if  Survey data aren't input by user, pull from database
   if (is.null(survey_data)){
     survey_data <- GetSurveyData(x, survey = "Incubation", 
                                  species = {if(!anyNA(species)) species else NA})
@@ -64,7 +63,8 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   
   ### Subset by Islands and by species
   
-  Isls<-c ("Calf","Green","Little Calf","Little Brewster","Middle Brewster","Outer Brewster", "Shag Rocks", "The Graves","Spinnaker")
+  Isls<-c ("Calf","Green","Little Calf","Little Brewster","Middle Brewster",
+           "Outer Brewster", "Shag Rocks", "The Graves","Spinnaker")
   
   # exclude Terns
   df<-df %>%  
@@ -111,33 +111,50 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   if (time == "date") {
     SumBySegment <- df.melt %>% 
       group_by(Species_Code, Island, Segment, Date, month, year) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # sum per segment when >1 primary surveys per date. 
-      dplyr::rename(time = Date)
+      dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% # sum per segment when >1 primary surveys per date. 
+      dplyr::rename(time = Date) %>% 
+      dplyr::mutate(stat ="sum")
+      
     
     ## Sum the number of adults on each date across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
       group_by(Species_Code,  Date, month, year) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% #  sum per segment when >1 primary surveys per date.
+      dplyr::summarise(value = sum(value, na.rm = TRUE), surveys= n()) %>% #  sum per segment when >1 primary surveys per date.
       tibble::add_column(Island = "All Islands", Segment="All") %>% 
-      dplyr::rename(time = Date)
+      dplyr::rename(time = Date) %>% 
+      dplyr::mutate(stat ="sum")
   }
   
   ############# Sum counts per year or across all surveys per island across segements
   # Note that there can be more than one primary survey per year
+  # there are also >1 (mainly 2) surveys on the same day by same obs at Little Calf- All, so these need to be summed first prior to
+  # summarizing per year so that daily mean/max is correctly calculated
+  # there are also surveys with 0 obs on the first survey of the year but follow-up surveys have >1; taking the mean across successive dates
+  # isn't appropriate because the 0 surveys were "too early", removing these 0 from mean calc
   #######################################
   
   if (time == "year") {
     SumBySegment <- df.melt %>% 
-      group_by(Species_Code, Island, Segment,year) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE), n=n()) %>% # find the sum count per segment when >1 surveys per year 
+      group_by(Species_Code, Island, Segment,year, Date) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
+      group_by(Species_Code, Island, Segment, year) %>% # now summarize data by year to calc daily mean/ max and overall sum
+      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value[value!=0],na.rm = TRUE),2),
+                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+      dplyr::mutate(mean = if_else(is.nan(mean), 0,mean)) %>% # convert NaN to 0's for zero-only counts
+      tidyr::gather(stat, value,-Species_Code, -Island, -Segment,-year, -surveys) %>% # make data long
       dplyr::rename(time = year)
     
-    ## Sum the number of adults in each year across all islands
+    ## Summarize the number of incubating adults in each year across all islands
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, year) %>% 
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # find the sum count per segment when >1 primary surveys per year 
+      group_by(Species_Code, Island, Segment,year, Date) %>% ## first sum by date and segment to account for multiple partial segment surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
+      group_by(Species_Code, year) %>% # now summarize data by year to calc daily mean/ max and overall sum
+      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value[value!=0],na.rm = TRUE),2),
+                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+      dplyr::mutate(mean = if_else(is.nan(mean), 0,mean)) %>% # conver NaN to 0's for zero-only counts
+      tidyr::gather(stat, value,-Species_Code, -year, -surveys) %>% # make data long
       tibble::add_column(Island = "All Islands", Segment="All")  %>% 
       dplyr::rename(time = year)
   }
@@ -147,26 +164,28 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   ## CALCULATE  VALUES PER ISLAND or SEGMENT BASED ON SURVEY-ADJUSTED ESTIMATES 
   ## for islands with >1 segments, sums raw counts and survey area by island and then divides sum counts / sum survey area
   ## for many surveys there is only one segment surveys, but there are a few with >1 segement per island surevyed in a given year
+  ## the final df calculates the sum of all counts per island(segment), which are inflated estimates because they include repeat surveys,
+  # the sum of the mean, max, and minimum of mutiple counts per island(segment) and year (if time = year). 
+  # When time= year, mean values are the best to report because they account for seasonal variation.
   #################################
   AllData <- bind_rows(SumBySegment, SumByBOHA) %>% 
     tibble::add_column(Survey_Type = "Incubation") %>% # add in for correct binding of survey effort
     dplyr::left_join(., survey_data,
                      by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
-    {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units) else
-      group_by(.,Species_Code, Island, time, Size_Units) } %>% ## first summarize data by Island
+    {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units, stat) else # sum by segment if needed
+      group_by(.,Species_Code, Island, time, Size_Units, stat) } %>% ##  summarize data by Island
     dplyr::summarise(value= sum(value), # sum raw counts
                      Survey_Size = sum(Survey_Size)) %>% # , ## sum survey effort per island, 
     dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) %>% # standardize counts by survey effort
     dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
     tibble::add_column(Survey_Units = "km2", variable = "Incubating Adults") %>% # denote what survey effort units are reported  
-    {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units) else
-      dplyr::select(.,Species_Code, Island,  time, variable, value, valuePerSurveySize,Survey_Size, Survey_Units)}%>% 
+    {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, stat, value, valuePerSurveySize,Survey_Size, Survey_Units) else
+      dplyr::select(.,Species_Code, Island,  time, variable, stat,value, valuePerSurveySize,Survey_Size, Survey_Units)}%>% 
     inner_join(species_tlu, ., by = "Species_Code") # add species names to data
   
   graph.final <- AllData %>%
     mutate(FullLatinName = as.character(FullLatinName),
-           CommonName = as.character(CommonName),
-           variable = "Incubating adults") 
+           CommonName = as.character(CommonName)) 
   
   if(time  == "year"){
     graph.final<-graph.final %>% 
