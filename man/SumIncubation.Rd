@@ -4,31 +4,32 @@
 \alias{SumIncubation}
 \title{sum incubation surveys}
 \usage{
-SumIncubation(df = NULL, time, species = NA, output = "graph",
-  ByObserver = "no", segment = FALSE)
+SumIncubation(df = NULL, time, survey_data = NULL, species = NA,
+  output = "graph", ByObserver = "no", segment = FALSE)
 }
 \arguments{
-\item{df}{The user can optionally load the raw incubation data from an R object or connect to the 
-Access database to obtain it. Defaults to NULL, which means the Access database will
-be used to obtain it.}
+\item{df}{Dataframe. Defaults to \code{NULL} which requires ODBC connection to generate df. 
+Otherwise, provide a \code{data.frame} similar to \code{\link{GetIncubationData}}.}
 
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
-no default. Choose to sum counts by "date" or "year". Summing by date will sum counts across 
-segments of each island for each date. Summing by year sums counts across all surveys conducted 
-in that year. Note that some surveys were repeated in the same year.}
+no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
+segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
+in that year. Note that some surveys were repeated in the same year so mean is best to use for reporting because it accounts for seasonal variation in repeat counts.}
 
 \item{species}{To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 to providing output for all species.}
 
 \item{output}{Character string equal to "graph" or "table". 
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
-function. For wide format use "table".
-#' @param ByObserver Character string equal to \code{"yes"} or \code{"no"}.
-If "yes" and \code{time}= "date", the function will output the survey data counted by each observer for 
+function. For wide format use "table".}
+
+\item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
+If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 each island segment on each date. Sums counts across multiple observations by same 
 observer at each segment. Defaults to "no".}
 
-\item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.}
+\item{segment}{Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
+Defaults to \code{FALSE}.}
 }
 \value{
 Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 
@@ -36,13 +37,13 @@ during boat-based incubation surveys per island, life stage, and time.
 }
 \description{
 Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
- summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Currently sums counts from the primary 
- survey conducted by the lead biologist when repeated surveys were conducted.  If you specify  \code{ByObserver}=\code{TRUE} 
-  the  counts of all duplicate surveys will be summed by observer.
+ summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day (sum) or by year 
+ (sum, mean, max, and min) from the primary survey conducted by the lead biologist.  
+ If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
 }
 \section{Warning}{
 
-Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+Unless df or survey_date are specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
 
 \examples{

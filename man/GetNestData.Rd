@@ -4,14 +4,14 @@
 \alias{GetNestData}
 \title{Return ground-based nest surveys from database}
 \usage{
-GetNestData(x, ODBC_connect = TRUE, export = FALSE)
+GetNestData(connect = "ODBC", DBfile = NULL, export = FALSE)
 }
 \arguments{
-\item{x}{Denote in parentheses to return all ground-based nest surveys.}
-
-\item{ODBC_connect}{Should the function connect to the Access DB? The default (TRUE) is to 
-try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-the function can return the saved data from the package. 
+\item{connect}{Should the function connect to the Access DB? The default 
+(\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+and include a patch to a saved version of the database, or
+the function can return the saved data from the package (\code{connect = `No`}). 
 Note the saved data may not be up-to-date.}
 
 \item{export}{Should the incubation data be exported as a csv file and RData object?
@@ -22,17 +22,14 @@ This function returns the raw nest survey data as a \code{data.frame}.
 }
 \description{
 This function connects to the backend of NETN's Coastal Bird Access 
-DB and returns the raw ground-based nest survey data for non-AMOY 
-(BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL).
+DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
+returns the raw ground-based nest survey data for non-AMOY 
+(BCNH COEI COTE DCCO GBBG GLIB GREG HERG LETE SNEG SPSA WILL). If the Access DB is not
+accessible from the ODBC connection, one can try to connect via Hmisc, or
+the function returns a saved image of the data.
 }
-\section{Warning}{
-
-User should have Access backend entered as 'NETNCB' in Windows ODBC manager.
-(If ODBC_connect = TRUE).
-}
-
 \examples{
-nests <- GetNestData(x)
+nests <- GetNestData()
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

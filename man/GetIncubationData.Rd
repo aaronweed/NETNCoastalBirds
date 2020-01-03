@@ -4,12 +4,12 @@
 \alias{GetIncubationData}
 \title{Return incubation surveys from database}
 \usage{
-GetIncubationData(x, connect = "ODBC", DBfile = NULL, export = FALSE)
+GetIncubationData(connect = "ODBC", DBfile = NULL, export = FALSE)
 }
 \arguments{
 \item{connect}{Should the function connect to the Access DB? The default 
 (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
-If the connection is not available or not desired, one can use \code{connect = `HMisc`}
+If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
 and include a patch to a saved version of the database, or
 the function can return the saved data from the package (\code{connect = `No`}). 
 Note the saved data may not be up-to-date.}
@@ -28,7 +28,7 @@ accessible from the ODBC connection, one can try to connect via Hmisc, or
 the function returns a saved image of the data.
 }
 \examples{
-incubation <- GetIncubationData(x)
+incubation <- GetIncubationData()
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

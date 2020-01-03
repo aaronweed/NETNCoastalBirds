@@ -1,0 +1,139 @@
+---
+title: "Introduction to NETNCoastalBirds R package"
+author: "Aaron Weed"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(NETNCoastalBirds)
+library(tidyverse)
+library(magrittr)
+```
+
+This package was designed to import, manipulate, and plot data collected as a part of the NPS Northeast Temperate Inventory and Monitoring Network’s (NETN) Coastal Breeding Bird program at Boston Harbor Islands National Recreation Area (BOHA). For further information about the program visit https://www.nps.gov/im/netn/coastal-birds.htm.
+
+The following surveys are conducted in this program:
+
+- **Incubation surveys**: boat-based surveys estimating the number of incubating adults of Double-crested Cormorant (DCCO), Herring Gull (HERG) and Great Black-backed Gull (GBBG)
+- **Creche surveys**: Boat-based surveys of Common Eider (COEI) life stages
+- **Nest surveys**: ground-based surveys of nests and their contents of multiple species.
+- **American Oystercatcher (AMOY)**: boat and ground-based surveys of all AMOY lifestages.
+
+This document introduces you to NETNCoastalBirds’s basic set of tools, and shows you how to apply them. For further documentation of the sampling design, survey methods and quality control procedures followed please consult Trocki et. al (2015).
+
+Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. National Park Service, Fort Collins, Colorado.
+
+
+## Data
+
+NEED TO ADD DATA TO PACKAGE FROM GET FUNCTIONS 
+
+## “Get” Functions
+
+### GetIncubation: returns raw detections of incubating adults
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA}
+Incub<-GetIncubationData(x)
+```
+
+returns a `data.frame` of incubating adults of DCCO, HERG, GBBG. Note that running this command requires the NETN Coastal Bird MS Access database entered as ‘NETNCB’ in Windows ODBC manager.
+
+### GetCrecheData: returns raw detections of Common Eider life stages
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+creche<-GetCrecheData(x)
+```
+
+returns a `data.frame` of counts corresponding to life stages of COEI. The following lifestages, indicated in the variable column, are counted:
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA}
+levels(creche$Species_Unit)
+```
+
+### GetNestData: returns raw detections of nest counts and their contents
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+nests<-GetNestData(x)
+```
+
+This returns a `data.frame` of counts of nests and their contents of multiple species and has the following data columns:
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA}
+names(nests)
+```
+
+### GetAMOYData: returns raw detections of AMOY
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+AMOY_surveys<-GetAMOYData(x)
+```
+
+This returns a `data.frame` of individual detections of AMOY taken during the surveys, typically between May and July of each year. These surveys are used to determine the number of mating pairs and assess demography of this species during the year.
+
+### AMOY_MatingPairSumm: returns end of season summary of AMOY mating pairs per island
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+AMOY_MP<-GetAMOYData(x)
+```
+
+This returns a `data.frame` of AMOY mating pairs estimated from the repeat visits that you can access via GetAMOYData.
+
+## Summary Functions
+There are a few summary or aggregation functions that sum bird life stages by day or annually. The functions also return summaries of birds detected for each island surveyed per species and across all islands surveyed per species. Summaries can be conducted for single or multiple species by entering in species codes into the `species` argument of each function.
+
+### SumIncubation
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+glimpse(SumIncubation(time = "year", species = "HERG"))
+```
+
+Note that to sum by year you enter `time= year`. To sum by day, enter `time = date`. The count is denoted in the `value` column of the returned data frame and `n` denotes the number of observations. Finally, `variable` denotes the life stage detected. When you don’t provide an argument to `species`, `SumIncubation()` will return all species surveyed.
+
+### CrecheSum
+Since there are numerous detections of Common Eider (COEI) per day and year, this function sums the number of birds detected in each year per island of 4 four life stages. The counts are summarized in the following life stages: No. of females, No. of Females tending Duckings, No. lone Females, Mean creche size (no. ducklings) from the Outer Islands. To sum counts by year:
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+creche.yr<-CrecheSum(time = "year")
+```
+
+To sum by date:
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+creche.day<-CrecheSum(time = "date")
+```
+
+To sum daily surveys by each Observer enter `CrecheSum(time="date", ByObserver= "yes" )`
+
+### SumCOTE
+Adult incubating Common Terns are surveyed on Spinnaker Platform. This returns the maximum count per year:
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+COTE<-SumCOTE(time="year"); head(COTE)
+```
+
+
+### SumNestSurveys
+This functions sums the number of nests and their contents by species and island. Similar arguments can be passed to the function as above. Summarize annual nest, egg, and chick counts for Common Eider by:
+
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+nest.COEI<-SumNestSurveys(time="year", species = "COEI"); head(nest.COEI)
+```
+Sum annual nest counts of Glossy Ibis (GLIB) and Great Egret (GREG)
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+nests.spp<-SumNestSurveys(time="year", species = c("GLIB","GREG")); head(nests.spp)
+```
+
+## Plotting functions
+This function creates a time series plot of bird detections using `ggplot.` The function was built to plot data from a `data.frame` created in one of the “Sum” functions described above, but will also plot a `data.frame` with the following column names: `Species_Code`, `CommonName`,`Island`,`time`, ’`value`, and `variable`. The default plots time series of single or multiple species by Island into separate “facets”.
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE, fig.align="center", fig.height= 8, fig.width= 6 }
+DCCO<-SumIncubation(time="year", species = "DCCO")
+PlotBirds(DCCO)
+```
+You can also plot detections of DCCO per island on the log-scale by setting the `scale`argument to `"log"`
+```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE, fig.height= 8, fig.width= 6}
+PlotBirds(DCCO, scale = "log")
+```

@@ -4,34 +4,31 @@
 \alias{GetCrecheData}
 \title{Return creche surveys from database}
 \usage{
-GetCrecheData(x, ODBC_connect = TRUE, export = FALSE)
+GetCrecheData(connect = "ODBC", DBfile = NULL, export = FALSE)
 }
 \arguments{
-\item{x}{Denote in parentheses to return df}
-
-\item{ODBC_connect}{Should the function connect to the Access DB? The default (TRUE) is to 
-try to connect using the Windows ODBC manager. If the connection is not available or not desired, 
-the function can return the saved data from the package. 
+\item{connect}{Should the function connect to the Access DB? The default 
+(\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
+If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
+and include a patch to a saved version of the database, or
+the function can return the saved data from the package (\code{connect = `No`}). 
 Note the saved data may not be up-to-date.}
 
 \item{export}{Should the incubation data be exported as a csv file and RData object?
 (This argument is used to regenerate the RData for the package.)}
 }
-\description{
-This function connects to the backend of NETN's Coastal Bird Access DB 
-and returns the raw creche survey data of COEI
-}
-\details{
+\value{
 This function returns the raw AMOY survey data as a \code{data.frame}.
 }
-\section{Warning}{
-
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager. 
-(If ODBC_connect = TRUE).
+\description{
+This function connects to the backend of NETN's Coastal Bird Access DB 
+(Access backend entered as 'NETNCB' in Windows ODBC manager) and 
+returns the raw creche survey data of COEI. If the Access DB is not
+accessible from the ODBC connection, one can try to connect via Hmisc, or
+the function returns a saved image of the data.
 }
-
 \examples{
-creche <- GetCrecheData(x)
+creche <- GetCrecheData()
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
