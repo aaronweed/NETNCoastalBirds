@@ -5,6 +5,7 @@
 #' @title Plot coastal bird survey data
 #'
 #' @import ggplot2 
+#' @importFrom lubridate is.Date
 #'
 #' @description Plots bird detections over time.
 #' @section Warning:
