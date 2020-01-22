@@ -1,12 +1,18 @@
 ---
 title: "Coastal Bird monitoring at Boston Harbor Islands NRA (BOHA)"
 author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
-output: 
+output:
   html_document:
-   
-   toc: true
-  pdf_document:
+    highlight: textmate
+    number_sections: yes
+    theme: united
     toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
     fig_caption: yes
 ---
 ```{r,intro, results='markup', echo=F, include=FALSE}

@@ -4,8 +4,7 @@
 \alias{GetSurveyData}
 \title{Get survey effort per species}
 \usage{
-GetSurveyData(x, species = NA, survey = NA, connect = "ODBC",
-  DBfile = NULL)
+GetSurveyData(x, species = NA, survey = NA, connect = "ODBC", DBfile = NULL)
 }
 \arguments{
 \item{x}{Denote in parentheses to return all surveys}

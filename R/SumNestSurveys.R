@@ -42,7 +42,7 @@
 SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segment= FALSE) {
   # bring in raw data from ODBC connection
   if (is.null(df))
-    df <- GetNestData() %>% 
+    df <- GetNestData(connect = "ODBC") %>% 
           droplevels()
   
 

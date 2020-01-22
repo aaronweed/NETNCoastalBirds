@@ -4,8 +4,15 @@
 \alias{SumIncubation}
 \title{sum incubation surveys}
 \usage{
-SumIncubation(df = NULL, time, survey_data = NULL, species = NA,
-  output = "graph", ByObserver = "no", segment = FALSE)
+SumIncubation(
+  df = NULL,
+  time,
+  survey_data = NULL,
+  species = NA,
+  output = "graph",
+  ByObserver = "no",
+  segment = FALSE
+)
 }
 \arguments{
 \item{df}{Dataframe. Defaults to \code{NULL} which requires ODBC connection to generate df. 

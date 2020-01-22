@@ -4,8 +4,13 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(time, species = NA, output = "graph", df = NULL,
-  segment = FALSE)
+SumNestSurveys(
+  time,
+  species = NA,
+  output = "graph",
+  df = NULL,
+  segment = FALSE
+)
 }
 \arguments{
 \item{time}{Character string equal to "date" or "year".
