@@ -42,6 +42,7 @@
 
 GetSurveyMat <- function(survey, df= NULL, island=NA, year= NA, species=NA, time = "year") {
   
+  data("species_tlu")
   if(is.null(df)){
   if(survey == "Nest") 
     df <- as.data.frame(GetNestData())
@@ -53,7 +54,6 @@ GetSurveyMat <- function(survey, df= NULL, island=NA, year= NA, species=NA, time
   
   if(survey == "AMOY") df <- as.data.frame(AMOYPairsByDate())
   }
-  
   
   if(!anyNA(species)) df <- df[df$Species_Code %in% species, ]
   

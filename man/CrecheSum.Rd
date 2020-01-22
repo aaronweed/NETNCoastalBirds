@@ -4,8 +4,15 @@
 \alias{CrecheSum}
 \title{Sum creche surveys}
 \usage{
-CrecheSum(time, df = NULL, survey_data = NULL, segment = FALSE,
-  output = "graph", ByObserver = "no", islands = "outer")
+CrecheSum(
+  time,
+  df = NULL,
+  survey_data = NULL,
+  segment = FALSE,
+  output = "graph",
+  ByObserver = "no",
+  islands = "outer"
+)
 }
 \arguments{
 \item{time}{Character string equal to "date" or "year". Summing by date will sum 

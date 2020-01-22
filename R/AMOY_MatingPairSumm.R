@@ -22,7 +22,7 @@ AMOY_MatingPairSumm<-function(x,  ODBC_connect = TRUE, export = FALSE){
     ###################### Import data and lookup tables used for the query   ################
     
     # import dataframes of each tables within the DB
-    AMOY <- sqlFetch(con, "tbl_Summary_AMOYpairs")
+    AMOY <- sqlFetch(con, "tbl_Summary_AMOY")
     
     odbcClose(con)
     

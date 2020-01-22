@@ -4,10 +4,14 @@
 \alias{SumGulls_DCCO}
 \title{sum Gull and DCCO surveys}
 \usage{
-SumGulls_DCCO(time = "year", species = c("DCCO", "GBBG", "HERG"),
-  output = "graph", ByObserver = "no", islands = c("Calf",
-  "Little Calf", "Green", "The Graves", "Middle Brewster",
-  "Outer Brewster", "Shag Rocks", "Little Brewster"))
+SumGulls_DCCO(
+  time = "year",
+  species = c("DCCO", "GBBG", "HERG"),
+  output = "graph",
+  ByObserver = "no",
+  islands = c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster",
+    "Outer Brewster", "Shag Rocks", "Little Brewster")
+)
 }
 \arguments{
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is

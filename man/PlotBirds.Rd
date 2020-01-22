@@ -4,10 +4,22 @@
 \alias{PlotBirds}
 \title{Plot coastal bird survey data}
 \usage{
-PlotBirds(data, raw_count = FALSE, species = NA, island = NA,
-  year = NA, stat = NA, scale = "norm", facet = "Island",
-  var = NA, overlay = "var", print = "yes", plot_title = "yes",
-  legend = FALSE, Y_scale = "fixed")
+PlotBirds(
+  data,
+  raw_count = FALSE,
+  species = NA,
+  island = NA,
+  year = NA,
+  stat = NA,
+  scale = "norm",
+  facet = "Island",
+  var = NA,
+  overlay = "var",
+  print = "yes",
+  plot_title = "yes",
+  legend = FALSE,
+  Y_scale = "fixed"
+)
 }
 \arguments{
 \item{data}{A \code{data.frame}  of coastal bird observations summarized for plotting. Typically from \code{\link{SumIncubation}}, \code{\link{CrecheSum}}, or \code{\link{SumNestSurveys}}.}
