@@ -8,7 +8,7 @@
 #' @importFrom dplyr summarise mutate filter arrange group_by
 #' @importFrom tidyr spread
 #' @importFrom magrittr %>% 
-#' @importFrom tibble add_column
+#' @importFrom tibble add_column as_tibble
 #' 
 #' @description Constructs survey matrix to show effort based on the inputs
 #' @section Warning:
@@ -40,10 +40,14 @@
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @export
 
-GetSurveyMat <- function(survey, df= NULL, island=NA, year= NA, species=NA, time = "year") {
+GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA, time = "year") {
   
-  data("species_tlu")
   if(is.null(df)){
+    
+  if(species == "AMOY" & survey %in% "Nest" | survey %in% "Incubation") 
+    df <- GetAMOYData() 
+  else {
+    
   if(survey == "Nest") 
     df <- as.data.frame(GetNestData())
   
@@ -51,8 +55,7 @@ GetSurveyMat <- function(survey, df= NULL, island=NA, year= NA, species=NA, time
     df <- as.data.frame(as.data.frame(GetIncubationData()))
   
   if(survey == "Creche") df <- as.data.frame(GetCrecheData())
-  
-  if(survey == "AMOY") df <- as.data.frame(AMOYPairsByDate())
+    }
   }
   
   if(!anyNA(species)) df <- df[df$Species_Code %in% species, ]
@@ -62,14 +65,14 @@ GetSurveyMat <- function(survey, df= NULL, island=NA, year= NA, species=NA, time
   if(!anyNA(year)) df <- df[df$year %in% year, ] # for subsetting df ByDate
   
     
-  df.wide <- left_join(df,species_tlu, by="Species_Code") %>% filter(Survey_Primary =="Yes") %>% 
-    group_by(CommonName, FullLatinName, Species_Code, Island, Segment, time= {if(time == "year") year else Date}) %>% 
+  df.wide <- df %>%
+    group_by(Species_Code, Island, Segment, time= {if(time == "year") year else Date}) %>% 
     summarise(value = n())  %>%  # collapse by time
     add_column(Survey = survey) %>% 
     mutate(value = "X") %>% # replace value with text
     spread(time,value,drop= TRUE, fill= "-") %>% 
     filter(!Island %in% "All Islands") %>% 
-    arrange(CommonName, FullLatinName,Species_Code,Island)
+    arrange(Species_Code,Island)
 
   return(df.wide)
 }

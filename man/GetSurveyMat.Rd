@@ -5,7 +5,7 @@
 \title{View survey matrix}
 \usage{
 GetSurveyMat(
-  survey,
+  survey = NA,
   df = NULL,
   island = NA,
   year = NA,
