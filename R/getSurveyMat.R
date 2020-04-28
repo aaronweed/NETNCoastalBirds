@@ -47,6 +47,7 @@ GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA,
     
   if(species == "AMOY") 
     df <- GetAMOYData() 
+  else {
   
   if(survey == "Nest") 
     df <- as.data.frame(GetNestData())
@@ -54,7 +55,7 @@ GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA,
   if(survey == "Incubation") 
     df <- as.data.frame(as.data.frame(GetIncubationData()))
   
-  if(survey == "Creche") df <- as.data.frame(GetCrecheData())
+  if(survey == "Creche") df <- as.data.frame(GetCrecheData())}
     }
   
   if(!anyNA(species)) df <- df[df$Species_Code %in% species, ]

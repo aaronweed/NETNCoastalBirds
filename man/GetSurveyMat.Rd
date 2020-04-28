@@ -45,7 +45,7 @@ User must have Access backend entered as 'NETNCB' in Windows ODBC manager if df 
 }
 
 \examples{
-GetSurveyMat(survey ="Nests", species ="COEI", year = 2009, time="Date")
+GetSurveyMat(survey ="Nest", species ="COEI", year = 2009, time="Date")
 GetSurveyMat(survey ="Creche",  year = 2007:2011)
 GetSurveyMat(survey ="Incubation",  year = 2007, time="Date")
 
