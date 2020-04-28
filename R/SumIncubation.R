@@ -3,6 +3,7 @@
 #' @title sum incubation surveys
 #'
 #' @import dplyr 
+#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
@@ -31,6 +32,7 @@
 #' observer at each segment. Defaults to "no".
 #' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
 #'  Defaults to \code{FALSE}.
+#' @param survey_data Path to data frame with survey data. Deafults to generating from MS Access database via RODBC.
 #' @return Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 
 #' during boat-based incubation surveys per island, life stage, and time. 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
@@ -43,6 +45,15 @@
 #
 SumIncubation <- function(df = NULL, time, survey_data = NULL,
                           species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
+  
   # this function summarizes the number of adults on nests per island, year, and by observer
   
   if (is.null(df)) {

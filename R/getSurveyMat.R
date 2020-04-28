@@ -1,6 +1,7 @@
 #' @include GetCrecheData.R
 #' @include GetNestData.R
 #' @include GetIncubationData.R
+#' @include GetAMOYData.R
 
 #' @title View survey matrix
 #'
@@ -10,18 +11,17 @@
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column as_tibble
 #' 
-#' @description Constructs survey matrix to show effort based on the inputs
+#' @description Constructs matrix showing history of survey for particular surveys
 #' @section Warning:
-#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' User must have Access backend entered as 'NETNCB' in Windows ODBC manager if df = NULL.
 #'
-
 #' @param survey A character vector. Accepts "Nest", "Creche", or "Incubation". There is no default and this must be denoted.
 #' 
 #' @param df A data frame of the surveys. Supply argument when connection to database 
 #' is not available. If survey is "creche", then must be data frame created from 
-#' CrecheSum() function. If survey is "incubation", then must be data frame created from the
-#' SumIncubation() function. If survey is "nest", then must be data frame created from the
-#' SumNestSurveys() function.
+#' \code{GetCrecheData} function. If survey is "Incubation", then must be data frame created from the
+#' \code{GetIncubationData} function. If survey is "Nest", then must be data frame created from the
+#' \code{GetNestData} function.
 #' @param island A  vector of island names. To view summaries across all islands, 
 #' "All Islands"
 #' @param species  A  vector of species name codes, e.g. "BCNH"
@@ -30,7 +30,7 @@
 #' @param time Select whether to show effort by year ("year) or for individual dates ("Date"). Defaults to "year". 
 #'
 #' @examples
-#' GGetSurveyMat(survey ="Nests", species ="COEI", year = 2009, time="Date")
+#' GetSurveyMat(survey ="Nest", species ="COEI", year = 2009, time="Date")
 #' GetSurveyMat(survey ="Creche",  year = 2007:2011)
 #' GetSurveyMat(survey ="Incubation",  year = 2007, time="Date")
 #' 
@@ -42,12 +42,12 @@
 
 GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA, time = "year") {
   
-  if(is.null(df)){
+  
+   if(is.null(df)){
     
-  if(species == "AMOY" & survey %in% "Nest" | survey %in% "Incubation") 
+  if(species == "AMOY") 
     df <- GetAMOYData() 
-  else {
-    
+  
   if(survey == "Nest") 
     df <- as.data.frame(GetNestData())
   
@@ -56,7 +56,6 @@ GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA,
   
   if(survey == "Creche") df <- as.data.frame(GetCrecheData())
     }
-  }
   
   if(!anyNA(species)) df <- df[df$Species_Code %in% species, ]
   
@@ -64,15 +63,17 @@ GetSurveyMat <- function(survey = NA, df= NULL, island=NA, year= NA, species=NA,
   
   if(!anyNA(year)) df <- df[df$year %in% year, ] # for subsetting df ByDate
   
+  if(!anyNA(survey)) df <- df[df$Survey_Type %in% survey, ] # for subsetting df by survey type
+  
     
   df.wide <- df %>%
-    group_by(Species_Code, Island, Segment, time= {if(time == "year") year else Date}) %>% 
+    group_by(Species_Code, Island, Segment, Survey_Type, time= {if(time == "year") year else Date}) %>% 
     summarise(value = n())  %>%  # collapse by time
-    add_column(Survey = survey) %>% 
+    rename(Survey = Survey_Type) %>% 
     mutate(value = "X") %>% # replace value with text
     spread(time,value,drop= TRUE, fill= "-") %>% 
     filter(!Island %in% "All Islands") %>% 
-    arrange(Species_Code,Island)
+    arrange(Species_Code,Island, Segment)
 
   return(df.wide)
 }

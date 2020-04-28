@@ -18,9 +18,9 @@ GetSurveyMat(
 
 \item{df}{A data frame of the surveys. Supply argument when connection to database 
 is not available. If survey is "creche", then must be data frame created from 
-CrecheSum() function. If survey is "incubation", then must be data frame created from the
-SumIncubation() function. If survey is "nest", then must be data frame created from the
-SumNestSurveys() function.}
+\code{GetCrecheData} function. If survey is "Incubation", then must be data frame created from the
+\code{GetIncubationData} function. If survey is "Nest", then must be data frame created from the
+\code{GetNestData} function.}
 
 \item{island}{A  vector of island names. To view summaries across all islands, 
 "All Islands"}
@@ -37,15 +37,15 @@ This function returns a matrix showing dates of surveys for
 specified arguments indicated as "X".
 }
 \description{
-Constructs survey matrix to show effort based on the inputs
+Constructs matrix showing history of survey for particular surveys
 }
 \section{Warning}{
 
-User must have Access backend entered as 'NETNCB' in Windows ODBC manager.
+User must have Access backend entered as 'NETNCB' in Windows ODBC manager if df = NULL.
 }
 
 \examples{
-GGetSurveyMat(survey ="Nests", species ="COEI", year = 2009, time="Date")
+GetSurveyMat(survey ="Nests", species ="COEI", year = 2009, time="Date")
 GetSurveyMat(survey ="Creche",  year = 2007:2011)
 GetSurveyMat(survey ="Incubation",  year = 2007, time="Date")
 

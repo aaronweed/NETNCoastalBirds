@@ -17,7 +17,6 @@
 #'  \item{valuePerSurveySize}{raw count divided by Survey_Size}
 #'  \item{Survey_Size}{Survey_Size}{numeric value of area or distance surveyed}
 #'  \item{Survey_Units}{Units of distance (km) or area (km2) surveyed)}
-#'  \item{Observer}{Initial(s) of Observer(s)}
 #'  
 #' }
 #' @examples

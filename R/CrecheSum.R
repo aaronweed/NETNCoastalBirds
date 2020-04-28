@@ -38,9 +38,9 @@
 #
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples  
-#' CrecheSum(time ="date")
-#' CrecheSum(time ="year")
-#' CrecheSum(time= "date", ByObserver = "yes")
+#' # CrecheSum(time ="date")
+#' # CrecheSum(time ="year")
+#' # CrecheSum(time= "date", ByObserver = "yes")
 #' @export
 #' 
 #
@@ -55,6 +55,15 @@ CrecheSum<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
   if (is.null(df)){
     df <- GetCrecheData()
   } 
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
+  
   #head(df)
   ## if Creche Survey data aren't input by user, pull from database
   if (is.null(survey_data)){

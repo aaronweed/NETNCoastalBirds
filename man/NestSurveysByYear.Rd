@@ -4,7 +4,8 @@
 \name{NestSurveysByYear}
 \alias{NestSurveysByYear}
 \title{Ground-based nest survey data summarized by island and year}
-\format{A data frame with columns:
+\format{
+A data frame with columns:
 \describe{
  \item{Species_Code}{Unique, 4-letter code for species.}
  \item{CommonName}{Common name this species}
@@ -18,9 +19,9 @@
  \item{valuePerSurveySize}{raw count divided by Survey_Size}
  \item{Survey_Size}{Survey_Size}{numeric value of area or distance surveyed}
  \item{Survey_Units}{Units of distance (km) or area (km2) surveyed)}
- \item{Observer}{Initial(s) of Observer(s)}
  
-}}
+}
+}
 \source{
 Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol 
 for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. 

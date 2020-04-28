@@ -33,10 +33,6 @@ Defaults to "no".}
 
 \item{islands}{Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
 The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).}
-
-\item{df}{The user can optionally load the raw incubation data from an R object or connect to the 
-Access database to obtain it. Defaults to NULL, which means the Access database will
-be used to obtain it.}
 }
 \value{
 Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during 

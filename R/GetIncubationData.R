@@ -2,8 +2,6 @@
 #'
 #' @importFrom  dplyr select left_join
 #' @importFrom lubridate ymd year month date
-#' @importFrom RODBC odbcConnect sqlFetch odbcClose
-#' @importFrom Hmisc mdb.get
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird 
 #' Access DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
@@ -16,6 +14,7 @@
 #' and include a patch to a saved version of the database, or
 #' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
+#' @param DBfile Path to a specified database file. 
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #'
@@ -34,17 +33,29 @@
 
 
 GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
-  ## First, get the data depending on the connection option:
+
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+   ## First, get the data depending on the connection option:
   if (connect == "ODBC") {
+    
+  
     # Connect to database BE using odbcConnect (default)
-    con <- odbcConnect("NETNCB")
+    con <- RODBC::odbcConnect("NETNCB")
     
     ######### Import data and lookup tables used for the query   ##############
     #"tbl_Events","tbl_Group_Observations"    
     # import dataframes of each tables within the DB
-    event <- sqlFetch(con, "tbl_Events"); names(event)
-    obs <- sqlFetch(con, "tbl_Observations"); names(obs)
-    odbcClose(con)
+    event <- RODBC::sqlFetch(con, "tbl_Events"); names(event)
+    obs <- RODBC::sqlFetch(con, "tbl_Observations"); names(obs)
+    
+    RODBC::odbcClose(con)
     
     
     ## If connection didn't work, try mdb.get() 
@@ -52,9 +63,9 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
      if (is.null(DBfile)) {
        stop("Please specify the database location for this connection option.")
      }
-      event <- mdb.get(DBfile, tables = "tbl_Events", 
+      event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
                        mdbexportArgs = '', stringsAsFactors = FALSE)
-      obs <- mdb.get(DBfile, tables = "tbl_Observations", 
+      obs <- Hmisc::mdb.get(DBfile, tables = "tbl_Observations", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
       event <- clear.labels(event)
       obs   <- clear.labels(obs)

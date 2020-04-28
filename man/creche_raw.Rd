@@ -4,7 +4,8 @@
 \name{creche_raw}
 \alias{creche_raw}
 \title{Raw creche data for COEI boat-based surveys}
-\format{A data frame with columns:
+\format{
+A data frame with columns:
 \describe{
  \item{Park}{4 letter code of Boston Harbor Islands NRA}
  \item{Island}{Island associated with each survey event.}
@@ -36,7 +37,8 @@
  \item{Cloud_Perc}{Cloud cover at start of survey event; unknown values are coded as 999}
  \item{Tide_Stage}{Level of tide at start of survey event}
  \item{pk_EventID}{Primary key for this route survey event; unique ID for each record in this table}
-}}
+}
+}
 \source{
 Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol 
 for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. 

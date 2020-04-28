@@ -12,6 +12,7 @@
 #'  \item{month}{month; numeric}
 #'  \item{year}{year; numeric}
 #'  \item{Survey_Primary}{If "Yes, denotes data was collected by lead biologist.}
+#'  \item{Survey_Type}{Denotes whether data was collected as part of a "Boat" or "Ground" Survey.}
 #'  \item{Survey_Duplicate}{“Yes” if data represents double-counting the same birds, using the same methods, in the same season.}
 #'  \item{Survey_Complete}{Dentes whether the entire island segment was surveyed; "Yes" or "No"}
 #'  \item{Species_Unit}{COEI Life stage: F-Lone (females alone), Chick (ducklings),  F-Tend (females tending ducklings)}
