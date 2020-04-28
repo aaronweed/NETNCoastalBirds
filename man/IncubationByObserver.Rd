@@ -4,7 +4,8 @@
 \name{IncubationByObserver}
 \alias{IncubationByObserver}
 \title{Incubation data summarized by Observer on each survey date}
-\format{A data frame with columns:
+\format{
+A data frame with columns:
 \describe{
  \item{Species_Code}{4 letter species code of observation}
  \item{Island}{Island associated with each survey event.}
@@ -22,7 +23,8 @@
  \item{Survey_Units}{Units of distance (km) or area (km2) surveyed)}
  \item{Observer}{Initial(s) of Observer(s)}
  
-}}
+}
+}
 \source{
 Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol 
 for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. 

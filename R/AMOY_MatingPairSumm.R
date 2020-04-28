@@ -1,6 +1,5 @@
 #' @title Return end of season AMOY mating pair summary
 #'
-#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom magrittr %>% 
 #' @importFrom dplyr rename
 #' 
@@ -17,16 +16,20 @@
 
 AMOY_MatingPairSumm<-function(x,  ODBC_connect = TRUE, export = FALSE){
   
-  if (ODBC_connect == TRUE) {
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+   if (ODBC_connect == TRUE) {
     
-    con <- odbcConnect("NETNCB")
+    con <- RODBC::odbcConnect("NETNCB")
     
     ###################### Import data and lookup tables used for the query   ################
     
     # import dataframes of each tables within the DB
-    AMOY <- sqlFetch(con, "tbl_Summary_AMOY")
+    AMOY <- RODBC::sqlFetch(con, "tbl_Summary_AMOY")
     
-    odbcClose(con)
+    RODBC::odbcClose(con)
     
      
       AMOY<-AMOY %>% dplyr::rename(time= Survey_Year, value = Pair_Count, Island= Location)

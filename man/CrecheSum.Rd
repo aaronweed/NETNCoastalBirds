@@ -56,9 +56,9 @@ Unless \code{df} is specified, the user must have an Access backend entered as '
 
 \examples{
  
-CrecheSum(time ="date")
-CrecheSum(time ="year")
-CrecheSum(time= "date", ByObserver = "yes")
+# CrecheSum(time ="date")
+# CrecheSum(time ="year")
+# CrecheSum(time= "date", ByObserver = "yes")
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

@@ -14,6 +14,8 @@ and include a patch to a saved version of the database, or
 the function can return the saved data from the package (\code{connect = `No`}). 
 Note the saved data may not be up-to-date.}
 
+\item{DBfile}{Path to a specified database file.}
+
 \item{export}{Should the incubation data be exported as a csv file and RData object?
 (This argument is used to regenerate the RData for the package.)}
 }
@@ -28,7 +30,7 @@ accessible from the ODBC connection, one can try to connect via Hmisc, or
 the function returns a saved image of the data.
 }
 \examples{
-amoy <- GetAMOYdata()
+# amoy <- GetAMOYdata()
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

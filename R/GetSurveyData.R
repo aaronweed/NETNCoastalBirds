@@ -3,7 +3,6 @@
 
 #' @importFrom dplyr left_join filter distinct
 #' @importFrom lubridate month year
-#' @importFrom fuzzyjoin regex_inner_join
 #' 
 #' @description This function returns the survey effort per species for each island segment. 
 #' This information can be filtered by species and survey type if desired.
@@ -13,6 +12,7 @@
 #' @param x Denote in parentheses to return all surveys
 #' @param species Enter species code as character if you would like to filter by species (e.g., "DCCO")
 #' @param survey Enter survey type to filter for species detected within that survey type. Options are "Incubation","Nest", and "Creche".
+#' @param DBfile Path to a specified database file. 
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
 #' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
@@ -31,14 +31,28 @@
 
 GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile = NULL) {
   
+  if(!requireNamespace("fuzzyjoin", quietly = TRUE)){
+    stop("Package 'fuzzyjoin' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
   #### Import dataframes from DB to access survey effort by event per species ----
   if  (connect == "ODBC") {
-    con <- odbcConnect("NETNCB")# establish connection to DB
     
-    event <- sqlFetch(con, "tbl_Events")
-    Isl_Seg<- sqlFetch(con, "tbl_Islands_Segments")
-    Seg_Size<-sqlFetch(con, "tbl_Segments_Size")
-    species_tlu<-sqlFetch(con,"tlu_Species")
+   
+    con <- RODBC::odbcConnect("NETNCB")# establish connection to DB
+    
+    event <- RODBC::sqlFetch(con, "tbl_Events")
+    Isl_Seg<- RODBC::sqlFetch(con, "tbl_Islands_Segments")
+    Seg_Size<-RODBC::sqlFetch(con, "tbl_Segments_Size")
+    species_tlu<-RODBC::sqlFetch(con,"tlu_Species")
     
     odbcClose(con)
     ## If connection didn't work, try mdb.get() 
@@ -47,13 +61,13 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
       stop("Please specify the database location for this connection option.")
     }
     
-    event <- mdb.get(DBfile, tables = "tbl_Events", 
+    event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
-    Isl_Seg <- mdb.get(db_path, tables="tbl_Islands_Segments", 
+    Isl_Seg <- Hmisc::mdb.get(db_path, tables="tbl_Islands_Segments", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
-    Seg_Size <- mdb.get(db_path, tables="tbl_Segments_Size", 
+    Seg_Size <- Hmisc::mdb.get(db_path, tables="tbl_Segments_Size", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
-    species_tlu <- mdb.get(db_path, tables="tlu_Species", 
+    species_tlu <- Hmisc::mdb.get(db_path, tables="tlu_Species", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
     event <- clear.labels(event)
     Isl_Seg <- clear.labels(Isl_Seg)
@@ -83,7 +97,7 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
       left_join(Isl_Seg, Seg_Size, by= c(pk_SegmentID= "fk_SegmentID"))%>% # joins tables to create table of survey effort per segement
       select(Island, Segment, Survey_Class, Survey_Type, Target_Spp, Survey_Size, Size_Units, Active) %>% 
       left_join(event,., by=c("Survey_Class", "Survey_Type" , "Island","Segment")) %>% tbl_df() %>% # add on segment survey data
-      regex_inner_join(.,species_tlu, by=c(Target_Spp = "TargetSpp_Group")) %>%   #Add species codes to survey effort to remove target species grouping for later joining
+      fuzzyjoin::regex_inner_join(.,species_tlu, by=c(Target_Spp = "TargetSpp_Group")) %>%   #Add species codes to survey effort to remove target species grouping for later joining
       {if (!anyNA(species)) filter(.,Species_Code %in% species) else .} %>% # filter by selected species, defaults to all species
       {if (!anyNA(survey)) filter(.,Survey_Type %in% survey) else .} %>% # filter by selected survey, defaults to all 
       select(Species_Code, Island, Segment, Survey_Class, Survey_Type,Survey_Size, Size_Units) %>% 

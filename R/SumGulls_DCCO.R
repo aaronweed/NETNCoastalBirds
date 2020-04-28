@@ -25,9 +25,6 @@
 #' survey data counted by each observer for each island 
 #' segment on each date. Only sums across multiple observations by same observer at each segment. 
 #' Defaults to "no".
-#' @param df  The user can optionally load the raw incubation data from an R object or connect to the 
-#' Access database to obtain it. Defaults to NULL, which means the Access database will
-#' be used to obtain it.
 #'@param islands Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
 #'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster).
 #' @return Returns a \code{list} with the counts of Gulls, cormorant, and terns observed during 
@@ -46,6 +43,14 @@
 #' 
 #
 SumGulls_DCCO <- function(time = "year", species = c("DCCO","GBBG","HERG"), output = "graph", ByObserver = "no", islands =c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", "Outer Brewster", "Shag Rocks","Little Brewster")) {
+ 
+   if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
   
 ###### Sum  Data ----
   

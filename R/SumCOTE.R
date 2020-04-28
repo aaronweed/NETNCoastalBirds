@@ -35,6 +35,15 @@
 
 SumCOTE <- function(df = NULL, time, output = "graph", ByObserver = "no") {
   # this function summarizes the number of adults on nests per island, year, and by observer
+ 
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
   
   if (is.null(df)) {
     df <- GetIncubationData(x) # import data from the database if needed

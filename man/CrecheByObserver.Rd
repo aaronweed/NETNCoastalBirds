@@ -4,7 +4,8 @@
 \name{CrecheByObserver}
 \alias{CrecheByObserver}
 \title{Boat-based Common Eider creche data summarized by Observer on each survey date}
-\format{A data frame with columns:
+\format{
+A data frame with columns:
 \describe{
  \item{Species_Code}{4 letter species code of observation}
  \item{Island}{Island associated with each survey event.}
@@ -13,6 +14,7 @@
  \item{month}{month; numeric}
  \item{year}{year; numeric}
  \item{Survey_Primary}{If "Yes, denotes data was collected by lead biologist.}
+ \item{Survey_Type}{Denotes whether data was collected as part of a "Boat" or "Ground" Survey.}
  \item{Survey_Duplicate}{“Yes” if data represents double-counting the same birds, using the same methods, in the same season.}
  \item{Survey_Complete}{Dentes whether the entire island segment was surveyed; "Yes" or "No"}
  \item{Species_Unit}{COEI Life stage: F-Lone (females alone), Chick (ducklings),  F-Tend (females tending ducklings)}
@@ -22,7 +24,8 @@
  \item{Survey_Units}{Units of distance (km) or area (km2) surveyed)}
  \item{Observer}{Initial(s) of Observer(s)}
  
-}}
+}
+}
 \source{
 Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol 
 for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. 

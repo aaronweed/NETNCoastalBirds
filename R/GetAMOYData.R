@@ -1,16 +1,14 @@
 #' @title Return in-season AMOY surveys from database
 #'
 #' @importFrom dplyr select left_join
-#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom lubridate ymd year month date
-#' @importFrom Hmisc mdb.get
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
 #' (Access backend entered as 'NETNCB' in Windows ODBC manager) and returns the raw AMOY 
 #' survey data. f the Access DB is not
 #' accessible from the ODBC connection, one can try to connect via Hmisc, or
 #' the function returns a saved image of the data.
-#' 
+#' @param DBfile Path to a specified database file. 
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
 #' If the connection is not available or not desired, one can use \code{connect = `Hmisc`}
@@ -23,34 +21,45 @@
 #' @return This function returns the raw AMOY survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
-#' amoy <- GetAMOYdata()
+#' # amoy <- GetAMOYdata()
 #' @export
 
 GetAMOYData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
-  ## First, get the data depending on the connection option:
-  if (connect == "ODBC") {
-     con <- odbcConnect("NETNCB")
+ 
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  }
   
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+   ## First, get the data depending on the connection option:
+  if (connect == "ODBC") {
+     con <- RODBC::odbcConnect("NETNCB")
+     
+  
+     
   ###################### Import data and lookup tables used for the query   ################
   #"tbl_Events","tbl_Group","tbl_Group_Observations" ,"tbl_Nests","tbl_Observations"      
   
   # import dataframes of each tables within the DB
-  group <- sqlFetch(con, "tbl_Group")
-  event <- sqlFetch(con, "tbl_Events")
-  group_obs<-sqlFetch(con, "tbl_Group_Observations")
+  group <- RODBC::sqlFetch(con, "tbl_Group")
+  event <- RODBC::sqlFetch(con, "tbl_Events")
+  group_obs<-RODBC::sqlFetch(con, "tbl_Group_Observations")
   
-  odbcClose(con)
+  RODBC::odbcClose(con)
   
   ## If connection didn't work, try mdb.get() 
   } else if (connect == "Hmisc") {
     if (is.null(DBfile)) {
       stop("Please specify the database location for this connection option.")
     }
-    group <- mdb.get(db_path, tables="tbl_Group", 
+    group <- Hmisc::mdb.get(db_path, tables="tbl_Group", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
-    event <- mdb.get(DBfile, tables = "tbl_Events", 
+    event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
-    group_obs <- mdb.get(db_path, tables="tbl_Group_Observations", 
+    group_obs <- Hmisc::mdb.get(db_path, tables="tbl_Group_Observations", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
     group <- clear.labels(group)
     event <- clear.labels(event)

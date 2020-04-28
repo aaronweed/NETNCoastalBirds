@@ -23,6 +23,8 @@ no default. Choose to summarize counts by "date" or "year". Summing by date will
 segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
 in that year. Note that some surveys were repeated in the same year so mean is best to use for reporting because it accounts for seasonal variation in repeat counts.}
 
+\item{survey_data}{Path to data frame with survey data. Deafults to generating from MS Access database via RODBC.}
+
 \item{species}{To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 to providing output for all species.}
 

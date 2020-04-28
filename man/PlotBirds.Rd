@@ -51,8 +51,9 @@ In cases where the \code{data} has multiple life stages (e.g., nests), provide a
 
 \item{plot_title}{Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.}
 
-\item{legend}{Add legend. Defaults to \code{FALSE}.
-#' @param Y_scale Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?}
+\item{legend}{Add legend. Defaults to \code{FALSE}.}
+
+\item{Y_scale}{Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?}
 }
 \value{
 Outputs a ggplot graph of species detections over time.

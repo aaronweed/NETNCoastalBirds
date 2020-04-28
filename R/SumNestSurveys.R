@@ -40,12 +40,20 @@
 
 
 SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segment= FALSE) {
-  # bring in raw data from ODBC connection
+  
+   # bring in raw data from ODBC connection
   if (is.null(df))
     df <- GetNestData(connect = "ODBC") %>% 
           droplevels()
   
-
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
+  
   # Setup and create molten dataframe
   ################################################################################
   

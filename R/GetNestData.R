@@ -1,9 +1,7 @@
 #' @title Return ground-based nest surveys from database
 #'
 #' @importFrom dplyr select left_join
-#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom lubridate ymd year month date
-#' @importFrom Hmisc mdb.get
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access 
 #' DB (Access backend entered as 'NETNCB' in Windows ODBC manager) and 
@@ -19,6 +17,7 @@
 #' and include a patch to a saved version of the database, or
 #' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
+#' @param DBfile Path to a specified database file. 
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' @return This function returns the raw nest survey data as a \code{data.frame}.
@@ -29,30 +28,40 @@
 
 
 GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
+  
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
+  
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
   ## First, get the data depending on the connection option:
   if (connect == "ODBC") {
     
+ 
     # Connect to database BE ti bring in tables
     
-    con <- odbcConnect("NETNCB")
+    con <- RODBC::odbcConnect("NETNCB")
     
     ###################### Import data and lookup tables used for the query   ################
     #"tbl_Events","tbl_Group","tbl_Group_Observations" ,"tbl_Nests","tbl_Observations"      
     
     # import dataframes of each tables within the DB
     
-    event <- sqlFetch(con, "tbl_Events")
-    nests <- sqlFetch(con, "tbl_Nests")
-    odbcClose(con)
+    event <- RODBC::sqlFetch(con, "tbl_Events")
+    nests <- RODBC::sqlFetch(con, "tbl_Nests")
+    RODBC::odbcClose(con)
   
     ## If connection didn't work, try mdb.get() 
   } else if (connect == "Hmisc") {
     if (is.null(DBfile)) {
       stop("Please specify the database location for this connection option.")
     }
-    event <- mdb.get(DBfile, tables = "tbl_Events", 
+    event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
-    nests <- mdb.get(DBfile, tables = "tbl_Nests", 
+    nests <- Hmisc::mdb.get(DBfile, tables = "tbl_Nests", 
                    mdbexportArgs = '', stringsAsFactors = FALSE)
     event <- clear.labels(event)
     nests   <- clear.labels(nests)

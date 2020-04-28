@@ -28,7 +28,7 @@
 #' @param print To not print plot enter "no".
 #' @param  plot_title Add a caption to the plot? Defaults to "yes". Enter "no" for no caption.
 #' @param legend Add legend. Defaults to \code{FALSE}.
-#' #' @param Y_scale Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?
+#' @param Y_scale Should y-scale of individual facets be on the same scale (default, "fixed") or not ("free_y")?
 #' @return Outputs a ggplot graph of species detections over time.
 #' @seealso \url{https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
@@ -66,8 +66,7 @@
 PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA, stat=NA,
                     scale="norm", facet= "Island", var= NA, overlay = "var", print= "yes", 
                     plot_title = "yes", legend= FALSE, Y_scale ="fixed"){
-  
-  library(ggplot2)
+
   
   # subset data
   graphdata <- data

@@ -4,7 +4,8 @@
 \name{SurveyEffortBySpecies}
 \alias{SurveyEffortBySpecies}
 \title{Data table of survey effort by species}
-\format{A data frame with columns:
+\format{
+A data frame with columns:
 \describe{
  \item{Species_Code}{4 letter species code of observation}
  \item{Island}{Island associated with each survey event.}
@@ -13,7 +14,8 @@
  \item{Survey_Type}{Type of survey (e.g. Incubation, Creche, Nest)}
  \item{Survey_Size}{Length (if line) or area (if polygon) of survey route}
  \item{Size_Units}{Size of segment; km for linear features; km2 for area}
-}}
+}
+}
 \source{
 Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. Coastal breeding bird monitoring protocol 
 for Boston Harbor Islands National Recreation Area: 2015 revision. Natural Resource Report NPS/NETN/NRR—2015/954. 
