@@ -10,8 +10,8 @@
 #' @importFrom lubridate year month
 #' 
 #' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
-#'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day (sum) or by year 
-#'  (sum, mean, max, and min) from the primary survey conducted by the lead biologist.  
+#'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
+#'  (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
 #'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
 #' @section Warning:
 #' Unless df or survey_date are specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
@@ -74,8 +74,8 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   
   ### Subset by Islands and by species
   
-  Isls<-c ("Calf","Green","Little Calf","Little Brewster","Middle Brewster",
-           "Outer Brewster", "Shag Rocks", "The Graves","Spinnaker")
+  Isls<-c ("Calf","Green","Little Calf","Middle Brewster",
+           "Outer Brewster", "Shag Rocks", "Spinnaker")# removed Little Brewster and The Graves b/c 0 counts 
   
   # exclude Terns
   df<-df %>%  
@@ -101,11 +101,11 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
     
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, Survey_Type, Survey_Primary,
-                    Survey_Duplicate, Survey_Complete, Species_Code, Unit_Count) %>%
+                    Survey_Duplicate, Survey_Complete, Species_Code,Observer, Unit_Count) %>%
       dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
       #dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
       tidyr::gather(variable, value, -Island, -Segment, -Date, -year, -month,-Survey_Type,  -Survey_Primary, 
-                    -Survey_Duplicate, -Survey_Complete, -Species_Code) %>% 
+                    -Survey_Duplicate, -Survey_Complete, -Observer, -Species_Code) %>% 
       dplyr::mutate(variable = NULL)
     # head(df.melt)
     
@@ -120,8 +120,12 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   # These are NOT to be considerd duplicate surveys but complomete the survey for that island so they should be summed together. 
   #######################################
   if (time == "date") {
+    
+    # count the primary surveys per day
+    df.melt %>% group_by(Species_Code, Island, Segment,Date,Survey_Primary, Observer) %>% tally() %>% View()
+    
     SumBySegment <- df.melt %>% 
-      group_by(Species_Code, Island, Segment, Date, month, year) %>% 
+      group_by(Species_Code, Island, Segment, Date, month, year, Observer) %>% 
       dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% # sum per segment when >1 primary surveys per date. 
       dplyr::rename(time = Date) %>% 
       dplyr::mutate(stat ="sum")
@@ -143,13 +147,28 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   # summarizing per year so that daily mean/max is correctly calculated
   # there are also surveys with 0 obs on the first survey of the year but follow-up surveys have >1; taking the mean across successive dates
   # isn't appropriate because the 0 surveys were "too early", removing these 0 from mean calc
+  # If CLT is on a survey, use her count. If there are >1 surveys per year by CLT take the maximum count from those surveys for the annual estimate. 
+  # If CLT isn’t on the survey, take the average of the count from the skilled obs (skill level >3) in the boat or take the average of their maximum counts when >1 surveys per year
+  
   #######################################
+  # count the primary surveys per year
+  df.melt %>% group_by(Species_Code, Island, Segment,year,Survey_Primary, Observer) %>% tally() %>% View()
   
   if (time == "year") {
-    SumBySegment <- df.melt %>% 
-      group_by(Species_Code, Island, Segment,year, Date) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
-      group_by(Species_Code, Island, Segment, year) %>% # now summarize data by year to calc daily mean/ max and overall sum
+    yrs_NoCLT<-c("2009","2010","2012")# 3 years Carol wasn't an observer b/c she was taking photos
+    
+    CLTByDay <- df.melt %>% filter( stringr::str_detect(Observer, 'CLT')) %>%  # extract Carol's surveys
+      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals by observer
+      
+      
+    OthersByDay<- df.melt %>% filter(year %in% yrs_NoCLT) %>% 
+      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE))  # get daily totals by observer
+      
+    
+      
+      group_by(Species_Code, Island, Segment, year) %>% # now summarize daily data by year to calc daily mean/ max and overall sum
       dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value[value!=0],na.rm = TRUE),2),
                        max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
       dplyr::mutate(mean = if_else(is.nan(mean), 0,mean)) %>% # convert NaN to 0's for zero-only counts
