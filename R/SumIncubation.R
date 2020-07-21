@@ -46,6 +46,8 @@
 SumIncubation <- function(df = NULL, time, survey_data = NULL,
                           species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   
+  load("./R/sysdata.rda")
+  
   if(!requireNamespace("RODBC", quietly = TRUE)){
     stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
   }
@@ -82,12 +84,29 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
     dplyr::filter(!Species_Code %in% c("LETE","COTE")) %>% 
     dplyr::filter(Island %in% Isls) %>% droplevels() # grab the Outer Island loop
   
+  # add on Observer skill level: object 'obs_skill' in `./R/sysdata.rda' developed in Feb 2019 during Neptune Inc stats project 2018-2019 in cooperation with project lead
+  # first rename obs to primary obs
+  df<-df %>% mutate(Observer =  case_when(stringr::str_detect(Observer, 'CLT') ~ "CLT" ,
+                    stringr::str_detect(Observer, 'PAT') ~ "PAT",
+                    TRUE ~ as.character(Observer)))
+  
+  # second, join on skill levels
+  df<-select(obs_skill,Observer,  year =Year, ObsSkillLevel=Score) %>% 
+    left_join(df,., by= c("Observer","year"))
+  
+  # did any observers not get matched?
+  
+ testObs<- df[is.na(df$ObsSkillLevel),] %>% distinct(Observer, year)
+  
+ if(nrow(testObs) >0) { print("Not all observers were ranked by skill")}
+   
+   
   ### Sum data across each segement as raw and effort-adjusted numbers by observer
   
   if (time == "date" & ByObserver =="yes") {
     graph.final <- df %>%
       group_by(Island, Segment, Date,month, year, Species_Code, Survey_Type, Survey_Primary,
-               Survey_Duplicate, Survey_Complete, Observer) %>% 
+               Survey_Duplicate, Survey_Complete, Observer,ObsSkillLevel) %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## sum counts across observers
       dplyr::left_join(., survey_data, 
                        by=c("Species_Code","Island","Segment","Survey_Type")) %>% ## append survey effort per segment
@@ -95,17 +114,17 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
       dplyr::mutate(Survey_Size = Survey_Size/1000000) %>% # added in case I want to scale to other units
       tibble::add_column(Survey_Units = "km2") %>% # denote what survey effort units are reported
       dplyr::select(Species_Code, Island, Segment, time = Date, month, year, Survey_Type, Survey_Primary,
-                    Survey_Duplicate, Survey_Complete, value, valuePerSurveySize,Survey_Size, Survey_Units, Observer)
+                    Survey_Duplicate, Survey_Complete, value, valuePerSurveySize,Survey_Size, Survey_Units, Observer,ObsSkillLevel)
     return(graph.final)
   }else{
     
     df.melt <- df %>%
       dplyr::select(Island, Segment, Date, year, month, Survey_Type, Survey_Primary,
-                    Survey_Duplicate, Survey_Complete, Species_Code,Observer, Unit_Count) %>%
+                    Survey_Duplicate, Survey_Complete, Species_Code,Observer,ObsSkillLevel, Unit_Count) %>%
       dplyr::filter(Survey_Primary == "Yes" ) %>% # grab only the records from the primary survey to avoid counting multi-obs of same event
       #dplyr::filter(Survey_Duplicate == "No" ) %>% # grab only the records from the first survey if repeated
       tidyr::gather(variable, value, -Island, -Segment, -Date, -year, -month,-Survey_Type,  -Survey_Primary, 
-                    -Survey_Duplicate, -Survey_Complete, -Observer, -Species_Code) %>% 
+                    -Survey_Duplicate, -Survey_Complete, -Observer,-ObsSkillLevel, -Species_Code) %>% 
       dplyr::mutate(variable = NULL)
     # head(df.melt)
     
@@ -122,19 +141,21 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   if (time == "date") {
     
     # count the primary surveys per day
-    df.melt %>% group_by(Species_Code, Island, Segment,Date,Survey_Primary, Observer) %>% tally() %>% View()
+    #df.melt %>% group_by(Species_Code, Island, Segment,Date,Survey_Primary, Observer, ObsSkillLevel) %>% tally() %>% View()
     
     SumBySegment <- df.melt %>% 
-      group_by(Species_Code, Island, Segment, Date, month, year, Observer) %>% 
+      group_by(Species_Code, Island, Segment, Date, month, year, Observer,ObsSkillLevel) %>% 
       dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% # sum per segment when >1 primary surveys per date. 
       dplyr::rename(time = Date) %>% 
       dplyr::mutate(stat ="sum")
       
     
-    ## Sum the number of adults on each date across all islands
+    yrs_NoCLT<-c("2009","2010","2012")# 3 years Carol wasn't an observer b/c she was taking photos
+    
+    ## Sum the number of adults on each date across all islands from specific observers
     ### Calculate for all Islands
     SumByBOHA <- df.melt %>% 
-      group_by(Species_Code,  Date, month, year) %>% 
+      group_by(Species_Code,  Date, month, year, Observer, ObsSkillLevel) %>% 
       dplyr::summarise(value = sum(value, na.rm = TRUE), surveys= n()) %>% #  sum per segment when >1 primary surveys per date.
       tibble::add_column(Island = "All Islands", Segment="All") %>% 
       dplyr::rename(time = Date) %>% 
@@ -152,41 +173,38 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
   
   #######################################
   # count the primary surveys per year
-  df.melt %>% group_by(Species_Code, Island, Segment,year,Survey_Primary, Observer) %>% tally() %>% View()
+  #df.melt %>% group_by(Species_Code, Island, Segment,year,Survey_Primary, Observer) %>% tally() %>% View()
   
   if (time == "year") {
     yrs_NoCLT<-c("2009","2010","2012")# 3 years Carol wasn't an observer b/c she was taking photos
     
-    CLTByDay <- df.melt %>% filter( stringr::str_detect(Observer, 'CLT')) %>%  # extract Carol's surveys
-      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals by observer
-      
-      
-    OthersByDay<- df.melt %>% filter(year %in% yrs_NoCLT) %>% 
-      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
-      dplyr::summarise(value = sum(value, na.rm = TRUE))  # get daily totals by observer
-      
+    # first, extract the CLT surveys to calc max count per year
+    CLTByDay <- df.melt %>% filter( Observer %in% "CLT") %>%  # extract Carol's surveys
+      group_by(Species_Code, Island, Segment,year, Date, Observer, ObsSkillLevel) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
+      group_by(Species_Code, Island, Segment,year,Observer, ObsSkillLevel) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE), surveys = n()) %>%   # get annual max count
+      dplyr::mutate(stat ="max")
     
-      
-      group_by(Species_Code, Island, Segment, year) %>% # now summarize daily data by year to calc daily mean/ max and overall sum
-      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value[value!=0],na.rm = TRUE),2),
-                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
-      dplyr::mutate(mean = if_else(is.nan(mean), 0,mean)) %>% # convert NaN to 0's for zero-only counts
-      tidyr::gather(stat, value,-Species_Code, -Island, -Segment,-year, -surveys) %>% # make data long
+    OthersByDay<- df.melt %>% filter(year %in% yrs_NoCLT) %>% 
+      group_by(Species_Code, Island, Segment,year, Date, Observer,ObsSkillLevel) %>% ## first sum by date to account for multiple surveys per day (Little Calf- All)
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>%   # get daily totals by observer
+      filter(ObsSkillLevel >2) %>% 
+      group_by(Species_Code, Island, Segment,year) %>% 
+      dplyr::summarise(value=mean(value, na.rm = TRUE), surveys=n(),
+                       ObsSkillLevel= round(mean(ObsSkillLevel),2)) %>% # take the mean of daily max counts 
+      dplyr::mutate(stat ="max", Observer = "Multiple") 
+    
+    SumBySegment<-bind_rows(CLTByDay, OthersByDay) %>% 
+      arrange(Species_Code, Island, year)%>% 
       dplyr::rename(time = year)
     
     ## Summarize the number of incubating adults in each year across all islands
     ### Calculate for all Islands
-    SumByBOHA <- df.melt %>% 
-      group_by(Species_Code, Island, Segment,year, Date) %>% ## first sum by date and segment to account for multiple partial segment surveys per day (Little Calf- All)
-      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
-      group_by(Species_Code, year) %>% # now summarize data by year to calc daily mean/ max and overall sum
-      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value[value!=0],na.rm = TRUE),2),
-                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
-      dplyr::mutate(mean = if_else(is.nan(mean), 0,mean)) %>% # conver NaN to 0's for zero-only counts
-      tidyr::gather(stat, value,-Species_Code, -year, -surveys) %>% # make data long
-      tibble::add_column(Island = "All Islands", Segment="All")  %>% 
-      dplyr::rename(time = year)
+    SumByBOHA <- SumBySegment %>% # use annual segment totals from specific obs from above
+      group_by(Species_Code, time) %>% # now summarize data by year to calc daily mean/ max and overall sum
+      dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% 
+      tibble::add_column(Island = "All Islands", Segment="All")  
   }
   
     #################################

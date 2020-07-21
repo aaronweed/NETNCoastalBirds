@@ -3,6 +3,7 @@
 
 #' @importFrom dplyr left_join filter distinct
 #' @importFrom lubridate month year
+#' @importFrom tibble as_tibble
 #' 
 #' @description This function returns the survey effort per species for each island segment. 
 #' This information can be filtered by species and survey type if desired.
@@ -90,13 +91,13 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
     
     # drop unneeded species
     species_tlu<-filter(species_tlu, !Species_Code %in% "ROTE" & !Species_Code %in% "PIPL") %>% 
-      tbl_df()
+      as_tibble()
     
     ##### Join together information on segments to bring in area/distance surveyed per island. ----
     Spec_Isl<- 
       left_join(Isl_Seg, Seg_Size, by= c(pk_SegmentID= "fk_SegmentID"))%>% # joins tables to create table of survey effort per segement
       select(Island, Segment, Survey_Class, Survey_Type, Target_Spp, Survey_Size, Size_Units, Active) %>% 
-      left_join(event,., by=c("Survey_Class", "Survey_Type" , "Island","Segment")) %>% tbl_df() %>% # add on segment survey data
+      left_join(event,., by=c("Survey_Class", "Survey_Type" , "Island","Segment")) %>% as_tibble() %>% # add on segment survey data
       fuzzyjoin::regex_inner_join(.,species_tlu, by=c(Target_Spp = "TargetSpp_Group")) %>%   #Add species codes to survey effort to remove target species grouping for later joining
       {if (!anyNA(species)) filter(.,Species_Code %in% species) else .} %>% # filter by selected species, defaults to all species
       {if (!anyNA(survey)) filter(.,Survey_Type %in% survey) else .} %>% # filter by selected survey, defaults to all 
