@@ -46,8 +46,8 @@ during boat-based incubation surveys per island, life stage, and time.
 }
 \description{
 Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
- summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day (sum) or by year 
- (sum, mean, max, and min) from the primary survey conducted by the lead biologist.  
+ summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
+ (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
 }
 \section{Warning}{
