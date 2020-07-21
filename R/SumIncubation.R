@@ -204,7 +204,7 @@ SumIncubation <- function(df = NULL, time, survey_data = NULL,
     SumByBOHA <- SumBySegment %>% # use annual segment totals from specific obs from above
       group_by(Species_Code, time) %>% # now summarize data by year to calc daily mean/ max and overall sum
       dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% 
-      dplyr::mutate(Island = "All Islands", Segment="All", stat ="max")  
+      tibble::add_column(Island = "All Islands", Segment="All")  
   }
   
     #################################
