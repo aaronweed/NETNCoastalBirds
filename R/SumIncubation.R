@@ -46,7 +46,6 @@
 SumIncubation <- function(df = NULL, time, survey_data = NULL,
                           species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   
-  load("./R/sysdata.rda")
   
   if(!requireNamespace("RODBC", quietly = TRUE)){
     stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
