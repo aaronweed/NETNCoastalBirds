@@ -42,7 +42,7 @@ NEED TO ADD DATA TO PACKAGE FROM GET FUNCTIONS
 ### GetIncubation: returns raw detections of incubating adults
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA}
-Incub<-GetIncubationData(x)
+Incub<-GetIncubationData()
 ```
 
 returns a `data.frame` of incubating adults of DCCO, HERG, GBBG. Note that running this command requires the NETN Coastal Bird MS Access database entered as ‘NETNCB’ in Windows ODBC manager.
@@ -50,7 +50,7 @@ returns a `data.frame` of incubating adults of DCCO, HERG, GBBG. Note that runni
 ### GetCrecheData: returns raw detections of Common Eider life stages
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-creche<-GetCrecheData(x)
+creche<-GetCrecheData()
 ```
 
 returns a `data.frame` of counts corresponding to life stages of COEI. The following lifestages, indicated in the variable column, are counted:
@@ -61,7 +61,7 @@ levels(creche$Species_Unit)
 ### GetNestData: returns raw detections of nest counts and their contents
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-nests<-GetNestData(x)
+nests<-GetNestData()
 ```
 
 This returns a `data.frame` of counts of nests and their contents of multiple species and has the following data columns:
@@ -72,7 +72,7 @@ names(nests)
 ### GetAMOYData: returns raw detections of AMOY
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-AMOY_surveys<-GetAMOYData(x)
+AMOY_surveys<-GetAMOYData()
 ```
 
 This returns a `data.frame` of individual detections of AMOY taken during the surveys, typically between May and July of each year. These surveys are used to determine the number of mating pairs and assess demography of this species during the year.
@@ -80,7 +80,7 @@ This returns a `data.frame` of individual detections of AMOY taken during the su
 ### AMOY_MatingPairSumm: returns end of season summary of AMOY mating pairs per island
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-AMOY_MP<-GetAMOYData(x)
+AMOY_MP<-GetAMOYData()
 ```
 
 This returns a `data.frame` of AMOY mating pairs estimated from the repeat visits that you can access via GetAMOYData.
@@ -103,7 +103,7 @@ creche.yr<-CrecheSum(time = "year")
 ```
 
 To sum by date:
-```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
+```{r, include = TRUE, eBirdscho=TRUE, warning=FALSE, comment= NA, cache=TRUE}
 creche.day<-CrecheSum(time = "date")
 ```
 
