@@ -2,7 +2,7 @@
 % Please edit documentation in R/getSurveyMat.R
 \name{GetSurveyMat}
 \alias{GetSurveyMat}
-\title{View survey matrix}
+\title{View survey matrix of coastal breeding bird monitoring effort}
 \usage{
 GetSurveyMat(
   survey = NA,

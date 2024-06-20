@@ -5,7 +5,7 @@
 \title{sum incubation surveys}
 \usage{
 SumIncubation(
-  df = NULL,
+  df,
   time,
   survey_data = NULL,
   species = NA,
