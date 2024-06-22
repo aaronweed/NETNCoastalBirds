@@ -7,7 +7,6 @@
 SumIncubation(
   df,
   time,
-  survey_data = NULL,
   species = NA,
   output = "graph",
   ByObserver = "no",
@@ -15,15 +14,12 @@ SumIncubation(
 )
 }
 \arguments{
-\item{df}{Dataframe. Defaults to \code{NULL} which requires ODBC connection to generate df. 
-Otherwise, provide a \code{data.frame} similar to \code{\link{GetIncubationData}}.}
+\item{df}{Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation".}
 
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
 no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
 segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
 in that year. Note that some surveys were repeated in the same year so mean is best to use for reporting because it accounts for seasonal variation in repeat counts.}
-
-\item{survey_data}{Path to data frame with survey data. Deafults to generating from MS Access database via RODBC.}
 
 \item{species}{To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 to providing output for all species.}
@@ -45,21 +41,18 @@ Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and
 during boat-based incubation surveys per island, life stage, and time.
 }
 \description{
-Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
+Brings in the raw incubation survey data from \code{\link{importCBBData}} and
  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
  (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
- If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
+ If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", all nests will be summed by each observer.
 }
-\section{Warning}{
-
-Unless df or survey_date are specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-}
-
 \examples{
- 
-SumIncubation(time= "year", species = "DCCO", output = "graph")
-SumIncubation(time= "date", species = "DCCO", output = "graph")
-SumIncubation(time= "date", ByObserver = "yes")
+\dontrun{ 
+importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year", species = "DCCO", output = "graph")
+SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", species = "DCCO", output = "graph")
+SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", ByObserver = "yes")
+}
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

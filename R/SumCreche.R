@@ -9,7 +9,7 @@
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
 #' 
-#' @description Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
+#' @description Brings in the raw creche survey data from \code{\link{importCBBData}} 
 #' and summarizes life stage counts by year or date to support analysis and reporting as defined in ####. Raw counts are also converted to
 #' densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
 #'  When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
@@ -26,9 +26,8 @@
 #' If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 #' each island segment on each date. Sums counts across multiple observations by same 
 #' observer at each segment. Defaults to "no".
-#' @param df  The user can optionally load the raw creche data from an R object or connect to the 
-#' Access database to obtain it. Defaults to NULL, which means the Access database will
-#' be used to obtain it.
+#' @param df  Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view 'qry_Dataset_4_Survey_Creche'. If \code{df} 
+#' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetCrecheData}}.
 #' @param islands Character. Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
 #'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster) or a vector of island names can be provided.
 #' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
@@ -37,15 +36,16 @@
 #' during boat-based creche surveys per island, life stage, and time. 
 #
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
-#' @examples  
-#' # CrecheSum(time ="date")
-#' # CrecheSum(time ="year")
-#' # CrecheSum(time= "date", ByObserver = "yes")
+#' @examples 
+\dontrun{ 
+  #' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="date")
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="year")
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time= "date", ByObserver = "yes")
+}
 #' @export
-#' 
-#
 
-SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
+SumCreche<-function(time, df, survey_data = NULL, segment= FALSE,
                     output = "graph", ByObserver = "no", islands = "outer") {
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
@@ -285,7 +285,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
       {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, stat, value, valuePerSurveySize,Survey_Size, Survey_Units) else
       dplyr::select(.,Species_Code, Island, time,  variable,stat, value, valuePerSurveySize,Survey_Size, Survey_Units)} %>% 
-      inner_join(species_tlu, ., by = "Species_Code") %>% # add species names to data
+      inner_join(tlu_Speciees, ., by = "Species_Code") %>% # add species names to data
       mutate(FullLatinName=as.character(FullLatinName),CommonName=as.character(CommonName)) # force as chr
  
   

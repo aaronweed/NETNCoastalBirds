@@ -40,6 +40,7 @@ Collate:
     'SumIncubation.R'
     'PlotBirds.R'
     'SumCOTE.R'
+    'SumCreche.R'
     'SumGulls_DCCO.R'
     'SurveyEffortBySpecies.R'
     'creche_raw.R'

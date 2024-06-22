@@ -3,20 +3,19 @@
 #' @title sum incubation surveys
 #'
 #' @import dplyr 
-#' @importFrom RODBC odbcConnect sqlFetch odbcClose
 #' @importFrom tidyr spread gather
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' 
-#' @description Brings in the raw incubation survey data from \code{\link{GetIncubationData}} and
+#' @description Brings in the raw incubation survey data from \code{\link{importCBBData}} and
 #'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
 #'  (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
-#'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date counts of all surveys will be summed by observer.
+#'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", all nests will be summed by each observer.
 #' @section Warning:
-#' Unless df or survey_date are specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param df Dataframe. Defaults to \code{NULL} which requires ODBC connection to generate df. 
-#' Otherwise, provide a \code{data.frame} similar to \code{\link{GetIncubationData}}. 
+#' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+#' @param df Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
+#' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetIncubationData}}.
 #' @param time Character string equal to "date" or "year". Value must be provided; there is
 #' no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
 #' segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
@@ -32,30 +31,40 @@
 #' observer at each segment. Defaults to "no".
 #' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
 #'  Defaults to \code{FALSE}.
-#' @param survey_data Path to data frame with survey data. Deafults to generating from MS Access database via RODBC.
 #' @return Returns a \code{data.frame} with the raw and effort-adjusted counts of Gulls and DCCO incubating nests observed 
 #' during boat-based incubation surveys per island, life stage, and time. 
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
-#' @examples  
-#' SumIncubation(time= "year", species = "DCCO", output = "graph")
-#' SumIncubation(time= "date", species = "DCCO", output = "graph")
-#' SumIncubation(time= "date", ByObserver = "yes")
+#' @examples 
+#' \dontrun{ 
+#' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year", species = "DCCO", output = "graph")
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", species = "DCCO", output = "graph")
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", ByObserver = "yes")
+#' }
 #' @export
 #' 
 #
-SumIncubation <- function(df, time, survey_data = NULL,
-                          species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
-  
-  # load in survey and taxonomy data not currently in the data package
+SumIncubation <- function(df, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   #############################################################################
+  # NOTE: survey and taxonomy data objects used below (SurveyEffortBySpecies and tlu_species) are not currently in the data package but 
+  # are in the R package data
+  # SurveyEffortBySpecies should probably just be imported from getSurveyMat
   
-  #survey effort information (this is not currently in data package)
+  #############################################################################
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
+  }
   
-data(SurveyEffortBySpecies)
+  if(!requireNamespace("Hmisc", quietly = TRUE)){
+    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
+  } 
   
-  # Species taxonomy
+  # this function summarizes the number of adults on nests per island, year, and by observer
   
-data(tlu_Species)
+  if (is.null(df)) {
+    df <- GetIncubationData() # import data from the database if needed
+    #head(df)
+  }
   
   # Setup and create molten dataframe
   #############################################################################
