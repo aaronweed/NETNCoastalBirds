@@ -14,7 +14,8 @@ SumIncubation(
 )
 }
 \arguments{
-\item{df}{Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation".}
+\item{df}{Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
+is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetIncubationData}}.}
 
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
 no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
@@ -46,6 +47,11 @@ Brings in the raw incubation survey data from \code{\link{importCBBData}} and
  (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", all nests will be summed by each observer.
 }
+\section{Warning}{
+
+Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+}
+
 \examples{
 \dontrun{ 
 importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object

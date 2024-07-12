@@ -43,7 +43,7 @@
 #' }
 #' @export
 #' 
-#
+
 SumIncubation <- function(df, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   #############################################################################
   # NOTE: survey and taxonomy data objects used below (SurveyEffortBySpecies and tlu_species) are not currently in the data package but 
