@@ -9,8 +9,7 @@
 #' @importFrom plyr mapvalues
 #' @importFrom forcats fct_collapse
 #' 
-#' @description Brings in the raw ground-based nest survey data from \code{\link{importCBBData}}
-#' and summarizes it by date or year and island for plotting and analysis.
+#' @description Imports raw ground-based nest survey data and summarizes it by date or year and island for plotting and analysis.
 #' @section Warning:
 #' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param time Character string equal to "date" or "year".
@@ -23,11 +22,11 @@
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 #' function. For wide format use "table".
-#' @param df  Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
 #' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.
-#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.
-#' @return Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
-#' and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
+#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale (\code{FALSE})? Defaults to \code{FALSE}.
+#' @return Returns a \code{data.frame} with the raw nest, chick, or egg counts and counts adjusted for survey-area (e.g. nests per km2) by Island and time.
+#' Estimates of the number of eggs and chicks per nest by island and time are also returned. Life stages are denoted under 'variable' e.g., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
 #'@section Warning:
 #' The user must have NETN's Access backend entered as 'NETNCB' in Windows ODBC manager in order for \code{\link{GetSurveyData}} to append survey effort to the survey data.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
@@ -41,7 +40,7 @@
 #' @export
 
 
-SumNestSurveys <- function(df, time, species=  NA, output= "graph", segment= FALSE) {
+SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segment= FALSE) {
   
   ################################################################################
   # bring in raw data from ODBC connection

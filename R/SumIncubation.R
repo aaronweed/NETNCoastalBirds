@@ -1,6 +1,6 @@
 #' @include GetIncubationData.R GetSurveyData.R
 
-#' @title sum incubation surveys
+#' @title Sum Incubation Surveys
 #'
 #' @import dplyr 
 #' @importFrom tidyr spread gather
@@ -8,17 +8,16 @@
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' 
-#' @description Brings in the raw incubation survey data from \code{\link{importCBBData}} and
-#'  summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
+#' @description Imports raw incubation survey data and summarizes the data for plotting and analysis of DCCO and Gulls (no terns). Summarizes counts by day or by year 
 #'  (sum, mean, max, and min of daily surveys) from the primary survey conducted by the lead biologist.  
-#'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", all nests will be summed by each observer.
+#'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", nests will be summed by each observer.
 #' @section Warning:
 #' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param df Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
+#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
 #' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetIncubationData}}.
 #' @param time Character string equal to "date" or "year". Value must be provided; there is
 #' no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
-#' segments of each island for each date. When \code{time= year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
+#' segments of each island for each date. When \code{time = year}, summarizes counts (mean, max, min, and sum) across all surveys conducted 
 #' in that year. Note that some surveys were repeated in the same year so mean is best to use for reporting because it accounts for seasonal variation in repeat counts. 
 #' @param species To subset data by species, use  "DCCO","GBBG","HERG". Defaults
 #' to providing output for all species.
@@ -44,7 +43,7 @@
 #' @export
 #' 
 
-SumIncubation <- function(df, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
+SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObserver = "no", segment= FALSE) {
   #############################################################################
   # NOTE: survey and taxonomy data objects used below (SurveyEffortBySpecies and tlu_species) are not currently in the data package but 
   # are in the R package data

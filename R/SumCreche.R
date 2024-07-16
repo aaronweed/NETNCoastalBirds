@@ -1,6 +1,6 @@
 #' @include GetCrecheData.R GetSurveyData.R
 
-#' @title Sum creche surveys
+#' @title Sum Common Eider creche surveys
 #'
 #' @import dplyr 
 #' @importFrom tidyr spread gather
@@ -9,9 +9,8 @@
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
 #' 
-#' @description Brings in the raw creche survey data from \code{\link{importCBBData}} 
-#' and summarizes life stage counts by year or date to support analysis and reporting as defined in ####. Raw counts are also converted to
-#' densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
+#' @description Imports raw creche survey data and summarizes life stage counts by year or date. Raw counts are also converted to
+#' densities.This function currently only sums counts from the primary surveyor conducted by the lead biologist when multiple observer surveys were conducted.
 #'  When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
 #' @section Warning:
 #' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
@@ -45,7 +44,7 @@
 #' }
 #' @export
 
-SumCreche<-function(time, df, survey_data = SurveyEffortBySpecies, segment= FALSE,
+SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segment= FALSE,
                     output = "graph", ByObserver = "no", islands = "outer") {
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
