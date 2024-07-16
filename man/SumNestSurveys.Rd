@@ -4,15 +4,12 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(
-  time,
-  species = NA,
-  output = "graph",
-  df = NULL,
-  segment = FALSE
-)
+SumNestSurveys(df, time, species = NA, output = "graph", segment = FALSE)
 }
 \arguments{
+\item{df}{Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.}
+
 \item{time}{Character string equal to "date" or "year".
 Choose to sum effort-adjusted counts (no. / km2) by "date" or "year". Summing by date will sum counts 
 across segments of each island for each date. Summing by year sums counts across all surveys 
@@ -26,10 +23,6 @@ to providing output for all species.}
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
 
-\item{df}{The user can optionally load the raw nest data from an R object or connect to the 
-Access database to obtain it. Defaults to NULL, which means the Access database will
-be used to obtain it.}
-
 \item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
@@ -37,18 +30,24 @@ Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted
 and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
 }
 \description{
-Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} 
+Brings in the raw ground-based nest survey data from \code{\link{importCBBData}}
 and summarizes it by date or year and island for plotting and analysis.
 }
 \section{Warning}{
 
-Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
+
+
+The user must have NETN's Access backend entered as 'NETNCB' in Windows ODBC manager in order for \code{\link{GetSurveyData}} to append survey effort to the survey data.
 }
 
 \examples{
-SumNestSurveys(time= "date", species = "BCNH")
-SumNestSurveys(time= "year", species = "BCNH")
-SumNestSurveys(time= "year", output = "table")
+\dontrun{
+importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "date", species = "BCNH")
+SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", species = "BCNH")
+SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", output = "table")
+}
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}

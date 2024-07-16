@@ -1,5 +1,4 @@
 #' @include GetNestData.R GetSurveyData.R
-
 #' @title Sum nest surveys
 #'
 #' @import dplyr
@@ -10,8 +9,9 @@
 #' @importFrom plyr mapvalues
 #' @importFrom forcats fct_collapse
 #' 
-#' @description Brings in the raw ground-based nest survey data from \code{\link{GetNestData}} 
-#' and summarizes it by date or year and island for plotting and analysis.
+#' @description Imports raw ground-based nest survey data and summarizes it by date or year and island for plotting and analysis.
+#' @section Warning:
+#' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 #' @param time Character string equal to "date" or "year".
 #' Choose to sum effort-adjusted counts (no. / km2) by "date" or "year". Summing by date will sum counts 
 #' across segments of each island for each date. Summing by year sums counts across all surveys 
@@ -22,29 +22,31 @@
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 #' function. For wide format use "table".
-#' @param df  The user can optionally load the raw nest data from an R object or connect to the 
-#' Access database to obtain it. Defaults to NULL, which means the Access database will
-#' be used to obtain it.
-#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.
-#' @section Warning:
-#' Unless df is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @return Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
-#' and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
-#'  
+#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+#' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.
+#' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale (\code{FALSE})? Defaults to \code{FALSE}.
+#' @return Returns a \code{data.frame} with the raw nest, chick, or egg counts and counts adjusted for survey-area (e.g. nests per km2) by Island and time.
+#' Estimates of the number of eggs and chicks per nest by island and time are also returned. Life stages are denoted under 'variable' e.g., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
+#'@section Warning:
+#' The user must have NETN's Access backend entered as 'NETNCB' in Windows ODBC manager in order for \code{\link{GetSurveyData}} to append survey effort to the survey data.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
 #' @examples 
-#' SumNestSurveys(time= "date", species = "BCNH")
-#' SumNestSurveys(time= "year", species = "BCNH")
-#' SumNestSurveys(time= "year", output = "table")
+#' \dontrun{
+#' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "date", species = "BCNH")
+#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", species = "BCNH")
+#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", output = "table")
+#' }
 #' @export
 
 
-SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segment= FALSE) {
+SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segment= FALSE) {
   
-   # bring in raw data from ODBC connection
+  ################################################################################
+  # bring in raw data from ODBC connection
   if (is.null(df))
     df <- GetNestData(connect = "ODBC") %>% 
-          droplevels()
+      droplevels()
   
   if(!requireNamespace("RODBC", quietly = TRUE)){
     stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
@@ -54,17 +56,17 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segme
     stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
   } 
   
-  # Setup and create molten dataframe
+    # Setup and create molten dataframe
   ################################################################################
   
   #### Calculate the actual count totals from the raw data. 
-  ## **In order to get correct counts, need to multiply the nest contents by the num of nests.**
+  ## **In order to get correct counts, need to multiply the nest contents by the number of nests.**
   ## For example, Unit_Count= 20, Eggs_count = 2, Chicks_Count= 0 means 
   ## that there were 20 nests surveyed EACH with 2 eggs and 0 chicks ...
   ## NOT 20 nests with a total of 2 eggs.
   ## Chick and egg counts ONLY calculated when Nest Status == Normal
   
-  df %<>% 
+  df %<>%  
     dplyr::rename(Nests = Unit_Count) %>% # change Unit_Count to Nests to be more specific
     mutate(Chicks = Nests * Chick_Count,
            Eggs = Nests * Egg_Count)
@@ -135,7 +137,7 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segme
       dplyr::summarise(value = sum(value, na.rm=TRUE)) %>% 
       dplyr::rename(time = Date) %>% 
       add_column(Island = "All Islands", Segment = "All") %>% 
-      bind_rows(SumNormalNests) # add in segement level data
+      bind_rows(SumNormalNests) # add in segment level data
    
   }
   
@@ -227,7 +229,7 @@ SumNestSurveys <- function(time, species=  NA, output= "graph", df = NULL, segme
      #mutate(recode(variable, EggsPerNest = "Eggs", ChicksPerNest = "Chicks")) %>% # now rename and use 
      tibble::add_column(Survey_Size = 1, Survey_Units = "Nest") %>% 
      bind_rows(SumNests,.) %>%   #add on nest survey data 
-    inner_join(species_tlu, ., by= "Species_Code") %>%   # add species names to data
+    inner_join(tlu_Species, ., by= "Species_Code") %>%   # add species names to data
     mutate(FullLatinName = as.character(FullLatinName),CommonName = as.character(CommonName))
     
     #subset by species if provided argument to species

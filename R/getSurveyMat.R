@@ -2,10 +2,7 @@
 #' @include GetNestData.R
 #' @include GetIncubationData.R
 #' @include GetAMOYData.R
-
-#' @title View survey matrix
-#'
-#'  
+#' @title View survey matrix of coastal breeding bird monitoring effort
 #' @importFrom dplyr summarise mutate filter arrange group_by
 #' @importFrom tidyr spread
 #' @importFrom magrittr %>% 

@@ -1,6 +1,6 @@
 #' @include GetCrecheData.R GetSurveyData.R
 
-#' @title Sum creche surveys
+#' @title Sum Common Eider creche surveys
 #'
 #' @import dplyr 
 #' @importFrom tidyr spread gather
@@ -9,9 +9,8 @@
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
 #' 
-#' @description Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
-#' and summarizes life stage counts by year or date to support analysis and reporting as defined in ####. Raw counts are also converted to
-#' densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
+#' @description Imports raw creche survey data and summarizes life stage counts by year or date. Raw counts are also converted to
+#' densities.This function currently only sums counts from the primary surveyor conducted by the lead biologist when multiple observer surveys were conducted.
 #'  When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
 #' @section Warning:
 #' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
@@ -26,9 +25,8 @@
 #' If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 #' each island segment on each date. Sums counts across multiple observations by same 
 #' observer at each segment. Defaults to "no".
-#' @param df  The user can optionally load the raw creche data from an R object or connect to the 
-#' Access database to obtain it. Defaults to NULL, which means the Access database will
-#' be used to obtain it.
+#' @param df  Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view 'qry_Dataset_4_Survey_Creche'. If \code{df} 
+#' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetCrecheData}}.
 #' @param islands Character. Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
 #'   The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster) or a vector of island names can be provided.
 #' @param segment Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
@@ -37,15 +35,16 @@
 #' during boat-based creche surveys per island, life stage, and time. 
 #
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
-#' @examples  
-#' # CrecheSum(time ="date")
-#' # CrecheSum(time ="year")
-#' # CrecheSum(time= "date", ByObserver = "yes")
+#' @examples 
+#' \dontrun{ 
+#' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="date")
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="year")
+#' # CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time= "date", ByObserver = "yes")
+#' }
 #' @export
-#' 
-#
 
-SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
+SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segment= FALSE,
                     output = "graph", ByObserver = "no", islands = "outer") {
   # this function summarizes the nymber of adults on nests per island, year, and by observer
   # the function will summarize the data by each island (returns all islands)
@@ -73,6 +72,14 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
   # Setup and create molten dataframe
   #############################################################################
   
+  
+  # derive month, year and day columns if direct import of csvs
+
+  df$Date  <- ymd(df$Date) #convert to date
+  df$year  <- year(df$Date) #Create year variable
+  df$month <- month(df$Date) #Create month variable
+  
+  
   ### Handle island naming and denote outer island loop
   
   # concatenate Roaring Bulls to The Graves
@@ -97,7 +104,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
     droplevels(df)
   }
   
-  ### Sum data across each segement as raw and effort-adjusted numbers by observer 
+  ### Sum data across each segment as raw and effort-adjusted numbers by observer 
   
   if (time == "date" & ByObserver =="yes") {
     graph.final <- df %>%
@@ -105,7 +112,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
                Survey_Duplicate, Survey_Complete, Species_Unit,Observer) %>%
       dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## Sum counts per Island, Segment and Date
-      dplyr::inner_join(., survey_data, 
+      dplyr::inner_join(., SurveyEffortBySpecies, 
                         by = c("Species_Code", "Island", "Segment", "Survey_Type")) %>% ## append survey effort per segment
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size/1000),2)) %>% # standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
@@ -131,8 +138,6 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
       mutate(ValuePerGroup = round(value/Group_Count, 2))  # if needed, calc the no. of each life stage per group for aggregated counts
     
     df.melt$ValuePerGroup[is.nan(df.melt$ValuePerGroup)] = 0 # force NaN's to 0
-    
-    #View(df.melt)
     
     # change Species_Unit levels
     df.melt$Species_Unit <- plyr::mapvalues(df.melt$Species_Unit, 
@@ -273,7 +278,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
     
     graph.final<-bind_rows(COEI_BySegment,COEI_ByTime)%>% # this is the final table output for a selected time period (date or year)
       tibble::add_column(Survey_Type = "Creche") %>% # add in for correct binding of survey effort 
-      dplyr::left_join(., survey_data, 
+      dplyr::left_join(., SurveyEffortBySpecies, 
                        by = c("Species_Code", "Island", "Segment", "Survey_Type")) %>% ## append survey effort per segment
       tidyr::gather( variable, value, -Species_Code, -Island,-Segment,-time, -Survey_Type,-Survey_Class, -Survey_Size,-Size_Units,-stat) %>% # bring data back together
       {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units, stat) else # sum by segment if needed
@@ -285,7 +290,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
       {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, stat, value, valuePerSurveySize,Survey_Size, Survey_Units) else
       dplyr::select(.,Species_Code, Island, time,  variable,stat, value, valuePerSurveySize,Survey_Size, Survey_Units)} %>% 
-      inner_join(species_tlu, ., by = "Species_Code") %>% # add species names to data
+      inner_join(tlu_Species, ., by = "Species_Code") %>% # add species names to data
       mutate(FullLatinName=as.character(FullLatinName),CommonName=as.character(CommonName)) # force as chr
  
   

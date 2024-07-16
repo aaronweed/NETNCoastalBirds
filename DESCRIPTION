@@ -40,9 +40,11 @@ Collate:
     'SumIncubation.R'
     'PlotBirds.R'
     'SumCOTE.R'
+    'SumCreche.R'
     'SumGulls_DCCO.R'
     'SurveyEffortBySpecies.R'
     'creche_raw.R'
     'getSurveyMat.R'
+    'importCBBData.R'
     'species_tlu_Data.R'
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1
