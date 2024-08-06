@@ -4,10 +4,16 @@
 \alias{SumNestSurveys}
 \title{Sum nest surveys}
 \usage{
-SumNestSurveys(df, time, species = NA, output = "graph", segment = FALSE)
+SumNestSurveys(
+  df = NULL,
+  time,
+  species = NA,
+  output = "graph",
+  segment = FALSE
+)
 }
 \arguments{
-\item{df}{Dataframe. Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
 is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.}
 
 \item{time}{Character string equal to "date" or "year".
@@ -23,15 +29,14 @@ to providing output for all species.}
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
 
-\item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale \code{FALSE})? Defaults to \code{FALSE}.}
+\item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale (\code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
-Returns a \code{data.frame} with the counts of nests and chicks or eggs adjusted for survey-area (e.g. nests per km2) per Island and time
-and estimates the Eggs and Chicks per Nest per island and time. Life stages are denoted under 'variable' eg., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
+Returns a \code{data.frame} with the raw nest, chick, or egg counts and counts adjusted for survey-area (e.g. nests per km2) by Island and time.
+Estimates of the number of eggs and chicks per nest by island and time are also returned. Life stages are denoted under 'variable' e.g., variable == "Nests","Chicks","Eggs", ChicksPerNest", "EggsPerNest","ClutchPerNest".
 }
 \description{
-Brings in the raw ground-based nest survey data from \code{\link{importCBBData}}
-and summarizes it by date or year and island for plotting and analysis.
+Imports raw ground-based nest survey data and summarizes it by date or year and island for plotting and analysis.
 }
 \section{Warning}{
 

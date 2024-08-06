@@ -142,7 +142,7 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
 }
 
 
-## Need this help function to remove labels afer using HMisc package:
+## Need this help function to remove labels after using HMisc package:
 ## (from: https://stackoverflow.com/questions/2394902/remove-variable-labels-attached-with-foreign-hmisc-spss-import-functions)
 clear.labels <- function(x) {
   if(is.list(x)) {

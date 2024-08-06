@@ -14,6 +14,9 @@ output:
     toc: yes
     toc_depth: 2
     fig_caption: yes
+    
+params:
+  year: 2024
 ---
 ```{r,intro, results='markup', echo=F, include=FALSE}
 cat("\\newpage")
@@ -22,20 +25,47 @@ library(tidyverse)
 library(knitr)
 library(magrittr)
 
-path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
+#path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
 
-suppressWarnings({importCBBData(path, zip_name= "CSV_Dataset_Export_20230119.zip", new_env = TRUE)
-})
+#suppressWarnings({importCBBData(path, zip_name= "CSV_Dataset_Export_20230119.zip", new_env = TRUE)})
 
 ```
 # **Background**
  
 Type some description here.
 
+# Incubation Surveys
+
+## **Review Survey Effort in `r params$year`**
+
+``` {r incub_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+incub_raw<-GetIncubationData()
+
+# surveys per segment 
+incub_surveys<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year) %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
+
+obs_incub<-incub_surveys %>% group_by(Island, Segment, Date, Survey_Primary) %>% tally(name= "Observers") %>% spread(Survey_Primary, Observers, fill = 0) %>% rename(Primary = Yes, `Not Primary` = No)
+
+kable(obs_incub, caption= paste0("Number of observers for ", params$year ," Incubation Surveys"))
+```
+
 \pagebreak
 
-# **Double-crested Cormorant (*Phalacrocorax auritus*)**
-## Incubation surveys
+## **Double-crested Cormorant (*Phalacrocorax auritus*)**
+
+### Raw counts from current year `r params$year`
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+dcco_incub<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete)
+
+# raw count data by observer
+kable(dcco_incub, caption= "Current year counts of Double-crested Cormorant from primary survey",  padding =2)
+
+```
+
+### Nesting per island over time
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
@@ -52,18 +82,21 @@ cat("\\newpage")
 PlotBirds(dcco, scale = "log", stat = "max")
 ```
 
-## Nest Surveys
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
-# create data summarizing all ground-based nest counts
-nests <- SumNestSurveys(df= NULL,time= "year")
-# subset by DCCO to plot
-dcco2<-filter(nests, Species_Code == "DCCO")
-PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
-```
-\pagebreak
+## **Great Black-backed Gull (*Larus marinus*)**
 
-# **Great Black-backed Gull (*Larus marinus*)**
-## Incubation surveys
+### Raw counts from current year `r params$year`
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+gbbg_incub<- incub_raw %>% filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete)
+
+# raw count data by observer
+kable(gbbg_incub, caption= "Current year counts of Great black-backed Gulls from primary survey",  padding =2)
+
+```
+
+### Nesting per island over time
+
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
@@ -77,16 +110,23 @@ kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Annua
 cat("\\newpage")
 PlotBirds(GBBG, scale = "log", stat = "max")
 ```
-
-## Nest Surveys
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
-gbbg2<-filter(nests, Species_Code == "GBBG")
-PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
-```
 \pagebreak 
 
-# **Herring Gull (*Larus argentatus*)**
-## Incubation surveys
+## **Herring Gull (*Larus argentatus*)**
+
+### Raw counts from current year `r params$year`
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+herg_incub<- incub_raw %>% filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete)
+
+# raw count data by observer
+kable(herg_incub, caption= "Current year counts of Herring Gulls from primary survey",  padding =2)
+
+```
+
+### Nesting per island over time
+
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
@@ -101,28 +141,51 @@ cat("\\newpage")
 PlotBirds(HERG, scale = "log", stat = "max")
 ```
 
-## Nest Surveys
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
-herg2<-filter(nests, Species_Code == "HERG")
-PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+# Creche Surveys of **Common Eider (*Somteria mollissima*)**
+
+## **Review Survey Effort in `r params$year`**
+
+``` {r creche_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+creche_raw<-GetCrecheData()
+
+# surveys per segment 
+creche_surveys<- creche_raw %>% filter(year %in% params$year) %>% select(Island, Segment, Date, Species_Unit, Observer, Group_Notes, Survey_Complete, Survey_Notes)
+
+obs_creche<-creche_surveys %>% select(-Group_Notes, -Observer, -Survey_Notes) %>% group_by(Island, Segment, Date, ) %>%  distinct() %>%  pivot_wider(names_from = Date, values_from =  Survey_Complete, values_fill = NA) 
+
+kable(obs_creche, caption= paste0("Status of creche surveys by date in ", params$year ,". Cell values denotes whether or not the survey was fully completed. NULL  means no survey was conducted."))
 ```
 
-# **Common Eider (*Somteria mollissima*)**
-## Creche Surveys
+The following records were denoted as **incomplete surveys** in ` r params$year`:
+ 
+``` {r creche_rev, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+kable(creche_surveys %>% filter(Survey_Complete == "No"), caption = "Incomplete Surveys")
+```
+
+
 ### Current year surveys by date
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
-creche <- SumCreche(df = CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="date")
-PlotBirds(creche, year= "2022", raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+creche <- SumCreche(time ="date")
+
+PlotBirds(creche, year= "2024", raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+
+df<- filter(creche, year== yr & !Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending")) %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
+kable(df, caption = paste0("Counts per life stage of Common Eider during creche surveys in ", params$year)) 
+
+
+PlotBirds(creche %>% filter(variable %in% c("COEI Ducklings" ,"Adult female COEI tending")), year= "2024", island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")
+
 cat("\\newpage")
-yr<-"2022"
-df<- filter(creche, year== yr & !Island == "All Islands") %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
-kable(df, caption = paste0("Creche surveys during ",yr)) 
+
 ```
 
-### Annual counts over time by variable
+### Annual counts over time by life stage
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
-creche_y <- SumCreche(df = CBB_TABLES$qry_Dataset_4_Survey_Creche,time ="year")
+creche_y <- SumCreche(df = NULL ,time ="year")
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
 print(plots[[1]]);cat("\\newpage")
@@ -131,41 +194,84 @@ print(plots[[3]]);cat("\\newpage")
 print(plots[[4]])
 cat("\\newpage")
 ```
+\pagebreak
 
-## Nest Surveys
+# Ground-based Nest Surveys
+
+## **Review Survey Effort in `r params$year`**
+
+``` {r ground_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+nests_raw<-GetNestData()
+
+# surveys per segment 
+ground_surveys<- nests_raw %>% filter(year %in% params$year) %>% select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete)
+
+obs_ground<-ground_surveys %>% group_by(Island, Segment, Date) %>% tally(name= "Observers") %>% spread(Survey_Primary, Observers, fill = 0) %>% rename(Primary = Yes, `Not Primary` = No)
+
+kable(obs_ground, caption= paste0("Number of observers for ", params$year ," Incubation Surveys"))
+```
+
+## **Common Eider (*Somteria mollissima*)**
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 coei<-filter(nests, Species_Code == "COEI")
 PlotBirds(coei, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
-\pagebreak
 
-# **Black-crowned night Heron (*Nycticorax nycticorax*)**
-## Nest Surveys
+## **Double-crested Cormorant (*Phalacrocorax auritus*)**
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+# create data summarizing all ground-based nest counts
+nests <- SumNestSurveys(df= NULL,time= "year")
+# subset by DCCO to plot
+dcco2<-filter(nests, Species_Code == "DCCO")
+PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+```
+\pagebreak 
+
+## **Great Black-backed Gull (*Larus marinus*)**
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+gbbg2<-filter(nests, Species_Code == "GBBG")
+PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+```
+\pagebreak 
+
+## **Herring Gull (*Larus argentatus*)**
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+herg2<-filter(nests, Species_Code == "HERG")
+PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+```
+\pagebreak 
+
+## **Black-crowned night Heron (*Nycticorax nycticorax*)**
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 bcnh<-filter(nests, Species_Code == "BCNH")
 PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-# **Glossy Ibis (*Plegadis falcinellus*)**
-## Nest Surveys
+## **Glossy Ibis (*Plegadis falcinellus*)**
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 glib<-filter(nests, Species_Code == "GLIB")
 PlotBirds(glib, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-# **Great Egret (*Ardea alba*)**
-## Nest Surveys
+## **Great Egret (*Ardea alba*)**
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 greg<-filter(nests, Species_Code == "GREG")
 PlotBirds(greg, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-# **Snowy Egret (*Egretta thula*)**
-## Nest Surveys
+## **Snowy Egret (*Egretta thula*)**
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 sneg<-filter(nests, Species_Code == "SNEG")
 PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
+
+
