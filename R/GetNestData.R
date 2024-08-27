@@ -133,7 +133,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
                                     Survey_Complete, Date, year, 
                                     month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
                                     Unit_Count, Egg_Count, Chick_Count, 
-                                    Obs_Coords, Obs_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+                                    Obs_Coords, Obs_Notes, Survey_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
   
   ### export to use in R viz and for R package
   if (export == TRUE) {
@@ -184,7 +184,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
                                Survey_Complete, Date, year, 
                                month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
                                Unit_Count, Egg_Count, Chick_Count, Observer,
-                               Obs_Coords, Obs_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+                               Obs_Coords, Obs_Notes, Survey_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
     
     ### export to use in R viz and for R package
     if (export == TRUE) {

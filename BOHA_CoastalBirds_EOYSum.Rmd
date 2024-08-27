@@ -30,6 +30,63 @@ library(kableExtra)
 
 #suppressWarnings({importCBBData(path, zip_name= "CSV_Dataset_Export_20230119.zip", new_env = TRUE)})
 
+# plotting function to examine current vs historical counts
+
+plt_var<- function(type = "boxplot", survey, species, var) {
+
+  if(survey == "incubation"){ 
+  
+  df <- filter(incub, Species_Code == species &  stat == "max", variable == var)
+  
+  }
+  
+  if(survey == "creche"){ df<-creche
+  
+   df <- filter(creche, Species_Code == species &  stat == "max", variable == var)
+   
+  }
+  
+  if(survey == "ground"){ 
+    
+    df <- filter(nests, Species_Code == species, variable == var)
+    
+    }
+
+  
+  if(type == "boxplot") {
+    
+    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island)) +
+    geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(aes(shape = shape, color= color), size= 3)
+  
+  }
+    
+    if(type == "violin"){
+    
+    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island)) + geom_violin(alpha= 0.3)+
+      geom_jitter(aes(shape = shape, color= color), size= 3)
+        }
+    
+ y2 <- (y2 + facet_wrap(~Island, scales = "free_x")+coord_flip()+
+  scale_color_manual(values = c("black", "red"))+ 
+  scale_shape_manual(values = c(19, 8))+ 
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(y = "Count", x ="")+
+  ggtitle(paste0("Variation in counts of ", species," ", var, " from 2007 to ", params$year, ". The red asterisks denotes current year count."))+
+    theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
+          theme(axis.text.y = element_text(size = 12 )) +
+         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+         theme(axis.text.y=element_blank())+
+         theme(panel.background =  element_rect(fill="white", colour="black")) +
+         theme(panel.grid.major = element_line(colour = "grey90")) +
+         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
+         theme(strip.background= element_rect(size=10, color="gray" )))
+
+ suppressWarnings(print(y2))
+}
 ```
 # **Purpose**
  
@@ -125,26 +182,10 @@ cat("\\newpage")
 # plot time series per Island
 PlotBirds(DCCO, raw_count = T, stat = "max")
 
-# create box plot
-ggplot(data= filter(DCCO, stat == "max"), aes(x= Island, y= value, fill= Island, group= Island)) +
-  geom_boxplot(alpha= 0.3, notch= F, outliers = TRUE)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Incubating Adults")+
-  ggtitle(paste0("Variation in counts of incubating DCCO adults from 2007 to ", params$year, " by Island. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+# create violin plot
+
+plt_var(type= "violin", survey = "incubation", species = "DCCO", var ="Incubating Adults")
+
 
 ```
 
@@ -178,26 +219,10 @@ kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Table
 PlotBirds(GBBG, raw_count = T, stat = "max")
 cat("\\newpage")
 
-# create box plot
-ggplot(data= filter(GBBG, stat == "max"), aes(x= Island, y= value, fill= Island, group= Island)) +
-  geom_boxplot(alpha= 0.3, notch= F, outliers = TRUE)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Incubating Adults")+
-  ggtitle(paste0("Variation in counts of incubating GBBG adults from 2007 to ", params$year, " by Island. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+# create violin plot
+
+plt_var(type= "violin", survey = "incubation", species = "GBBG", var ="Incubating Adults")
+
 ```
 \pagebreak 
 
@@ -232,26 +257,10 @@ kable(HERG[,c("Island","time","value")] %>% spread(time, value), caption= "Table
 PlotBirds(HERG, raw_count = T, stat = "max")
 cat("\\newpage")
 
-# create box plot
-ggplot(data= filter(HERG, stat == "max"), aes(x= Island, y= value, fill= Island, group= Island)) +
-  geom_boxplot(alpha= 0.3, notch= F, outliers = TRUE)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Incubating Adults")+
-  ggtitle(paste0("Variation in counts of incubating HERG adults from 2007 to ", params$year, " by Island. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+# create violin plot
+
+y<- plt_var(type= "violin", survey = "incubation", species = "HERG", var ="Incubating Adults")
+
 ```
 
 # **Creche Surveys of Common Eider (*Somateria mollissima*)**
@@ -347,18 +356,18 @@ print(plots2[[3]]);cat("\\newpage")# Ducklings time series for all islands
 
 # create box plot of all life stages for all islands
 ggplot(data= filter(creche_y, Island == "All Islands", stat == "max"), aes(x= variable, y= value, fill= variable, group= variable)) +
-  geom_boxplot(alpha= 0.3, notch= F, outliers = TRUE)+ 
+  geom_violin(alpha= 0.3, notch= F)+ 
   geom_jitter(aes(shape = shape, color= color), size= 3) +
   scale_color_manual(values = c("black", "red"))+ 
-  #coord_flip()+
+  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
   scale_shape_manual(values = c(19, 8))+ 
   theme_bw()+
   theme(legend.position = "none")+
   labs(y = "Count", x ="")+
   ggtitle(paste0("Variation in creche counts per life stage from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
   theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
+         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
+        theme(axis.text.y =element_blank())  +
          theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
          theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
          theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
@@ -406,9 +415,14 @@ kable(obs_ground, caption= paste0("Table 13. Status of ground-based surveys by s
 ground_methods<- nests_raw %>% filter(year %in% params$year) %>% select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Nest_Status, Survey_Complete, Survey_Primary) %>% group_by(Species_Code, Island, Segment, Date, Survey_Complete, Survey_Primary, Nest_Status) %>% summarise(Nests = sum(Nests)) %>% spread(Nest_Status, Nests, fill =0) %>% rowwise() %>% group_by(Species_Code, Island, Segment, Date) %>% mutate(Total = sum(Abandoned,	Depredated,	Estimate,	Fledged,	Normal,	Other,	Unknown	)) %>% arrange(Date, Island, Segment)
 
 ground_notes<- nests_raw %>% filter(year %in% params$year ) %>% group_by(Species_Code, Island, Segment, Date) %>% 
-  mutate(c_Obs_Notes = paste0(unique(Obs_Notes), collapse = ";")) %>% distinct() %>% select(Species_Code, Island, Segment, Survey_Complete, Date, c_Obs_Notes)  %>% arrange(Date, Island, Segment)
+  mutate(c_Survey_Notes = paste0(unique(Survey_Notes), collapse = ";")) %>% distinct() %>% select(Species_Code, Island, Segment, Survey_Complete, Date, c_Survey_Notes)  %>% arrange(Date, Island, Segment)
 
-ground_notes<- ground_notes[!duplicated(ground_notes$c_Obs_Notes), ] %>% as_tibble()
+ground_notes<- ground_notes[!duplicated(ground_notes$c_Survey_Notes), ] %>% as_tibble()
+
+
+kable(filter(ground_notes, Survey_Complete == "No"), caption= paste0("Table 14. Survey Notes recorded during incomplete surveys in ", params$year)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
 
 ```
 
@@ -417,172 +431,249 @@ Notes:
 1. It may be useful to bring in the full table of islands that were supposed to be surveyed to check completeness of surveying work
 2. Double check that partial surveys occurred and that the portion of the route survey was estimated in the DB. As of now the % surveyed is not being imported into the R package object (confirm data field with Adam).
 
-## Common Eider (*Somateria mollissima*)
+## **Common Eider (*Somateria mollissima*)**
 
 ### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "COEI"), caption = "Table 14. Nest counts per status category.") %>%
+kable(ground_methods %>% filter(Species_Code == "COEI"), caption = "Table 15. Nest counts per status category.") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(ground_notes %>% filter(Species_Code == "COEI")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-# plot current year values for each life stage
-coei<-filter(nests, Species_Code == "COEI")
-PlotBirds(coei, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 
 ### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-# create box plot of all life stages (Species_Unit) for all islands
+# create violin plot
 
-ggplot(data= filter(nests, Species_Code == "COEI", variable == "Nests"), aes(x= Island, y= value, fill= Island, group= Island)) +
-  geom_boxplot(alpha= 0.3, notch= F, outliers = TRUE)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  #coord_flip()+
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in ground-based nest counts per life stage from 2007 to ", params$year, ". The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+plt_var(type= "violin", survey = "ground", species = "COEI", var ="Nests")
 
 # plot current year values for each life stage
 coei<-filter(nests, Species_Code == "COEI")
-PlotBirds(coei, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+PlotBirds(coei, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
-## Double-crested Cormorant (*Phalacrocorax auritus*)
+## **Double-crested Cormorant (*Phalacrocorax auritus*)**
+
+### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "DCCO"), caption = "Table 16. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "DCCO"), caption = "Table 18. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(ground_notes %>% filter(Species_Code == "DCCO")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-# subset by DCCO to plot
-dcco2<-filter(nests, Species_Code == "DCCO")
-PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
+
 ```
 \pagebreak 
 
-## Great Black-backed Gull (*Larus marinus*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "boxplot", survey = "ground", species = "DCCO", var ="Nests")
+
+
+# subset by DCCO to plot
+dcco2<-filter(nests, Species_Code == "DCCO")
+PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+
+
+## **Great Black-backed Gull (*Larus marinus*)**
+
+### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "GBBG"), caption = "Table 18. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "GBBG"), caption = "Table 20. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "GBBG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-gbbg2<-filter(nests, Species_Code == "GBBG")
-PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-## Herring Gull (*Larus argentatus*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "GBBG", var ="Nests")
+
+
+gbbg2<-filter(nests, Species_Code == "GBBG")
+PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+
+## **Herring Gull (*Larus argentatus*)**
+
+### Current year (`r params$year`)
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "HERG"), caption = "Table 20. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "HERG"), caption = "Table 22. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "HERG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-herg2<-filter(nests, Species_Code == "HERG")
-PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-## Black-crowned night Heron (*Nycticorax nycticorax*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "HERG", var ="Nests")
+
+# plot counts over time per island
+herg2<-filter(nests, Species_Code == "HERG")
+PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+
+
+## **Black-crowned night Heron (*Nycticorax nycticorax*)**
+
+### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "BCNH"), caption = "Table 22. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "BCNH"), caption = "Table 24. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "BCNH")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-bcnh<-filter(nests, Species_Code == "BCNH")
-PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-## Glossy Ibis (*Plegadis falcinellus*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "BCNH", var ="Nests")
+
+# plot counts over time per island
+bcnh<-filter(nests, Species_Code == "BCNH")
+PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+## **Glossy Ibis (*Plegadis falcinellus*)**
+
+### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "GLIB"), caption = "Table 24. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "GLIB"), caption = "Table 26. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes,Species_Code == "GLIB")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-glib<-filter(nests, Species_Code == "GLIB")
-PlotBirds(glib, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-## Great Egret (*Ardea alba*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "GLIB", var ="Nests")
+
+# plot counts over time per island
+glib<-filter(nests, Species_Code == "GLIB")
+PlotBirds(glib, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+## **Great Egret (*Ardea alba*)**
+
+### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "GREG"), caption = "Table 26. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "GREG"), caption = "Table 28. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "GREG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-greg<-filter(nests, Species_Code == "GREG")
-PlotBirds(greg, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 \pagebreak 
 
-## Snowy Egret (*Egretta thula*)
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "GREG", var ="Nests")
+
+# plot counts over time per island
+greg<-filter(nests, Species_Code == "GREG")
+PlotBirds(greg, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
+
+## **Snowy Egret (*Egretta thula*)**
+
+### Current year (`r params$year`)
+
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 # create table showing current year counts by nest status
-kable(ground_methods %>% filter(Species_Code == "SNEG"), caption = "Table 28. Nest counts per status category.")%>%
+kable(ground_methods %>% filter(Species_Code == "SNEG"), caption = "Table 30. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "SNEG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-sneg<-filter(nests, Species_Code == "SNEG")
-PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = c("Nests", "Chicks", "Eggs"))
 ```
 
+### Counts over time
+
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# create violin plot
+
+plt_var(type= "violin", survey = "ground", species = "SNEG", var ="Nests")
+
+
+# plot counts over time per island
+sneg<-filter(nests, Species_Code == "SNEG")
+PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
+```
 

@@ -104,7 +104,7 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
                                              "Other", "Unknown" ), 
                           Estimated = "Estimate"))
   
-  # bind togetherand exclude nests that were estimated vs directly counted
+  # bind together and exclude nests that were estimated vs directly counted
   
   temp <- bind_rows(eggs,chicks, nests) %>% 
     filter(Count_Method == "Direct Count") %>%  # only take records when nests were counted directly
