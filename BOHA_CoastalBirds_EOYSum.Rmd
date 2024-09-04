@@ -20,6 +20,7 @@ params:
 ---
 ```{r,intro, results='markup', echo=F, include=FALSE}
 cat("\\newpage")
+
 library(NETNCoastalBirds)
 library(tidyverse)
 library(knitr)
@@ -110,7 +111,7 @@ The following tables and graphs summarize the number of incubation surveys in th
 
 ``` {r incub_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-incub_raw<-GetIncubationData()
+incub_raw = GetIncubationData()
 
 # surveys per segment 
 incub_surveys<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year) %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
@@ -126,6 +127,7 @@ obs_incub<-incub_surveys %>% group_by(Island, Segment, Date, Survey_Complete, Su
 
 kable(obs_incub, caption= paste0("Number of unique observers designated as Primary and Non-Primary for Incubation Surveys in ", params$year)) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
 ```
 
 The following sections summarize the annual and long term survey counts for cormorants and gulls surveyed during **boat-based Incubation surveys**. NETN staff should check the following sections of DCCO, GBBG, and HERG to ensure that:

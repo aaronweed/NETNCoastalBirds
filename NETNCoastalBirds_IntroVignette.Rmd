@@ -99,12 +99,12 @@ Note that to sum by year you enter `time= year`. To sum by day, enter `time = da
 Since there are numerous detections of Common Eider (COEI) per day and year, this function sums the number of birds detected in each year per island of 4 four life stages. The counts are summarized in the following life stages: No. of females, No. of Females tending Duckings, No. lone Females, Mean creche size (no. ducklings) from the Outer Islands. To sum counts by year:
 
 ```{r, include = TRUE, echo=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-creche.yr<-CrecheSum(time = "year")
+creche.yr<-SumCreche(time = "year")
 ```
 
 To sum by date:
 ```{r, include = TRUE, eBirdscho=TRUE, warning=FALSE, comment= NA, cache=TRUE}
-creche.day<-CrecheSum(time = "date")
+creche.day<-SumCreche(time = "date")
 ```
 
 To sum daily surveys by each Observer enter `CrecheSum(time="date", ByObserver= "yes" )`

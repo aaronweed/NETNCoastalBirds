@@ -223,6 +223,9 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
     na.omit()  # remove NAs added when no chicks or eggs found and Nests =0
   
   ### Now bind to data above
+  
+  data(tlu_Species)
+  
   graph.final<- temp2 %>% 
      dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest","ClutchSize")) %>% # just select nest contents
      mutate(valuePerSurveySize= value) %>% # create new variable for plotting (will plot)
