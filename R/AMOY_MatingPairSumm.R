@@ -27,7 +27,7 @@ AMOY_MatingPairSumm<-function(x,  ODBC_connect = TRUE, export = FALSE){
     ###################### Import data and lookup tables used for the query   ################
     
     # import dataframes of each tables within the DB
-    AMOY <- RODBC::sqlFetch(con, "tbl_Summary_AMOY")
+    AMOY <- RODBC::sqlFetch(con, "tbl_Summary_Spp_AMOY_PIPL")
     
     RODBC::odbcClose(con)
     

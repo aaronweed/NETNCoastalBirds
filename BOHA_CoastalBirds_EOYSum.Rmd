@@ -298,7 +298,6 @@ kable(obs_creche, caption= paste0("Table 10. Number of life stages counted durin
 cat("\\newpage")
 ```
 
-
 The following records were denoted as **incomplete surveys** in ` r params$year`:
  
 ``` {r creche_rev, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
@@ -313,15 +312,19 @@ kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
+
 creche <- SumCreche(time ="date")
 
 # plot counts of F-tending and ducklings by survey date in current year for each island
-PlotBirds(creche, year= params$year, raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+a<-PlotBirds(creche, year= params$year, raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+
 
 df<- filter(creche, year== params$year & !Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending")) %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
 
-# plot counts of F-tending and duckling by survey date in current year across All islands
-PlotBirds(creche %>% filter(variable %in% c("COEI Ducklings" ,"Adult female COEI tending")), year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")
+# plot counts of F-tending and duckling by survey date in current year across All Outer Islands
+cols_2 <- c("black", "darkblue", "darkgray")
+
+PlotBirds( creche, year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")+ scale_color_manual(values= cols_2)
 
 kable(df, caption = paste0("Table 12. Counts per life stage of Common Eider during creche surveys in ", params$year))  %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -332,7 +335,8 @@ cat("\\newpage")
 
 ## Annual counts over time by life stage
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
-creche_y <- SumCreche(df = NULL ,time ="year") %>% mutate(shape = case_when(
+creche_y <- SumCreche(df = NULL ,time ="year") %>% 
+  mutate(shape = case_when(
   year == params$year ~ "8",
   .default = "19" )) %>% 
   mutate(color = case_when(
@@ -345,16 +349,22 @@ VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
 
 # All island plots by life stage (variable)
-plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable"))
+plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F))
 
 # plot F-tend stats
 print(plots[[1]]);cat("\\newpage")# F-tend time series per island
 print(plots2[[1]]);cat("\\newpage")# F-tend time series all islands
 
-# plot ducking stats
+# plot duckling stats
 
 print(plots[[3]]);cat("\\newpage")# Ducklings time series per island
-print(plots2[[3]]);cat("\\newpage")# Ducklings time series for all islands
+b<-print(plots2[[3]]);cat("\\newpage")# Ducklings time series for all islands
+
+
+a<-print(plots2[[4]]);cat("\\newpage")# total females for all islands
+
+ggarrange(a,b)
+
 
 # create box plot of all life stages for all islands
 ggplot(data= filter(creche_y, Island == "All Islands", stat == "max"), aes(x= variable, y= value, fill= variable, group= variable)) +
@@ -459,7 +469,9 @@ plt_var(type= "violin", survey = "ground", species = "COEI", var ="Nests")
 
 # plot current year values for each life stage
 coei<-filter(nests, Species_Code == "COEI")
-PlotBirds(coei, raw_count= TRUE, legend = TRUE, var = "Nests")
+
+PlotBirds(coei, raw_count= TRUE, legend = T, var = "Nests", plot_title = FALSE, overlay = "island", facet = "Species_Code")+
+  scale_color_discrete()
 ```
 
 ## **Double-crested Cormorant (*Phalacrocorax auritus*)**

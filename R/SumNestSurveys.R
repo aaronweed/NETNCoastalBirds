@@ -73,13 +73,13 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
   # calculate no. of life stages based on per nest counts
   
  
-  # create molten df of surveys where we can determine the amount of area searched for nests
+  # create tidy df of surveys where we can determine the amount of area searched for nests
   df.melt <- df %>%
     dplyr::select(Island, Segment,Date, Survey_Primary, Survey_Duplicate, Survey_Complete,Survey_MultiPart,
                   Species_Code, Nest_Status, Nests, Chicks, Eggs, Observer) %>%
     dplyr::filter(Survey_Primary %in% "Yes" ) %>%  # grab only records from the primary survey to avoid counting multi-obs of same event
     #dplyr::filter(Survey_Duplicate %in% "No" ) %>%  # grab only records from the first survey if repeated
-    dplyr::filter(Survey_Complete %in% "Yes") %>% ## remove some surveys that weren't completed and that we don't have estimates of area searched
+ #   dplyr::filter(Survey_Complete %in% "Yes") %>% ## remove some surveys that weren't completed and that we don't have estimates of area searched
     mutate(year = year(Date),month = month(Date) ) %>% # create month and year fields
     tidyr::pivot_longer(cols=c(-Island,-Segment,-Date,-month, -year, -Survey_Primary, -Survey_Duplicate, -Survey_Complete,-Survey_MultiPart,
           -Species_Code, -Nest_Status,-Observer), names_to = "variable",values_to = "value",values_drop_na = TRUE) 
@@ -107,7 +107,7 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
   # bind together and exclude nests that were estimated vs directly counted
   
   temp <- bind_rows(eggs,chicks, nests) %>% 
-    filter(Count_Method == "Direct Count") %>%  # only take records when nests were counted directly
+   # filter(Count_Method == "Direct Count") %>%  # only take records when nests were counted directly
     na.omit() # a few NAs in the chicks table for some reason
   
   #######################################
@@ -223,8 +223,6 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
     na.omit()  # remove NAs added when no chicks or eggs found and Nests =0
   
   ### Now bind to data above
-  
-  data(tlu_Species)
   
   graph.final<- temp2 %>% 
      dplyr::filter(variable %in% c("EggsPerNest","ChicksPerNest","ClutchSize")) %>% # just select nest contents

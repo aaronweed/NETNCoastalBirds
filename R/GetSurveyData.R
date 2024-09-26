@@ -55,7 +55,7 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
     Seg_Size<-RODBC::sqlFetch(con, "tbl_Segments_Size")
     species_tlu<-RODBC::sqlFetch(con,"tlu_Species")
     
-    odbcClose(con)
+    RODBC::odbcClose(con)
     ## If connection didn't work, try mdb.get() 
   } else if (connect == "Hmisc") {
     if (is.null(DBfile)) {

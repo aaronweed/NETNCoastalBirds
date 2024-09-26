@@ -218,10 +218,11 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
       summarise(value= sum(value)) %>% # sum by date
       add_column(Species_Unit = "Total Number of Female COEI Observed")# create new life stage variable name
     
-    StageSumBySegment<- bind_rows(StageSumByDay, TotFemales) %>%     # bind daily summaries from above 
-      dplyr::group_by(Island, Segment, year, Species_Unit) %>% # now summarize data by year to calc daily mean/max and overall sum
+    # bind daily summaries from above and summarize data by year to calc daily mean/max and overall sum
+    StageSumBySegment<- bind_rows(StageSumByDay, TotFemales) %>%      
+      dplyr::group_by(Island, Segment, year, Species_Unit) %>% 
       dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value,na.rm = TRUE),2),
-                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% # calc summary stats based on indi. daily surveys
       tidyr::gather(stat, value, -Island, -Segment,-year,-Species_Unit, -surveys) # gather data into one value vector for spread
       
       
@@ -247,10 +248,13 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
     
     ### Sum by year across all islands
     
-    StageSumByTime<- bind_rows(StageSumByDay, TotFemales) %>%     # bind daily summaries from above 
-      dplyr::group_by(year, Species_Unit) %>% # now summarize data by year to calc daily mean/max and overall sum
-      dplyr::summarise(sum = sum(value, na.rm = TRUE), mean= round(mean(value,na.rm = TRUE),2),
-                       max=max(value, na.rm = TRUE), min= min(value, na.rm = TRUE), surveys=n()) %>% 
+    StageSumByTime<- bind_rows(StageSumByDay, TotFemales) %>%     # bind daily summaries for each Island--Segment from above 
+      dplyr::group_by(year, Island, Species_Unit, Date) %>% 
+      dplyr::summarise(sum = sum(value, na.rm = TRUE)) %>% # sum counts for each island and life stage by day
+      dplyr::group_by(year, Species_Unit, Date) %>% 
+      dplyr::summarise(sum2 = sum(sum, na.rm = TRUE)) %>% # sum count across all islands per life stage by day
+      dplyr::group_by(year, Species_Unit) %>% 
+      dplyr::summarise(sum = sum(sum2, na.rm = TRUE), mean= round(mean(sum2,na.rm = TRUE),2), max = max(sum2, na.rm = TRUE) , min= min(sum2, na.rm = TRUE), surveys=n()) %>% # extract max, min and mean annual counts from daily surveys across  all islands per life stage
       tidyr::gather(stat, value, -year,-Species_Unit, -surveys) %>% # gather data into one value vector for spread
       add_column(Island = "All Islands", Segment ="All")
     
@@ -267,7 +271,7 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
     COEI_ByTime<-bind_rows(StageSumByTime,CrecheSizeByTime) %>% select(-surveys) %>% 
       group_by(Island, Segment, year, stat) %>% 
       tidyr::spread(Species_Unit, value, fill=0, drop=T) %>% # make data wide
-      dplyr::select(Island,Segment, year, stat, 'Adult female COEI tending','COEI Ducklings' , 'Average creche size', 'Total Number of Female COEI Observed')%>% 
+      dplyr::select(Island,Segment, year, stat, 'Adult female COEI tending','COEI Ducklings' , 'Average creche size', 'Total Number of Female COEI Observed') %>% 
       tibble::add_column(Species_Code = "COEI") %>% 
       dplyr::rename(time = year)
     
@@ -289,7 +293,7 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
       dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
       {if(segment) dplyr::select(.,Species_Code, Island, Segment, time, variable, stat, value, valuePerSurveySize,Survey_Size, Survey_Units) else
-      dplyr::select(.,Species_Code, Island, time,  variable,stat, value, valuePerSurveySize,Survey_Size, Survey_Units)} %>% 
+      dplyr::select(.,Species_Code, Island, time,  variable,stat, value, valuePerSurveySize,Survey_Size, Survey_Units)} %>%
       inner_join(tlu_Species, ., by = "Species_Code") %>% # add species names to data
       mutate(FullLatinName=as.character(FullLatinName),CommonName=as.character(CommonName)) # force as chr
  
