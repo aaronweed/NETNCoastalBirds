@@ -316,15 +316,14 @@ options(knitr.kable.NA = '')
 creche <- SumCreche(time ="date")
 
 # plot counts of F-tending and ducklings by survey date in current year for each island
-a<-PlotBirds(creche, year= params$year, raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+PlotBirds(creche, year= params$year, raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
 
 
 df<- filter(creche, year== params$year & !Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending")) %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
 
 # plot counts of F-tending and duckling by survey date in current year across All Outer Islands
-cols_2 <- c("black", "darkblue", "darkgray")
 
-PlotBirds( creche, year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")+ scale_color_manual(values= cols_2)
+PlotBirds( filter(creche,!variable == "Average creche size"), year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")+ scale_color_manual(values = c("black","darkgray", "blue"))
 
 kable(df, caption = paste0("Table 12. Counts per life stage of Common Eider during creche surveys in ", params$year))  %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -361,9 +360,11 @@ print(plots[[3]]);cat("\\newpage")# Ducklings time series per island
 b<-print(plots2[[3]]);cat("\\newpage")# Ducklings time series for all islands
 
 
-a<-print(plots2[[4]]);cat("\\newpage")# total females for all islands
+a<-print(plots2[[1]]);cat("\\newpage")# total females for all islands
 
-ggarrange(a,b)
+# plot duckling and total female tending stats
+
+ggpubr::ggarrange(a,b)
 
 
 # create box plot of all life stages for all islands
@@ -387,6 +388,20 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max"), aes(x= va
          theme(panel.grid.major = element_line(colour = "grey90")) +
          theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
          theme(strip.background= element_rect(size=10, color="gray" ))
+
+# assess trends in ducklings and f-tend
+
+df<- filter(creche_y, Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending") & stat =="max" & year %in% c(2007:2019))
+
+PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")
+  
+
+ducklings<-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable =="COEI Ducklings"))
+summary(ducklings)
+
+
+ftend <-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable == "Adult female COEI tending"))
+summary(ftend)
 
 ```
 \pagebreak

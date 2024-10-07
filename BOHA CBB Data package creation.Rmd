@@ -1,0 +1,73 @@
+---
+title: "Data package creation for Coastal Bird monitoring at Boston Harbor Islands NRA (BOHA)"
+author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
+output: 
+  html_document:
+    highlight: textmate
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+
+```{r intro, results='markup', echo=F, include=FALSE}
+cat("\\newpage")
+
+library(NETNCoastalBirds)
+library(tidyverse)
+library(magrittr)
+library(RODBC)
+
+```
+
+# Create Events_All
+
+```{r events, results='markup', echo=F, include=FALSE}
+
+con <- RODBC::odbcConnect("NETNCB")# establish connection to DB
+    
+events <- RODBC::sqlFetch(con, "tbl_Events")
+ 
+RODBC::odbcClose(con)
+
+```
+
+# Create Survey Incubation
+
+```{r Incubation, results='markup', echo=F, include=FALSE}
+
+
+incub <- GetIncubationData()
+
+```
+
+# Create Survey_Nest
+
+```{r Survey_Nest, results='markup', echo=F, include=FALSE }
+
+ground.nests <- GetNestData()
+
+
+```
+
+# Create Creche Survey
+
+```{r creche, results='markup', echo=F, include=FALSE }
+
+
+creche<-GetCrecheData()
+
+```
+
+# Create AMOY Survey
+
+```{r AMOY, results='markup', echo=F, include=FALSE }
+
+AMOY<-GetAMOYData()
+
+
+```
+
+
