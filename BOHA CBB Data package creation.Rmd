@@ -19,6 +19,7 @@ library(NETNCoastalBirds)
 library(tidyverse)
 library(magrittr)
 library(RODBC)
+library(lubridate)
 
 ```
 
@@ -70,4 +71,152 @@ AMOY<-GetAMOYData()
 
 ```
 
+# Create AMOY PIPL Summary - qry 6
+
+```{r}
+## connect to DB:
+con <- RODBC::odbcConnect("NETNCB")
+  
+###################### Import data and lookup tables used for the query 
+#"tbl_Summary_Spp_AMOY_PIPL" and "tlu_Species     
+  
+# import dataframes of each tables within the DB
+summary <- RODBC::sqlFetch(con, "tbl_Summary_Spp_AMOY_PIPL")
+species <- RODBC::sqlFetch(con, "tlu_Species")
+  
+# Close connection
+RODBC::odbcClose(con)
+
+# Bind tables, filter to desired species
+temp.AMOYPIPL <- full_join(species, summary, by = c('Species_Code' = 'Species'))%>%
+  filter(., Species_Code == 'AMOY'| Species_Code == 'PIPL')
+
+# subset df to final columns for exporting
+raw.AMOYPIPL <- select(temp.AMOYPIPL, "CommonName", "Species_Code", "Location",
+                       "Survey_Year", "Pair_Count_MAwindow", "Reporting_Agency",
+                       "DPL", "Notes")
+
+```
+
+# Create Tern Summary - qry 7
+
+```{r}
+## connect to DB:
+con <- RODBC::odbcConnect("NETNCB")
+
+###################### Import data and lookup tables used for the query   
+#"tbl_Summary_Spp_Terns","tlu_Species","tlu_Tern_Summary_Method", "tlu_Tern_Summary_Productivity"     
+
+# import dataframes of each tables within the DB
+summary <- RODBC::sqlFetch(con, "tbl_Summary_Spp_Terns")
+species <- RODBC::sqlFetch(con, "tlu_Species")
+method <- RODBC::sqlFetch(con, "tlu_Tern_Summary_Method")
+Productivity <- RODBC::sqlFetch(con, "tlu_Tern_Summary_Productivity")
+
+# Close connection
+RODBC::odbcClose(con)
+
+# Bind tables, filter to tern species, and remove NA's from DPL column
+temp.terns <- left_join(summary, species, by = c('Species' = 'Species_Code'))%>%
+  full_join(., method, by =c('Method' = 'Code'))%>%
+  full_join(., Productivity, by = c('Productivity' = 'Code'))%>%
+  filter(., Species == 'COTE'| Species == 'LETE'| Species == 'ROTE')%>%
+  filter(!is.na(.$DPL))
+
+# Rename some cols to match DB version
+temp.terns%>%
+  rename(Method_Code = Method, Method_Desc = Description.x, 
+         Productivity_Code = Productivity, 
+         Productivity_Desc = Description.y) -> temp.terns
+
+# subset df to final columns for exporting
+raw.terns <- select(temp.terns, "CommonName", "Species", "Location", 
+                    "Survey_Year", "Count_MAwindow", "Method_Code",
+                    "Method_Desc", "Productivity_Code", "Productivity_Desc",
+                    "Reporting_Agency", "DPL", "Notes")
+
+```
+
+# Create Surveillance Survey - qry 8
+
+```{r}
+## connect to DB:
+con <- RODBC::odbcConnect("NETNCB")
+
+###################### Import data and lookup tables used for the query   
+#"tbl_Events","tlu_Species","tbl_Observations"      
+
+# import dataframes of each tables within the DB
+events <- RODBC::sqlFetch(con, "tbl_Events")
+species <- RODBC::sqlFetch(con, "tlu_Species")
+obs <- RODBC::sqlFetch(con, "tbl_Observations")
+
+# Close connection
+RODBC::odbcClose(con)
+
+# Bind tables and filter to Surveillance surveys
+temp.surv <- left_join(events, obs, by = c('pk_EventID' = 'fk_EventID'))%>%
+  inner_join(., species, by = 'Species_Code')%>%
+  filter(., Survey_Type == 'Surveillance')
+
+# Rename columns to match Access col names
+temp.surv <- rename(temp.surv, 'Species_name' = 'CommonName')
+names(temp.surv) <- gsub(x = names(temp.surv), pattern = 'pk_', replacement = '')
+
+# Add time variables
+temp.surv$Date  <- ymd(temp.surv$Date) #convert to date
+temp.surv$year  <- year(temp.surv$Date) #Create year variable
+temp.surv$month <- month(temp.surv$Date) #Create month variable
+
+## subset df to final columns for exporting
+raw.surv <- select(temp.surv, "Park", "Survey_Agency", "Survey_Class", 
+                   "Survey_Type", "Date", "Island", "Segment", 
+                   "Observer", "Obs_Type", "Species_Code", 
+                   "Species_name", "Species_Unit", "Unit_Count", 
+                   "Obs_Coords", "Obs_Notes", "Obs_Time", "EventID", 
+                   "ObservationID", "year", "month")
+
+```
+
+# Create Incidental Summary - qry 9
+
+```{r}
+## connect to DB:
+con <- RODBC::odbcConnect("NETNCB")
+
+###################### Import data and lookup tables used for the query   
+#"tbl_Events","tlu_Species","tbl_Observations"      
+
+# import dataframes of each tables within the DB
+events <- RODBC::sqlFetch(con, "tbl_Events")
+species <- RODBC::sqlFetch(con, "tlu_Species")
+obs <- RODBC::sqlFetch(con, "tbl_Observations")
+
+# Close connection
+RODBC::odbcClose(con)
+
+# Bind tables, filter to Incidental observations, and remove Surveillance surveys
+temp.incid <- left_join(events, obs, by = c('pk_EventID' = 'fk_EventID'))%>%
+  inner_join(., species, by = 'Species_Code')%>%
+  filter(., Obs_Type == 'Incidental',
+         Survey_Type != 'Surveillance')
+
+# Rename columns to match Access col names
+temp.incid <- rename(temp.incid, 'Species_name' = 'CommonName')
+names(temp.incid) <- gsub(x = names(temp.incid), pattern = 'pk_', replacement = '')
+
+# Add time variables
+temp.incid$Date  <- ymd(temp.incid$Date) #convert to date
+temp.incid$year  <- year(temp.incid$Date) #Create year variable
+temp.incid$month <- month(temp.incid$Date) #Create month variable
+
+## subset df to final columns for exporting
+raw.incid <- select(temp.incid,"Park", "Survey_Agency", "Survey_Class",
+                         "Survey_Type", "Date", "Island", "Segment", 
+                         "Observer", "Obs_Type", "Species_Code", 
+                         "Species_name", "Species_Unit", "Unit_Count", 
+                         "Obs_Coords", "Obs_Notes", "Obs_Time", 
+                         "EventID", "ObservationID", "year", "month")
+
+```
 
