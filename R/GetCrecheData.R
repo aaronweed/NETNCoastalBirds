@@ -50,6 +50,7 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   group <- RODBC::sqlFetch(con, "tbl_Group")
   event <- RODBC::sqlFetch(con, "tbl_Events")
   group_obs<-RODBC::sqlFetch(con, "tbl_Group_Observations")
+  species <- RODBC::sqlFetch(con, "tlu_Species")
  
   RODBC::odbcClose(con)
   
@@ -65,31 +66,30 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
                      mdbexportArgs = '', stringsAsFactors = FALSE)
     group_obs <- Hmisc::mdb.get(db_path, tables="tbl_Group_Observations", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
+    species <- Hmisc::mdb.get(db_path, tables="tlu_Species", 
+                                mdbexportArgs = '', stringsAsFactors = FALSE)
     group <- clear.labels(group)
     event <- clear.labels(event)
     group_obs <- clear.labels(group_obs)
+    species <- clear.labels(species)
     
     ## The names are imported differently using mdb.get().
     ## Replace "." with "_"
     names(group) <- gsub("\\.", "_", names(group))
     names(event) <- gsub("\\.", "_", names(event))
     names(group_obs) <- gsub("\\.", "_", names(group_obs))
+    names(species) <- gsub("\\.", "_", names(species))
   } else if (connect == "No") {
     return(data(creche_raw))
   } else {
     stop("connect must be ODBC, Hmisc, or No.")
   }
   
-  ####### create new vectors to match for joining ########
-  #names(obs)
-  group$pk_EventID<-group$fk_EventID
-  group_obs$GroupID<-group_obs$fk_GroupID
-  group$GroupID<-group$pk_GroupID
 
-  #############Join toegther various dataframes to create queries ##########
+  #############Join together various dataframes to create queries ##########
    ##### Boat-based Creche surveys (COEI) ###########
   # returns df with the counts of COEI adults and ducklings observed during creche surveys per island,  Excludes incidental obs.
-  # NOTE: When applicable this query retuns muultiple records of species counts per island/date combination when species was spotted at more than one time.
+  # NOTE: When applicable this query returns multiple records of species counts per island/date combination when species was spotted at more than one time.
   
   # NOTE: As of 9/6/2017 query is returning NA's for some records under Unit_Count. This shoulnd't happen but may be occuring b/c recorder fails to enter in the group data
   # For now I have excluded these records 
@@ -111,16 +111,21 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   # Add subsetted group data to subsetted creche event data (event.crec)
   #intersect(names(event.crec),names(group.crec))
   
-  temp.crec<-left_join( event.crec,group.crec,  by="pk_EventID")
+  temp.crec<-left_join(event.crec, group.crec,  by= c("pk_EventID" = "fk_EventID"))
   #names(temp.crec)
   
   #count(unique(group_obs[,c("GroupID","Species_Unit")]))
   
-  # add in group obs data for each event/group of COEI
+  # add in group obs data for each event/group of COEI. Also add species information and filter cols
   #intersect(names(temp.crec),names(group_obs))
   
-  temp.crec2<-left_join( temp.crec,group_obs,  by="GroupID")
+  temp.crec2<-left_join(temp.crec, group_obs, by = c("pk_GroupID" = "fk_GroupID"))%>%
+    left_join(., species, by= 'Species_Code')%>%
+    filter(., Obs_Type == 'Group')
+  
   #names(temp.crec2)
+  names(temp.crec2) <- gsub(x = names(temp.crec2), pattern = 'pk_', replacement = '')
+ 
   
   
   # work with dates and time
@@ -145,20 +150,16 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
     temp.crec2$Group_Time <- substr(temp.crec2$Group_Time,10,19)
   }
   ## subset df to final 
-  creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,
-                     Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
-                            Survey_Primary,Survey_Complete, Recorder, Observer,
-                     Species_Code ,Group_Count,Group_Time,
-                            Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,
-                     Unit_Count,Survey_Notes ,Wind_Direction,
-                     Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)
+  creche_raw<-select(temp.crec2, Park,	Survey_Agency,	Survey_Class,	Survey_Type,	
+                     Date, Start_Time,	End_Time,	Island,	Segment,	Recorder,
+                     Observer,	Wind_Direction,	Wind_Speed,	Air_Temp_F,	
+                     Cloud_Perc, Tide_Stage,	Survey_Complete,	Survey_MultiPart,
+                     Survey_Duplicate,	Survey_Primary, Survey_Notes,
+                     c_TargetSpp_Group,	Checked,	DPL,	Data_Source, Obs_Type,
+                     Species_Code,	CommonName,	Group_Count,	Group_Coords,
+                     Group_Notes,	Group_Time,	Species_Unit,	Unit_Count,	EventID,
+                     GroupID,	GroupObsID, month, year)
                      
-
-  
-  
-  ## Get rid of blank group obs (Unit_Count == NA)
-  
-  creche_raw <- creche_raw[!is.na(creche_raw$Unit_Count),]
   
   ### export to use in R viz
   #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)
