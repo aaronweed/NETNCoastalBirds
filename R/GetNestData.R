@@ -52,6 +52,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     
     event <- RODBC::sqlFetch(con, "tbl_Events")
     nests <- RODBC::sqlFetch(con, "tbl_Nests")
+    species <- RODBC::sqlFetch(con, "tlu_Species")
     RODBC::odbcClose(con)
   
     ## If connection didn't work, try mdb.get() 
@@ -63,13 +64,17 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
                      mdbexportArgs = '', stringsAsFactors = FALSE)
     nests <- Hmisc::mdb.get(DBfile, tables = "tbl_Nests", 
                    mdbexportArgs = '', stringsAsFactors = FALSE)
+    species <- Hmisc::mdb.get(DBfile, tables = "tlu_Species", 
+                            mdbexportArgs = '', stringsAsFactors = FALSE)
     event <- clear.labels(event)
     nests   <- clear.labels(nests)
+    species   <- clear.labels(species)
     
     ## The names are imported differently using mdb.get().
     ## Replace "." with "_"
     names(event) <- gsub("\\.", "_", names(event))
     names(nests) <- gsub("\\.", "_", names(nests))
+    names(species) <- gsub("\\.", "_", names(species))
   } else if (connect == "No") {
     return(data(nest_surveys_raw))
   } else {
@@ -77,10 +82,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   }
   
   ## Keep organizing data from DB:
-    
-  ####### create new vectors to match field names for joining ########
-  
-  nests$pk_EventID <- nests$fk_EventID
+
    #############Join together various dataframes to create queries ##########
   
   ###### Nest surveys ###########
@@ -94,12 +96,16 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   # bind Events to Nests
   # intersect(names(event),names(nests))
   
-   temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
-      left_join(nests, ., by="pk_EventID") %>% 
-      filter(Obs_Type %in% "Target")
-          
+   temp.nest <- filter(event, Survey_Type =="Nest")%>%
+      left_join(., nests, by = c("pk_EventID" = "fk_EventID")) %>% 
+      filter(Obs_Type %in% "Target")%>%
+      left_join(., species, by = "Species_Code")
+      
   #head(temp.nest)
   
+  # Edit columns names
+  names(temp.nest) <- gsub(x = names(temp.nest), pattern = 'pk_', replacement = '')
+   
   
   # Convert date to date object and create year and month vars
    ## (different for odbcConnect and HMisc pacakge)
@@ -127,13 +133,16 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   temp.nest$Chick_Count[temp.nest$Chick_Count == 999] = NA
   
   ## subset df to final columns for exporting
-  nest_surveys_raw <- select(temp.nest, Park, Island, Segment, Survey_Class,
-                                    Survey_Type, Survey_MultiPart,
-                                    Survey_Duplicate, Survey_Primary, 
-                                    Survey_Complete, Date, year, 
-                                    month, Start_Time, Species_Code, Species_Unit, Nest_Status, 
-                                    Unit_Count, Egg_Count, Chick_Count, 
-                                    Obs_Coords, Obs_Notes, Survey_Notes, Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+  nest_surveys_raw <- select(temp.nest, Park, Survey_Agency, Survey_Class, 
+                             Survey_Type, Date, year, month, Start_Time, 
+                             End_Time, Island, Segment, Recorder, Observer, 
+                             Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, 
+                             Tide_Stage, Survey_Complete, Survey_MultiPart, 
+                             Survey_Duplicate, Survey_Primary, Survey_Notes, 
+                             c_TargetSpp_Group, Checked, DPL, Data_Source, 
+                             Obs_Type, Species_Code, CommonName, Species_Unit, 
+                             Unit_Count, Egg_Count, Chick_Count, Nest_Status, 
+                             Obs_Coords, Obs_Notes, Obs_Time, EventID, NestID)  
   
   ### export to use in R viz and for R package
   if (export == TRUE) {
