@@ -50,10 +50,11 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     con <- RODBC::odbcConnect("NETNCB")
     
     ######### Import data and lookup tables used for the query   ##############
-    #"tbl_Events","tbl_Group_Observations"    
+    #"tbl_Events","tbl_Group_Observations", "tlu_species    
     # import dataframes of each tables within the DB
     event <- RODBC::sqlFetch(con, "tbl_Events"); names(event)
     obs <- RODBC::sqlFetch(con, "tbl_Observations"); names(obs)
+    species <- RODBC::sqlFetch(con, "tlu_Species"); names(species)
     
     RODBC::odbcClose(con)
     
@@ -67,13 +68,17 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
                        mdbexportArgs = '', stringsAsFactors = FALSE)
       obs <- Hmisc::mdb.get(DBfile, tables = "tbl_Observations", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
+      species <- Hmisc::mdb.get(DBfile, tables = "tlu_Species", 
+                            mdbexportArgs = '', stringsAsFactors = FALSE)
       event <- clear.labels(event)
       obs   <- clear.labels(obs)
+      species <- clear.labels(species)
       
       ## The names are imported differently using mdb.get().
       ## Replace "." with "_"
       names(event) <- gsub("\\.", "_", names(event))
       names(obs) <- gsub("\\.", "_", names(obs))
+      names(species) <- gsub("\\.", "_", names(species))
    } else if (connect == "No") {
        return(data(incubation_raw))
    } else {
@@ -86,7 +91,7 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     # COTE, DCCO,  GBBG, HERG, LETE, SPSA, WILL 
     # returns df with the counts of adults and nests of target species 
     # observed during incubation surveys per island, segment, date and  species.
-    # NOTE: When applicable this query retuns muultiple records of species 
+    # NOTE: When applicable this query returns multiple records of species 
     # counts per island/date combination when species was spotted at more than one time.
     # will need to sum the counts per island, date, species etc.
     
@@ -95,10 +100,14 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     # intersect(names(event), names(obs))
     temp.incub <- filter(event, Survey_Type == "Incubation") %>%
       left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
-      filter(Obs_Type =="Target") %>% 
+      filter(Obs_Type =="Target") %>%
+      left_join(., species, by = "Species_Code")
       droplevels()
     
     # View(temp.incub)
+      
+    # Edit column names
+    names(temp.incub) <- gsub(x = names(temp.incub), pattern = 'pk_', replacement = '')
     
     # work with dates and time
     ## (different for odbcConnect and HMisc pacakge)
@@ -120,13 +129,17 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     
     ## subset df to final columns
     #names(temp.incub)
-    incubation_raw <- dplyr::select(temp.incub, Park, Island, Segment, Survey_Class,
-                                      Survey_Type, Survey_MultiPart,
-                                      Survey_Duplicate, Survey_Primary, Survey_Complete,
-                                      Date, year, month, Start_Time, Observer, 
-                                      Species_Code, Species_Unit, Unit_Count, 
-                                      Obs_Notes, Recorder, Data_Source, Wind_Direction,
-                                      Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
+    incubation_raw <- dplyr::select(temp.incub, Park, Survey_Agency, Survey_Class,
+                                    Survey_Type, Date, month, year, Start_Time,
+                                    End_Time, Island, Segment, Recorder, Observer,	
+                                    Wind_Direction, Wind_Speed, Air_Temp_F,
+                                    Cloud_Perc, Tide_Stage, Survey_Complete,
+                                    Survey_MultiPart, Survey_Duplicate, Survey_Primary,
+                                    Survey_Notes,	c_TargetSpp_Group, Checked,	DPL,
+                                    Data_Source, Obs_Type, Species_Code, CommonName,
+                                    Species_Unit,	Unit_Count, Obs_Coords,	Obs_Notes,
+                                    Obs_Time,	EventID, ObservationID)
+    
     # sort df
     incubation_raw <- incubation_raw %>%
       dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
