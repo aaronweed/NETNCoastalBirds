@@ -20,6 +20,7 @@ library(tidyverse)
 library(magrittr)
 library(RODBC)
 library(lubridate)
+library(dplyr)
 
 ```
 
@@ -33,6 +34,11 @@ events <- RODBC::sqlFetch(con, "tbl_Events")
  
 RODBC::odbcClose(con)
 
+# drop extra columns
+events <- events[, !colnames(events)%in%c("Imported_By", "Imported_Time", "Imported_Notes")] 
+
+# rearrange columns
+events <- events[,c(3:26,1,2)]
 ```
 
 # Create Survey Incubation
@@ -67,6 +73,48 @@ creche<-GetCrecheData()
 ```{r AMOY, results='markup', echo=F, include=FALSE }
 
 AMOY<-GetAMOYData()
+
+# Alternative way to creating qry_Dataset_5_Survey_AMOY without using NETNCoastalBirds function:
+
+# pull tables from Access
+con <- RODBC::odbcConnect("NETNCB") # connect to DB
+
+event <- RODBC::sqlFetch(con, "tbl_Events")
+group <- RODBC::sqlFetch(con, "tbl_Group")
+group_obs <- RODBC::sqlFetch(con, "tbl_Group_Observations")
+species <- RODBC::sqlFetch(con, "tlu_species")
+
+RODBC::odbcClose(con)  # close connection
+
+# join tables and filter
+temp.amoy <- left_join(event, group, by = c("pk_EventID" = "fk_EventID"))%>%
+  filter(., Species_Code == "AMOY" & Obs_Type == "Group")%>%
+  left_join(., group_obs, by = c("pk_GroupID" = "fk_GroupID"))%>%
+  inner_join(., species, by = "Species_Code")
+
+# Add date information
+temp.amoy$Date <- ymd(temp.amoy$Date) #convert to date
+temp.amoy$Year <- year(temp.amoy$Date) #Create year variable
+temp.amoy$Month <- month(temp.amoy$Date) #Create month variable
+
+# Remove date from the time columns
+temp.amoy$Start_Time<-substr(temp.amoy$Start_Time,12,19)
+temp.amoy$End_Time<-substr(temp.amoy$End_Time,12,19)
+temp.amoy$Group_Time<-substr(temp.amoy$Group_Time,12,19)
+
+# Edit column names
+names(temp.amoy) <- gsub(x = names(temp.amoy), pattern = 'pk_', replacement = '')
+
+# Subset columns for final df  
+amoy_raw <- select(temp.amoy, Park, Survey_Agency, Survey_Class, Survey_Type, 
+                   Date, Month, Year, Start_Time, End_Time, Island, Segment, 
+                   Recorder, Observer, Wind_Direction, Wind_Speed, Air_Temp_F, 
+                   Cloud_Perc, Tide_Stage, Survey_Complete, Survey_MultiPart,
+                   Survey_Duplicate, Survey_Primary, Survey_Notes, 
+                   c_TargetSpp_Group, Checked, DPL, Data_Source, Obs_Type, 
+                   Species_Code, CommonName, Group_Count, Group_Coords, 
+                   Group_Notes, Group_Time, Species_Unit, Unit_Count, 
+                   EventID, GroupID, GroupObsID)
 
 
 ```
