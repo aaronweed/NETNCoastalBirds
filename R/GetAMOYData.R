@@ -5,7 +5,7 @@
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
 #' (Access backend entered as 'NETNCB' in Windows ODBC manager) and returns the raw AMOY 
-#' survey data. f the Access DB is not
+#' survey data. Ff the Access DB is not
 #' accessible from the ODBC connection, one can try to connect via Hmisc, or
 #' the function returns a saved image of the data.
 #' @param DBfile Path to a specified database file. 

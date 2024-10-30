@@ -3,6 +3,7 @@
 export(AMOY_MatingPairSumm)
 export(GetAMOYData)
 export(GetCrecheData)
+export(GetEvents)
 export(GetIncubationData)
 export(GetNestData)
 export(GetSurveyData)

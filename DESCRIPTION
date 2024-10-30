@@ -32,6 +32,7 @@ Collate:
     'CrecheSum.R'
     'CrecheSurveysByDate.R'
     'GetAMOYData.R'
+    'GetEvents.R'
     'GetIncubationData.R'
     'GetNestData.R'
     'IncubationByObserver.R'
