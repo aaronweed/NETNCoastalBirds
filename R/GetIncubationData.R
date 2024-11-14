@@ -102,7 +102,6 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
       left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
       filter(Obs_Type =="Target") %>%
       left_join(., species, by = "Species_Code")
-      droplevels()
     
     # View(temp.incub)
       
@@ -142,7 +141,10 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     
     # sort df
     incubation_raw <- incubation_raw %>%
-      dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
+      dplyr::arrange(Island, Segment, Date, Observer)
+    rownames(incubation_raw) <- NULL
+    incubation_raw <- rename(incubation_raw,
+                             Species_Name = CommonName)
     #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$Observer),]
     
     ### export to use in R viz and for R package

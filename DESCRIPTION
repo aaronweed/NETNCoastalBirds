@@ -26,6 +26,7 @@ Suggests:
     testthat (>= 3.0.0)
 Collate: 
     'AMOY_MatingPairSumm.R'
+    'AMOY_PIPL.R'
     'CrecheByObserver.R'
     'GetSurveyData.R'
     'GetCrecheData.R'
@@ -35,12 +36,15 @@ Collate:
     'GetEvents.R'
     'GetIncubationData.R'
     'GetNestData.R'
+    'IncidentalData.R'
     'IncubationByObserver.R'
     'IncubationByYear.R'
     'NestSurveysByDate.R'
     'NestSurveysByYear.R'
+    'SumTerns.R'
     'SumNestSurveys.R'
     'SumIncubation.R'
+    'SurveillanceData.R'
     'PlotBirds.R'
     'SumCOTE.R'
     'SumCreche.R'

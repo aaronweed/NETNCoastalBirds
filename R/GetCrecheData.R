@@ -151,15 +151,21 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   }
   ## subset df to final 
   creche_raw<-select(temp.crec2, Park,	Survey_Agency,	Survey_Class,	Survey_Type,	
-                     Date, Start_Time,	End_Time,	Island,	Segment,	Recorder,
-                     Observer,	Wind_Direction,	Wind_Speed,	Air_Temp_F,	
+                     Date, , month, year, Start_Time,	End_Time,	Island,	Segment,
+                     Recorder, Observer,	Wind_Direction,	Wind_Speed,	Air_Temp_F,	
                      Cloud_Perc, Tide_Stage,	Survey_Complete,	Survey_MultiPart,
                      Survey_Duplicate,	Survey_Primary, Survey_Notes,
                      c_TargetSpp_Group,	Checked,	DPL,	Data_Source, Obs_Type,
                      Species_Code,	CommonName,	Group_Count,	Group_Coords,
                      Group_Notes,	Group_Time,	Species_Unit,	Unit_Count,	EventID,
-                     GroupID,	GroupObsID, month, year)
+                     GroupID,	GroupObsID)
                      
+  # sort df
+  creche_raw <- creche_raw %>%
+    dplyr::arrange(Island, Segment, Date, Recorder, GroupID)
+  rownames(creche_raw) <- NULL
+  creche_raw <- rename(creche_raw,
+                       Species_Name = CommonName)
   
   ### export to use in R viz
   #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)

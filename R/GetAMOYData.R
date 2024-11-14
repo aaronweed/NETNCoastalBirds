@@ -25,142 +25,52 @@
 #' @export
 
 GetAMOYData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
- 
-  if(!requireNamespace("Hmisc", quietly = TRUE)){
-    stop("Package 'Hmisc' is needed for this function to work. Please install it.", call. = FALSE)
-  }
-  
-  if(!requireNamespace("RODBC", quietly = TRUE)){
-    stop("Package 'RODBC' is needed for this function to work. Please install it.", call. = FALSE)
-  }
-  
-   ## First, get the data depending on the connection option:
-  if (connect == "ODBC") {
-     con <- RODBC::odbcConnect("NETNCB")
-     
-  
-     
-  ###################### Import data and lookup tables used for the query   ################
-  #"tbl_Events","tbl_Group","tbl_Group_Observations" ,"tbl_Nests","tbl_Observations"      
-  
-  # import dataframes of each tables within the DB
-  group <- RODBC::sqlFetch(con, "tbl_Group")
-  event <- RODBC::sqlFetch(con, "tbl_Events")
-  group_obs<-RODBC::sqlFetch(con, "tbl_Group_Observations")
-  
-  RODBC::odbcClose(con)
-  
-  ## If connection didn't work, try mdb.get() 
-  } else if (connect == "Hmisc") {
-    if (is.null(DBfile)) {
-      stop("Please specify the database location for this connection option.")
-    }
-    group <- Hmisc::mdb.get(db_path, tables="tbl_Group", 
-                     mdbexportArgs = '', stringsAsFactors = FALSE)
-    event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
-                     mdbexportArgs = '', stringsAsFactors = FALSE)
-    group_obs <- Hmisc::mdb.get(db_path, tables="tbl_Group_Observations", 
-                         mdbexportArgs = '', stringsAsFactors = FALSE)
-    group <- clear.labels(group)
-    event <- clear.labels(event)
-    group_obs <- clear.labels(group_obs)
-    
-    ## The names are imported differently using mdb.get().
-    ## Replace "." with "_"
-    names(group) <- gsub("\\.", "_", names(group))
-    names(event) <- gsub("\\.", "_", names(event))
-    names(group_obs) <- gsub("\\.", "_", names(group_obs))
-    
-  } else if (connect == "No") {
-    return(data(nest_surveys_raw))
-  } else {
-    stop("connect must be ODBC, Hmisc, or No.")
-  }
-  
-  ## Keep organizing data from DB:
-  
-  ####### create new vectors to match field names for binding ########
-  #names(obs)
-  
-  group$pk_EventID<-group$fk_EventID
-  group_obs$newID<-group_obs$fk_GroupID
-  group$newID<-group$pk_GroupID
-  
-  #############Join toegther various dataframes to create queries ##########
-  
-  ####### AMOY surveys #######
-  # # returns df with the counts of AMOY  observed during different surveys per island, 
-  # NOTE: When applicable this query retuns multiple records of species counts per island/date combination when species was spotted at more than one time.
-  # will need to sum the counts per island, date, species, stage etc.  
-  
-  ## all events potentially have AMOY data
-  
-  
-  ### I think I need to subset groups by AMOY, bind this to group obs, and then bind these to events
-  
-  amoy.grp<-group[group$Species_Code %in% "AMOY",]
-  
-  # add the group obs data 
-  
-  #intersect(names(amoy.grp),names(group_obs))
-  
-  # amoy.grp2<-join(amoy.grp, group_obs, by ="newID")
-  # 
-  # ### Subset AMOY obs from Incubation and Creche survey events 
-  # #intersect(names(event),names(group))
-  # 
-  # event.amoy<-join(event, group, by ="pk_EventID")
-  
-  amoy.grp2 <- left_join(amoy.grp, group_obs, by = "newID")
-  event.amoy <- left_join(event, group, by ="pk_EventID")
 
-  
-  # subet df with AMOY observations
-  # all of these observations are events where AMOY was looked for during incubation, nest, creche, or flyover (target) surveys
-  temp.amoy<-event.amoy[event.amoy$Species_Code %in% "AMOY",]
-  temp.amoy<-droplevels(temp.amoy)
-  
-  # add the group data to the df
-  #intersect(names(temp.amoy),names(group_obs))
-  
-  # temp.amoy2<-join(temp.amoy, group_obs, by ="newID")
-  temp.amoy2 <- left_join(temp.amoy, group_obs, by ="newID")
-  
-  # check to see the number of AMOY obs per event
-  #count(unique(temp.amoy2[,c("pk_EventID","Species_Code")]))
-  
-  # work with dates and time
-  ## (different for odbcConnect and HMisc pacakge)
-  if (connect == "ODBC") { 
-  temp.amoy2$Date <- ymd(temp.amoy2$Date) #convert to date
-  temp.amoy2$year <- year(temp.amoy2$Date) #Create year variable
-  temp.amoy2$month <- month(temp.amoy2$Date) #Create month variable
-  
-  # strip time out (this may need to be changed if number of digits varies)
-  temp.amoy2$Start_Time<-substr(temp.amoy2$Start_Time,12,19)
-  temp.amoy2$Group_Time<-substr(temp.amoy2$Group_Time,12,19)
-  } 
-  if (connect == "Hmisc") {
-    temp.amoy2$Date  <- date(mdy_hms(as.character(temp.amoy2$Date))) #convert to date
-    temp.amoy2$year  <- year(temp.amoy2$Date) #Create year variable
-    temp.amoy2$month <- month(temp.amoy2$Date) #Create month variable
-    
-    temp.amoy2$Start_Time <- substr(temp.amoy2$Start_Time, 10, 19)
-    temp.amoy2$Group_Time <- substr(temp.amoy2$Group_Time, 10, 19)
-  }
-  
-  #names(temp.amoy2)
-  ## subset df to final 
-  AMOY_raw <- dplyr::select(temp.amoy2, 
-                            Park, Island, Segment, Survey_Class, Survey_Type, 
-                            Date, Start_Time, year, month, Obs_Type,
-                            Species_Code,Group_Time, Group_NewTerritory, 
-                            Group_Notes, Group_Coords, Species_Unit, Unit_Count, 
-                            Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc,
-                            Tide_Stage) %>% 
-    # refactor Survey_Type levels from  Creche and Surv. to Incubation
-    mutate(Survey_Type= recode_factor(Survey_Type,Surveillance = "Incubation", Creche = "Incubation"))
-  
+     # pull tables from Access
+     con <- RODBC::odbcConnect("NETNCB") # connect to DB
+     
+     event <- RODBC::sqlFetch(con, "tbl_Events")
+     group <- RODBC::sqlFetch(con, "tbl_Group")
+     group_obs <- RODBC::sqlFetch(con, "tbl_Group_Observations")
+     species <- RODBC::sqlFetch(con, "tlu_species")
+     
+     RODBC::odbcClose(con)  # close connection
+
+     # join tables and filter
+     temp.amoy <- left_join(event, group, by = c("pk_EventID" = "fk_EventID"))%>%
+       filter(., Species_Code == "AMOY" & Obs_Type == "Group")%>%
+       left_join(., group_obs, by = c("pk_GroupID" = "fk_GroupID"))%>%
+       inner_join(., species, by = "Species_Code")
+     
+     # Add date information
+     temp.amoy$Date <- ymd(temp.amoy$Date) #convert to date
+     temp.amoy$Year <- year(temp.amoy$Date) #Create year variable
+     temp.amoy$Month <- month(temp.amoy$Date) #Create month variable
+     
+     # Remove date from the time columns
+     temp.amoy$Start_Time<-substr(temp.amoy$Start_Time,12,19)
+     temp.amoy$End_Time<-substr(temp.amoy$End_Time,12,19)
+     temp.amoy$Group_Time<-substr(temp.amoy$Group_Time,12,19)
+     
+     # Edit column names
+     names(temp.amoy) <- gsub(x = names(temp.amoy), pattern = 'pk_', replacement = '')
+     
+     # Subset columns for final df  
+     AMOY_raw <- select(temp.amoy, Park, Survey_Agency, Survey_Class, Survey_Type, 
+                        Date, Month, Year, Start_Time, End_Time, Island, Segment, 
+                        Recorder, Observer, Wind_Direction, Wind_Speed, Air_Temp_F, 
+                        Cloud_Perc, Tide_Stage, Survey_Complete, Survey_MultiPart,
+                        Survey_Duplicate, Survey_Primary, Survey_Notes, 
+                        c_TargetSpp_Group, Checked, DPL, Data_Source, Obs_Type, 
+                        Species_Code, CommonName, Group_Count, Group_Coords, 
+                        Group_Notes, Group_Time, Species_Unit, Unit_Count, 
+                        EventID, GroupID, GroupObsID)
+  # sort df
+  AMOY_raw <- AMOY_raw %>%
+   dplyr::arrange(Date, Start_Time, Island, Segment, Recorder, GroupID)
+  rownames(AMOY_raw) <- NULL
+  AMOY_raw <- rename(AMOY_raw,
+                       Species_Name = CommonName)
   
   ### export to use in R viz and for R package
   if (export == TRUE) {
