@@ -1,10 +1,10 @@
-#' @title Return in-season survey events from database
+#' @title Return in-season observations of incidental (non-target) species from database
 #'
 #' @importFrom dplyr select left_join
 #' @importFrom lubridate ymd year month date
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
-#' (Access backend entered as 'NETNCB' in Windows ODBC manager) and pull incidental observations
+#' (Access backend entered as 'NETNCB' in Windows ODBC manager) and pulls observations of incidental (non-target) species detected during surveys. 
 #' @param DBfile Path to a specified database file. 
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
@@ -15,13 +15,13 @@
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' 
-#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @return This function returns the raw incidental survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
-#' # amoy <- GetAMOYdata()
+#' # incidentals <- GetIncidentalData()
 #' @export
 
-IncidentalData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
+GetIncidentalData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
   ## connect to DB:
   con <- RODBC::odbcConnect("NETNCB")
   

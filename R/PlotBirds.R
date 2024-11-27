@@ -1,6 +1,6 @@
 #' @include SumIncubation.R
 #' @include SumNestSurveys.R
-#' @include CrecheSum.R
+#' @include SumCreche.R
 #' 
 #' @title Plot coastal bird survey data
 #'

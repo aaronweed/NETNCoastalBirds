@@ -16,7 +16,7 @@ Note the saved data may not be up-to-date.}
 
 \item{DBfile}{Path to a specified database file.}
 
-\item{export}{Should the incubation data be exported as a csv file and RData object?
+\item{export}{Should the nest data be exported as a csv file and RData object?
 (This argument is used to regenerate the RData for the package.)}
 }
 \value{

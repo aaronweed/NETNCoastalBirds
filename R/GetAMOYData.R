@@ -5,7 +5,7 @@
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
 #' (Access backend entered as 'NETNCB' in Windows ODBC manager) and returns the raw AMOY 
-#' survey data. Ff the Access DB is not
+#' survey data. If the Access DB is not
 #' accessible from the ODBC connection, one can try to connect via Hmisc, or
 #' the function returns a saved image of the data.
 #' @param DBfile Path to a specified database file. 
@@ -15,7 +15,7 @@
 #' and include a patch to a saved version of the database, or
 #' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
-#' @param export Should the incubation data be exported as a csv file and RData object?
+#' @param export Should the AMOY survey data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' 
 #' @return This function returns the raw AMOY survey data as a \code{data.frame}.
@@ -82,7 +82,7 @@ GetAMOYData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
 }
 
 
-## Need this help function to remove labels afer using HMisc package:
+## Need this help function to remove labels after using HMisc package:
 ## (from: https://stackoverflow.com/questions/2394902/remove-variable-labels-attached-with-foreign-hmisc-spss-import-functions)
 clear.labels <- function(x) {
   if(is.list(x)) {

@@ -16,11 +16,11 @@ Note the saved data may not be up-to-date.}
 
 \item{DBfile}{Path to a specified database file.}
 
-\item{export}{Should the incubation data be exported as a csv file and RData object?
+\item{export}{Should the creche survey data be exported as a csv file and RData object?
 (This argument is used to regenerate the RData for the package.)}
 }
 \value{
-This function returns the raw AMOY survey data as a \code{data.frame}.
+This function returns the raw COEI creche survey data as a \code{data.frame}.
 }
 \description{
 This function connects to the backend of NETN's Coastal Bird Access DB 

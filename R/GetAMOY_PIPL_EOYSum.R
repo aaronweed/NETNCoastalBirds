@@ -1,11 +1,11 @@
-#' @title Return in-season survey events from database
+#' @title Return end of season mating pair observations of AMOY and PIPL from Coastal Bird MS Access database
 #'
 #' @importFrom dplyr select left_join
 #' @importFrom lubridate ymd year month date
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
-#' and returns summary data for AMOY and PIPL
-#' (Access backend entered as 'NETNCB' in Windows ODBC manager) and returns AMOY observation
+#' and returns summary data for AMOY and PIPL by reporting agency for BOHA islands per survey year. 
+#' (Access backend entered as 'NETNCB' in Windows ODBC manager)
 #' @param DBfile Path to a specified database file. 
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
@@ -16,13 +16,13 @@
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' 
-#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @return This function returns end of season mating pair observations of AMOY and PIPL as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
-#' # amoy <- GetAMOYdata()
+#' # amoy_pipl <- GetAMOY_PIPL()
 #' @export
 
-AMOY_PIPL <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
+GetAMOY_PIPL_EOYSum <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
   
   ## connect to DB:
   con <- RODBC::odbcConnect("NETNCB")

@@ -68,7 +68,7 @@ AMOY<-GetAMOYData()
 
 ```{r}
 
-AMOY_PIPL <- AMOY_PIPL()
+AMOY_PIPL <- GetAMOY_PIPL_EOYSum()
 
 ```
 
@@ -76,7 +76,7 @@ AMOY_PIPL <- AMOY_PIPL()
 
 ```{r}
 
-terns <- SumTerns()
+terns <- GetTern_EOYSum()
 
 ```
 
@@ -84,7 +84,7 @@ terns <- SumTerns()
 
 ```{r}
 
-surv <- SurveillanceData()
+surv <- GetSurveillanceData()
 
 ```
 
@@ -92,7 +92,7 @@ surv <- SurveillanceData()
 
 ```{r}
 
-Incidental <- IncidentalData()
+Incidental <- GetIncidentalData()
 
 
 ```

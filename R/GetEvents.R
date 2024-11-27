@@ -1,4 +1,4 @@
-#' @title Return in-season survey events from database
+#' @title Return in-season survey events for each survey type from the Coastal birds Access database.
 #'
 #' @importFrom dplyr select left_join
 #' @importFrom lubridate ymd year month date
@@ -16,10 +16,10 @@
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' 
-#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @return This function returns all of the event level data for each survey type as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
-#' # amoy <- GetAMOYdata()
+#' # events <- GetEvents()
 #' @export
 
 GetEvents <- function(connect = "ODBC", DBfile = NULL, export = FALSE){

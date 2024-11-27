@@ -16,10 +16,10 @@
 #' the function can return the saved data from the package (\code{connect = `No`}). 
 #' Note the saved data may not be up-to-date.
 #' @param DBfile Path to a specified database file. 
-#' @param export Should the incubation data be exported as a csv file and RData object?
+#' @param export Should the creche survey data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #'
-#' @return This function returns the raw AMOY survey data as a \code{data.frame}.
+#' @return This function returns the raw COEI creche survey data as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples 
 #' creche <- GetCrecheData()
