@@ -26,12 +26,13 @@ options(download.file.method="wininet")
 ```
 ```{r package_install, eval=FALSE}
 #install packages
-install.packages(c("devtools", "tidyverse"))
+install.packages(c("devtools", "tidyverse", "NETNCoastalBirds"))
 #load devtools
 library(devtools)
+library(tidyverse)
+library(NETNCoastalBirds)
 #install/update NPSdataverse
 devtools::install_github("nationalparkservice/NPSdataverse")
-library(NETNCoastalBirds)# Install NETN's R paakcge for Coastal birds
 ```
 ##Troubleshooting updating NPSdataverse (optional)
 Downloading the NPSdataverse from the NPS GitHub repo may be problematic due to API limits if you are not an authenticated user.  To increase your GitHub API rate limit you need to generate a Personal Access Token (PAT). Generating a PAT requires a GitHUb account. Quick version is below.  Or the entire process is nicely outlined in this script: https://gist.github.com/z3tt/3dab3535007acf108391649766409421
@@ -70,7 +71,7 @@ dataset <- paste0("NETN_Coastalbirds_",Sys.Date())
 This becomes the file name of your .xml file. Be sure it ends in _metadata to comply with data package specifications. You do not need to include the extension (.xml).
 ```{r metadata_id}
 
-metadata_id <- paste(dataset,"_metadata", sep="")
+metadata_id <- paste(dataset,"NETN_CoastalBirds_metadata", sep="")
 ```
 
 #### Package Title
@@ -88,34 +89,54 @@ data_type <- "ongoing"
 #### Path to data file(s)
 Tell R where your data files are. If they are in the working directory, you can set the working_folder to `getwd()`. If they are in a different directory you will need to specify that directory. Find the working directory with getwd() command.
 ```{r working_dir}
-
-# Add in R functions to import each CCB file
-
-events<-GetEvents()
-
-
-
+sites <- GetSites()
+segments <- GetSegments()
+events <- GetEvents()
+incub <- GetIncubationData()
+ground.nests <- GetNestData()
+creche<-GetCrecheData()
+AMOY<-GetAMOYData()
+surv <- GetSurveillanceData()
+incidental <- GetIncidentalData()
+counts <- GetCountSum()
 ```
 
 #### List data files
 Tell R what your data files are called. 
 ```{r list_files}
-data_files <- paste(dataset, ".csv", sep="")
-#IMPORTANT:  You must rename all attribute/catvars .txt template files to match the dataset file names (data_files) used above. e.g. Chemistry_Data_20240124
-
-# alternatively if the data files are in your working directory:
-# data_files <- list.files(pattern = "*.csv")
+data_files <- list(sites, segments, events, incub, ground.nests, creche, AMOY,
+                   surv, incidental, counts)
 ```
 
 #### Name the data files
 These should be relatively short, but perhaps more informative than the actual file names. Make sure that they are in the same order as the files in data_files.
 ```{r data_names}
-data_names <- c("Breeding landbird observation data")
+data_names <- c("Coastal bird survey sites",
+                "Coastal bird survey route segments",
+                "Coastal bird survey summary",
+                "Coastal bird incubating adult data",
+                "Coastal bird nest data",
+                "Common Eider crèche data",
+                "American Oystercatcher survey data",
+                "Coastal bird surveillance survey data",
+                "Coastal bird incidental observations",
+                "Coastal bird end of year summary"
+                )
 ```
 
 #### Describe each data file. Data file descriptions should be unique and about 10 words long. Descriptions will be used in auto-generated tables within the ReadMe and DRR. If you need to use more than 10 words, consider putting that information into the abstract, methods, or additional information sections. Again, make sure these are in the same order as the files they are describing.
 ```{r data_descriptions}
-data_descriptions <- c("Bird observation data for point counts")
+data_descriptions <- c("Summary information for survey sites, including geographic data",
+                       "Summary information for survey route segments for each site",
+                       "Summary information for coastal bird surveys",
+                       "Raw data for boat-based surveys of incubating coastal birds",
+                       "Raw data for ground-based coastal bird nest surveys",
+                       "Raw data for boat-based COEI crèche surveys",
+                       "Raw data for AMOY surveys",
+                       "Observations of target species detected outside of survey routes",
+                       "Coastal bird observations of incidental (non-target) species",
+                       "End of year summary data, includes non-NETN collected data"
+                       ) 
 ```
 
 #### Placeholder URL for data files
@@ -140,14 +161,14 @@ Specify the tables and fields that contain geographic coordinates and site names
 data_coordinates_table <- data_files
 data_latitude <- "Latitude"
 data_longitude <- "Longitude"
-data_sitename <- "PointCode"
+data_sitename <- "Site_Name"
 ```
 
 #### Temporal information
 This should indicate collection date of the first and last data point in the data package (across all files) and does not include any planning, pre- or post-processing time. The format should be one that complies with the International Standards Organization's standard 8601. The recommended format for EML is: YYYY-MM-DD, where Y is the four digit year, M is the two digit month code (01 - 12 for example, January = 01), and D is the two digit day of the month (01 - 31). Using an alternate format or setting the date to the future will cause errors down the road!
 ```{r temp_info}
-startdate <- ymd("2006-05-28")
-enddate <- ymd("2023-07-15")
+startdate <- ymd("2007-05-15")
+enddate <- ymd("2024-07-08")
 ```
 
 ## EMLassemblyline Functions
