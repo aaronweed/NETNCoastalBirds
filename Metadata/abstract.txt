@@ -1,0 +1,13 @@
+﻿This data package contains nesting estimates of breeding coastal birds in the Boston Harbor Islands National Recreation Area (BOHA) that are monitored using the Northeast Temperate Network’s (NETN) Coastal Breeding Bird Monitoring Protocol.  This protocol is administered by staff of the Inventory and Monitoring Division (IMD) of the National Park Service (NPS) and implemented in cooperation with BOHA staff and utilizes citizen scientists to aid in data collection. Monitoring began in 2008.  
+
+ 
+
+The purpose of the NETN coastal breeding bird monitoring program is to collect and analyze data and report information that will help park managers to protect and, in some cases, encourage the recovery of coastal breeding birds in the park. Specific objectives include: 
+
+1) Determine annual changes and long-term trends in abundance of high priority coastal breeding bird species (Least Terns, Common Terns, and American Oystercatchers)  
+
+2) Conduct an annual surveillance program within the park to identify future use by threatened or endangered coastal breeding bird species, such as Piping Plover (Charadrius melodus) or Roseate Tern (Sterna dougallii).  
+
+3) Determine long-term trends in species composition and abundance of priority coastal breeding bird species (eider, cormorants, wading birds, shorebirds, and gulls) 
+
+The Coastal Breeding Bird Monitoring Protocol is comprised of a group of documents: a Narrative to provide justification and define monitoring objectives, Standard Operating Procedures (SOPs) that provide detailed descriptions of methods used, and a Quality Assurance Plan that establishes standards for data quality. Data collected as part of this protocol are published annually. Reporting on these data occurs at regular intervals to enable park staff to incorporate results into park management. The latest versions of all available protocol documentation, data packages, and summary reports can be accessed online via the NPS’s DataStore application (https://irma.nps.gov/DataStore/Reference/Profile/2190438).

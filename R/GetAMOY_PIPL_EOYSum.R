@@ -39,8 +39,11 @@ GetAMOY_PIPL_EOYSum <- function(connect = "ODBC", DBfile = NULL, export = FALSE)
   temp.AMOYPIPL <- full_join(species, summary, by = c('Species_Code' = 'Species'))%>%
     filter(., Species_Code == 'AMOY'| Species_Code == 'PIPL')
   
+  # rename column
+  names(temp.AMOYPIPL)[names(temp.AMOYPIPL) == 'FullLatinName'] <- "ScientificName"
+  
   # subset df to final columns for exporting
-  AMOYPIPL <- select(temp.AMOYPIPL, "CommonName", "Species_Code", "Location",
+  AMOYPIPL <- select(temp.AMOYPIPL, "Species_Code", "CommonName", "ScientificName", "Location",
                          "Survey_Year", "Pair_Count_MAwindow", "Reporting_Agency",
                          "DPL", "Notes")
   

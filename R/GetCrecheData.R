@@ -125,6 +125,7 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   
   #names(temp.crec2)
   names(temp.crec2) <- gsub(x = names(temp.crec2), pattern = 'pk_', replacement = '')
+  names(temp.crec2)[names(temp.crec2) == 'FullLatinName'] <- "ScientificName"
  
   
   
@@ -138,6 +139,7 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   # strip time out (this may need to be changed if number of digits varies)
   temp.crec2$Start_Time<-substr(temp.crec2$Start_Time,12,19)
   temp.crec2$Group_Time<-substr(temp.crec2$Group_Time,12,19)
+  temp.crec2$End_Time<-substr(temp.crec2$End_Time,12,19)
   
   #names(temp.crec2)
   } 
@@ -147,25 +149,25 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
     temp.crec2$month <- month(temp.crec2$Date) #Create month variable
     
     temp.crec2$Start_Time <- substr(temp.crec2$Start_Time,10,19)
+    temp.crec2$End_Time <- substr(temp.crec2$End_Time,10,19)
     temp.crec2$Group_Time <- substr(temp.crec2$Group_Time,10,19)
   }
   ## subset df to final 
   creche_raw<-select(temp.crec2, Park,	Survey_Agency,	Survey_Class,	Survey_Type,	
-                     Date, , month, year, Start_Time,	End_Time,	Island,	Segment,
+                     Date, , month, year, Start_Time,	End_Time,	Site,	Segment,
                      Recorder, Observer,	Wind_Direction,	Wind_Speed,	Air_Temp_F,	
                      Cloud_Perc, Tide_Stage,	Survey_Complete,	Survey_MultiPart,
                      Survey_Duplicate,	Survey_Primary, Survey_Notes,
                      c_TargetSpp_Group,	Checked,	DPL,	Data_Source, Obs_Type,
-                     Species_Code,	CommonName,	Group_Count,	Group_Coords,
+                     Species_Code,	CommonName,	ScientificName, Group_Count,
+                     Latitude, Longitude, Datum,
                      Group_Notes,	Group_Time,	Species_Unit,	Unit_Count,	EventID,
                      GroupID,	GroupObsID)
                      
   # sort df
   creche_raw <- creche_raw %>%
-    dplyr::arrange(Island, Segment, Date, Recorder, GroupID)
+    dplyr::arrange(Site, Segment, Date, Recorder, GroupID)
   rownames(creche_raw) <- NULL
-  creche_raw <- rename(creche_raw,
-                       Species_Name = CommonName)
   
   ### export to use in R viz
   #write.table(creche_raw, "./Data/creche_raw.csv", sep=",", row.names= FALSE)

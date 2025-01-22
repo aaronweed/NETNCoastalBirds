@@ -1,11 +1,10 @@
-#' @title Return in-season survey events for each survey type from the Coastal birds Access database.
+#' @title Returns information for segments for each sites surveyed from the Coastal birds Access database.
 #'
 #' @importFrom dplyr select left_join
 #' @importFrom lubridate ymd year month date
 #'  
 #' @description This function connects to the backend of NETN's Coastal Bird Access DB 
-#' (Access backend entered as 'NETNCB' in Windows ODBC manager) and returns summary information
-#' on surveys
+#' and returns information on the segments of each site that are surveyed for coastal breeding birds
 #' @param DBfile Path to a specified database file. 
 #' @param connect Should the function connect to the Access DB? The default 
 #' (\code{connect = `ODBC`}) is to try to connect using the Windows ODBC manager. 
@@ -16,39 +15,37 @@
 #' @param export Should the incubation data be exported as a csv file and RData object?
 #' (This argument is used to regenerate the RData for the package.)
 #' 
-#' @return This function returns all of the event level data for each survey type as a \code{data.frame}.
+#' @return This function returns all of segment information as a \code{data.frame}.
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
-#' # events <- GetEvents()
+#' # segments <- GetSegments()
 #' @export
 
-GetEvents <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
+GetSegments <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
   
   con <- RODBC::odbcConnect("NETNCB")# establish connection to DB
   
-  events <- RODBC::sqlFetch(con, "tbl_Events")
+  segments <- RODBC::sqlFetch(con, "tbl_Survey_Segments")
   
   RODBC::odbcClose(con)
   
-  # drop extra columns
-  events <- events[, !colnames(events)%in%c("Imported_By", "Imported_Time", "Imported_Notes")] 
+  
+  rownames(segments) <- NULL
   
   # rearrange columns
-  events <- events[,c(3:26,2,1)]
+  segments <- segments[,c(2:6,1)]
   
   # Sort
-  events <- events %>%
-    dplyr::arrange(Date, Start_Time, Site, Segment, Observer)
-
-  rownames(events) <- NULL
+  segments <- segments %>%
+    dplyr::arrange(Site, Segment)
   
   ### export to use in R viz
-  #write.table(events, "./Data/events.csv", sep=",", row.names= FALSE)
+  #write.table(segments, "./Data/segments.csv", sep=",", row.names= FALSE)
   
   if (export == TRUE) {
-    write.table(events, "Data/events.csv", sep=",", row.names= FALSE)
-    save(events, file = "Data/events.RData")
+    write.table(segments, "Data/segments.csv", sep=",", row.names= FALSE)
+    save(segments, file = "Data/segments.RData")
   }
   
-  events
+  segments
 }

@@ -49,16 +49,18 @@ GetTern_EOYSum <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
   temp.terns%>%
     rename(Method_Code = Method, Method_Desc = Description.x, 
            Productivity_Code = Productivity, 
-           Productivity_Desc = Description.y) -> temp.terns
+           Productivity_Desc = Description.y,
+           Species_Code = Species,
+           ScientificName = FullLatinName) -> temp.terns
   
   # subset df to final columns for exporting
-  raw.terns <- select(temp.terns, "CommonName", "Species", "Location", 
-                      "Survey_Year", "Count_MAwindow", "Method_Code",
+  raw.terns <- select(temp.terns, "Species_Code", "CommonName", "ScientificName",
+                      "Location", "Survey_Year", "Count_MAwindow", "Method_Code",
                       "Method_Desc", "Productivity_Code", "Productivity_Desc",
                       "Reporting_Agency", "DPL", "Notes")
   # sort df
   raw.terns <- raw.terns %>%
-    dplyr::arrange(Species, Location, Survey_Year)
+    dplyr::arrange(Species_Code, Location, Survey_Year)
   rownames(raw.terns) <- NULL
   
   ### export to use in R viz

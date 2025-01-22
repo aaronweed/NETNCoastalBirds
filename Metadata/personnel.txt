@@ -1,0 +1,4 @@
+givenName	middleInitial	surName	organizationName	electronicMailAddress	userId	role	projectTitle	fundingAgency	fundingNumber
+Adam	J	Kozlowski	Northeast Temperate Network	adam_kozlowski@nps.gov	0009-0005-8075-9459	creator	NPS I&M Breeding Landbird Monitoring	National Park Service	0
+Ed	L	Sharron	Northeast Temperate Network	ed_sharron@nps.gov	0000-0003-3781-2750	contributor	NPS I&M Breeding Landbird Monitoring	National Park Service	0
+Aaron	S	Weed	Northeast Temperate Network	aaron_weed@nps.gov	0000-0002-4619-3042	contributor	NPS I&M Breeding Landbird Monitoring	National Park Service	0

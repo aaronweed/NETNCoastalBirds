@@ -54,23 +54,22 @@ GetAMOYData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
      
      # Edit column names
      names(temp.amoy) <- gsub(x = names(temp.amoy), pattern = 'pk_', replacement = '')
+     names(temp.amoy)[names(temp.amoy) == 'FullLatinName'] <- "ScientificName"
      
      # Subset columns for final df  
      AMOY_raw <- select(temp.amoy, Park, Survey_Agency, Survey_Class, Survey_Type, 
-                        Date, Month, Year, Start_Time, End_Time, Island, Segment, 
+                        Date, Month, Year, Start_Time, End_Time, Site, Segment, 
                         Recorder, Observer, Wind_Direction, Wind_Speed, Air_Temp_F, 
                         Cloud_Perc, Tide_Stage, Survey_Complete, Survey_MultiPart,
                         Survey_Duplicate, Survey_Primary, Survey_Notes, 
                         c_TargetSpp_Group, Checked, DPL, Data_Source, Obs_Type, 
-                        Species_Code, CommonName, Group_Count, Group_Coords, 
-                        Group_Notes, Group_Time, Species_Unit, Unit_Count, 
+                        Species_Code, CommonName, ScientificName, Group_Count, Latitude, Longitude,
+                        Datum, Group_Notes, Group_Time, Species_Unit, Unit_Count, 
                         EventID, GroupID, GroupObsID)
   # sort df
   AMOY_raw <- AMOY_raw %>%
-   dplyr::arrange(Date, Start_Time, Island, Segment, Recorder, GroupID)
+   dplyr::arrange(Date, Start_Time, Site, Segment, Recorder, GroupID)
   rownames(AMOY_raw) <- NULL
-  AMOY_raw <- rename(AMOY_raw,
-                       Species_Name = CommonName)
   
   ### export to use in R viz and for R package
   if (export == TRUE) {

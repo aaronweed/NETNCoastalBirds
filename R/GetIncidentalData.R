@@ -42,8 +42,8 @@ GetIncidentalData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
     filter(., Obs_Type == 'Incidental',
            Survey_Type != 'Surveillance')
   
-  # Rename columns to match Access col names
-  temp.incid <- rename(temp.incid, 'Species_name' = 'CommonName')
+  # Rename columns
+  temp.incid <- rename(temp.incid, 'ScientificName' = 'FullLatinName')
   names(temp.incid) <- gsub(x = names(temp.incid), pattern = 'pk_', replacement = '')
   
   # Add time variables
@@ -51,16 +51,19 @@ GetIncidentalData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
   temp.incid$year  <- year(temp.incid$Date) #Create year variable
   temp.incid$month <- month(temp.incid$Date) #Create month variable
   
+  # Remove date from the time columns
+  temp.incid$Obs_Time<-substr(temp.incid$Obs_Time,12,19)
+  
   ## subset df to final columns for exporting
-  raw.incid <- select(temp.incid,"Park", "Survey_Agency", "Survey_Class",
-                      "Survey_Type", "Date", "year", "month", "Island", 
-                      "Segment", "Observer", "Obs_Type", "Species_Code", 
-                      "Species_name", "Species_Unit", "Unit_Count", 
-                      "Obs_Coords", "Obs_Notes", "Obs_Time", 
-                      "EventID", "ObservationID")
+  raw.incid <- select(temp.incid,Park, Survey_Agency, Survey_Class,
+                      Survey_Type, Date, year, month, Site, 
+                      Segment, Observer, Obs_Type, Species_Code, 
+                      CommonName, ScientificName, Species_Unit, Unit_Count, 
+                      Latitude, Longitude, Datum, Obs_Notes, Obs_Time, 
+                      EventID, ObservationID)
   # sort df
   raw.incid <- raw.incid %>%
-    dplyr::arrange(Date, Island, Segment, Observer, Obs_Time)
+    dplyr::arrange(Date, Site, Segment, Observer, Obs_Time)
   rownames(raw.incid) <- NULL
   
   ### export to use in R viz

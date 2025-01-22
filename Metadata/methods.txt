@@ -1,0 +1,17 @@
+﻿The Northeast Temperate Networks' (NETN) Coastal Breeding Bird Monitoring Protocol for Boston Harbor Islands National Recreation Area (BOHA) uses ground and boat-based survey techniques to monitor changes in abundance and distribution of coastal birds nesting in BOHA. A series of documents have been published that collectively describe the objectives, methods, and data quality standards for this protocol.   
+
+
+Please visit NETN’s Coastal Breeding Bird Monitoring Program on the National Park Service's (NPS) DataStore (IRMA Reference Code #2190438) for links to all supporting protocol documents and products associated with this program, including but not limited to:  
+
+1) Protocol Narrative 
+
+2) Standard Operating Procedures (SOPs) 
+
+3) Safety Plan 
+
+4) Quality Assurance Plan (QAP) 
+
+5) Summary of Major Protocol Changes 
+ 
+
+Methods of the protocol are detailed in the Standard Operating Procedures (SOPs).  The SOPs for this protocol are reviewed and updated each year prior to field data collection to document any changes to methods.  Older versions of the SOPs are preserved, and changes are summarized in the Summary of Major Protocol Changes and Deviations document published with the protocol.

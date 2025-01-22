@@ -43,7 +43,7 @@ GetSurveillanceData <- function(connect = "ODBC", DBfile = NULL, export = FALSE)
     filter(., Survey_Type == 'Surveillance')
   
   # Rename columns to match Access col names
-  temp.surv <- rename(temp.surv, 'Species_name' = 'CommonName')
+  temp.surv <- rename(temp.surv, 'ScientificName' = 'FullLatinName')
   names(temp.surv) <- gsub(x = names(temp.surv), pattern = 'pk_', replacement = '')
   
   # Add time variables
@@ -51,17 +51,20 @@ GetSurveillanceData <- function(connect = "ODBC", DBfile = NULL, export = FALSE)
   temp.surv$year  <- year(temp.surv$Date) #Create year variable
   temp.surv$month <- month(temp.surv$Date) #Create month variable
   
+  # Remove date from the time columns
+  temp.surv$Obs_Time<-substr(temp.surv$Obs_Time,12,19)
+  
   ## subset df to final columns for exporting
-  raw.surv <- select(temp.surv, "Park", "Survey_Agency", "Survey_Class", 
-                     "Survey_Type", "Date", , "year", "month", "Island", 
-                     "Segment", "Observer", "Obs_Type", "Species_Code", 
-                     "Species_name", "Species_Unit", "Unit_Count", 
-                     "Obs_Coords", "Obs_Notes", "Obs_Time", "EventID", 
-                     "ObservationID")
+  raw.surv <- select(temp.surv, Park, Survey_Agency, Survey_Class, 
+                     Survey_Type, Date, year, month, Site, 
+                     Segment, Observer, Obs_Type, Species_Code, 
+                     CommonName, ScientificName, Species_Unit, Unit_Count, 
+                     Latitude, Longitude, Datum, Obs_Notes, Obs_Time, EventID, 
+                     ObservationID)
   
   # sort df
   raw.surv <- raw.surv %>%
-    dplyr::arrange(Date, Island, Segment, Observer, Obs_Time)
+    dplyr::arrange(Date, Site, Segment, Observer, Obs_Time)
   rownames(raw.surv) <- NULL
   
   ### export to use in R viz

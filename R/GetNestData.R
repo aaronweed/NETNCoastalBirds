@@ -106,6 +106,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   
   # Edit columns names
   names(temp.nest) <- gsub(x = names(temp.nest), pattern = 'pk_', replacement = '')
+  temp.nest <- rename(temp.nest, 'ScientificName' = 'FullLatinName')
    
   
   # Convert date to date object and create year and month vars
@@ -117,6 +118,9 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   
   # strip off time (this may need to be changed if number of digits varies)
   temp.nest$Start_Time <- substr(temp.nest$Start_Time, 12, 19)
+  temp.nest$End_Time <- substr(temp.nest$End_Time, 12, 19)
+  temp.nest$Obs_Time <- substr(temp.nest$Obs_Time, 12, 19)
+  
   #names(temp.nest)
    } 
    if (connect == "Hmisc") {
@@ -126,7 +130,7 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
      
      temp.nest$Start_Time <- substr(temp.nest$Start_Time, 10, 19)
    }
-   
+  
   ### convert 999 counts for nest contents to NAs
   
   temp.nest$Unit_Count[temp.nest$Unit_Count == 999] = NA
@@ -136,21 +140,19 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   ## subset df to final columns for exporting
   nest_surveys_raw <- select(temp.nest, Park, Survey_Agency, Survey_Class, 
                              Survey_Type, Date, year, month, Start_Time, 
-                             End_Time, Island, Segment, Recorder, Observer, 
+                             End_Time, Site, Segment, Recorder, Observer, 
                              Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc, 
                              Tide_Stage, Survey_Complete, Survey_MultiPart, 
                              Survey_Duplicate, Survey_Primary, Survey_Notes, 
                              c_TargetSpp_Group, Checked, DPL, Data_Source, 
-                             Obs_Type, Species_Code, CommonName, Species_Unit, 
+                             Obs_Type, Species_Code, CommonName, ScientificName, Species_Unit, 
                              Unit_Count, Egg_Count, Chick_Count, Nest_Status, 
-                             Obs_Coords, Obs_Notes, Obs_Time, EventID, NestID)  
+                             Latitude, Longitude, Datum, Obs_Notes, Obs_Time, EventID, NestID)  
   
   # sort df
   nest_surveys_raw <- nest_surveys_raw %>%
-    dplyr::arrange(Date, Start_Time, Island, Segment, Observer)
+    dplyr::arrange(Date, Start_Time, Site, Segment, Observer)
   rownames(nest_surveys_raw) <- NULL
-  nest_surveys_raw <- rename(nest_surveys_raw,
-                           Species_Name = CommonName)
   
   ### export to use in R viz and for R package
   if (export == TRUE) {

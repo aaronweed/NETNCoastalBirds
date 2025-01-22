@@ -1,0 +1,10 @@
+keyword	keywordThesaurus
+birds	LTER Controlled Vocabulary
+population dynamics	LTER Controlled Vocabulary
+community dynamics	LTER Controlled Vocabulary
+species diversity	LTER Controlled Vocabulary
+species richness	LTER Controlled Vocabulary
+BOHA	National Park Service Unit Code Thesaurus
+National Park Service	National Park Service Unit Name Thesaurus
+Northeast Temperate Network	National Park Service Unit Name Thesaurus
+Boston Harbor Islands National Recreation Area	National Park Service Unit Name Thesaurus
