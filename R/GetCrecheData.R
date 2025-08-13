@@ -147,15 +147,12 @@ GetCrecheData <- function(connect = "ODBC", DBfile = NULL, export= FALSE) {
   ## subset df to final 
   creche_raw<-select(temp.crec2,Park, Island,Segment, Survey_Class , Survey_Type,
                      Date,Start_Time, year, month, Survey_MultiPart , Survey_Duplicate,
-                            Survey_Primary,Survey_Complete, Recorder, Observer,
+                     Survey_Primary,Survey_Complete, Recorder, Observer,
                      Species_Code ,Group_Count,Group_Time,
-                            Group_NewTerritory, Group_Notes, Group_Coords, Species_Unit,
+                     Group_NewTerritory, Group_Notes, Latitude, Longitude, Species_Unit,
                      Unit_Count,Survey_Notes ,Wind_Direction,
                      Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)
                      
-
-  
-  
   ## Get rid of blank group obs (Unit_Count == NA)
   
   creche_raw <- creche_raw[!is.na(creche_raw$Unit_Count),]

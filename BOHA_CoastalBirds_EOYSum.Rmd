@@ -1,5 +1,5 @@
 ---
-title: "Coastal Bird monitoring at Boston Harbor Islands NRA (BOHA)"
+title: "Coastal Bird monitoring at Boston Harbor Islands (BOHA)"
 author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
 output: 
   html_document:
@@ -16,7 +16,7 @@ output:
     fig_caption: yes
     
 params:
-  year: 2024
+  year: 2025
 ---
 ```{r,intro, results='markup', echo=F, include=FALSE}
 cat("\\newpage")
@@ -26,6 +26,10 @@ library(tidyverse)
 library(knitr)
 library(magrittr)
 library(kableExtra)
+library(fuzzyjoin)
+
+load("./data/tlu_Species.rda")
+load("./data/SurveyEffortBySpecies.rda")
 
 #path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
 
@@ -56,25 +60,29 @@ plt_var<- function(type = "boxplot", survey, species, var) {
   
   if(type == "boxplot") {
     
-    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island)) +
-    geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(aes(shape = shape, color= color), size= 3)
+    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island, shape = as.factor(year))) +
+    geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(aes( color= color), size= 3)
   
   }
     
     if(type == "violin"){
     
-    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island)) + geom_violin(alpha= 0.3)+
-      geom_jitter(aes(shape = shape, color= color), size= 3)
+    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island, shape = as.factor(year))) + geom_violin(alpha= 0.3)+
+      geom_jitter(aes(color= color), size= 3)
         }
     
- y2 <- (y2 + facet_wrap(~Island, scales = "free_x")+coord_flip()+
+ y2 <- (y2 + 
+          facet_wrap(~Island, scales = "free_x")+
+          coord_flip()+
   scale_color_manual(values = c("black", "red"))+ 
-  scale_shape_manual(values = c(19, 8))+ 
+  #scale_shape_manual(values = c(19, 8))+ 
   theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in counts of ", species," ", var, " from 2007 to ", params$year, ". The red asterisks denotes current year count."))+
-    theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+  guides(fill = "none", color= "none") + # This removes the legend for fill
+  labs(y = "Count", x ="", shape = "Year")+
+  ggtitle(paste0("Variation in counts of ", species," ", var, " from 2007 to ", params$year, "."))+
+    theme(legend.position = "top")+ 
+      theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+      theme(legend.text = element_text(size = 14))+
          theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
           theme(axis.text.y = element_text(size = 12 )) +
          theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
@@ -163,12 +171,13 @@ kable(dcco_incub, caption= "Table 3. Current year counts of Double-crested Cormo
 ### Nesting per island over time
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
 options(knitr.kable.NA = '')
 
 incub <- SumIncubation(df= NULL,  time = "year") %>% mutate(shape = case_when(
   year == params$year ~ "8",
   .default = "19" )) %>% 
-  mutate(color = case_when(
+  dplyr::mutate(color = case_when(
   year == params$year ~ "red",
   .default = "black" ))
 
@@ -429,19 +438,24 @@ nests <- SumNestSurveys(df= NULL,time= "year") %>% mutate(shape = case_when(
 # surveys per segment 
 ground_surveys<- nests_raw %>% filter(year %in% params$year) %>% select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
 
-  if(nrow(ground_surveys) == 0){paste("No ground surveys were collected during this year.")}
+  if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
 
-# create table showing survey route compeltion status by species and date
+# create table showing survey route completion status by species and date
 obs_ground<-ground_surveys %>% select(-Observer, -Obs_Notes, -Nests) %>% distinct() %>% spread(Species_Code, Survey_Complete) %>% arrange(Date, Island, Segment)
 
 kable(obs_ground, caption= paste0("Table 13. Status of ground-based surveys by species and island in ", params$year ,". Cell values denotes whether or not the survey was fully completed. No entry denotes that no survey was conducted.")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # create table showing how nests were counted vs estimated for each species, to be subset below under each species
+# this code filters out nest data for the current year, if there were no ground based counts in the current survey year this will be denoted
 
 ground_methods<- nests_raw %>% filter(year %in% params$year) %>% select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Nest_Status, Survey_Complete, Survey_Primary) %>% group_by(Species_Code, Island, Segment, Date, Survey_Complete, Survey_Primary, Nest_Status) %>% summarise(Nests = sum(Nests)) %>% spread(Nest_Status, Nests, fill =0) %>% rowwise() %>% group_by(Species_Code, Island, Segment, Date) %>% mutate(Total = sum(Abandoned,	Depredated,	Estimate,	Fledged,	Normal,	Other,	Unknown	)) %>% arrange(Date, Island, Segment)
-
-ground_notes<- nests_raw %>% filter(year %in% params$year ) %>% group_by(Species_Code, Island, Segment, Date) %>% 
+  
+  
+  ground_notes<- nests_raw %>% filter(year %in% params$year ) %>% group_by(Species_Code, Island, Segment, Date) %>% 
   mutate(c_Survey_Notes = paste0(unique(Survey_Notes), collapse = ";")) %>% distinct() %>% select(Species_Code, Island, Segment, Survey_Complete, Date, c_Survey_Notes)  %>% arrange(Date, Island, Segment)
 
 ground_notes<- ground_notes[!duplicated(ground_notes$c_Survey_Notes), ] %>% as_tibble()
@@ -449,6 +463,10 @@ ground_notes<- ground_notes[!duplicated(ground_notes$c_Survey_Notes), ] %>% as_t
 
 kable(filter(ground_notes, Survey_Complete == "No"), caption= paste0("Table 14. Survey Notes recorded during incomplete surveys in ", params$year)) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+  
+}
+
+
 
 
 ```
@@ -464,6 +482,11 @@ Notes:
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    } else {
+
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "COEI"), caption = "Table 15. Nest counts per status category.") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -471,6 +494,7 @@ kable(ground_methods %>% filter(Species_Code == "COEI"), caption = "Table 15. Ne
 # create table showing current year notes by survey status
 kable(ground_notes %>% filter(Species_Code == "COEI")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+}
 
 ```
 
@@ -495,6 +519,11 @@ PlotBirds(coei, raw_count= TRUE, legend = T, var = "Nests", plot_title = FALSE, 
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "DCCO"), caption = "Table 18. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -502,6 +531,9 @@ kable(ground_methods %>% filter(Species_Code == "DCCO"), caption = "Table 18. Ne
 # create table showing current year notes by survey status
 kable(ground_notes %>% filter(Species_Code == "DCCO")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+
+}
 
 
 ```
@@ -513,7 +545,7 @@ kable(ground_notes %>% filter(Species_Code == "DCCO")) %>%
 
 # create violin plot
 
-plt_var(type= "boxplot", survey = "ground", species = "DCCO", var ="Nests")
+plt_var(type= "violin", survey = "ground", species = "DCCO", var ="Nests")
 
 
 # subset by DCCO to plot
@@ -529,6 +561,11 @@ PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "GBBG"), caption = "Table 20. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -536,6 +573,7 @@ kable(ground_methods %>% filter(Species_Code == "GBBG"), caption = "Table 20. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "GBBG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+}
 
 ```
 \pagebreak 
@@ -560,6 +598,11 @@ PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "HERG"), caption = "Table 22. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -567,6 +610,7 @@ kable(ground_methods %>% filter(Species_Code == "HERG"), caption = "Table 22. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "HERG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+    }
 
 ```
 \pagebreak 
@@ -592,6 +636,11 @@ PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "BCNH"), caption = "Table 24. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -599,6 +648,7 @@ kable(ground_methods %>% filter(Species_Code == "BCNH"), caption = "Table 24. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "BCNH")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+}
 
 ```
 \pagebreak 
@@ -622,6 +672,11 @@ PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "GLIB"), caption = "Table 26. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -629,6 +684,7 @@ kable(ground_methods %>% filter(Species_Code == "GLIB"), caption = "Table 26. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes,Species_Code == "GLIB")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+    }
 
 ```
 \pagebreak 
@@ -652,6 +708,11 @@ PlotBirds(glib, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "GREG"), caption = "Table 28. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -659,6 +720,7 @@ kable(ground_methods %>% filter(Species_Code == "GREG"), caption = "Table 28. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "GREG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+    }
 
 ```
 \pagebreak 
@@ -681,7 +743,11 @@ PlotBirds(greg, raw_count= TRUE, legend = TRUE, var = "Nests")
 ### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
-
+if(nrow(ground_surveys) == 0){
+    paste0("No ground-based nest surveys were collected during ", params$year)
+    
+    }else {
+      
 # create table showing current year counts by nest status
 kable(ground_methods %>% filter(Species_Code == "SNEG"), caption = "Table 30. Nest counts per status category.")%>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
@@ -689,6 +755,7 @@ kable(ground_methods %>% filter(Species_Code == "SNEG"), caption = "Table 30. Ne
 # create table showing current year notes by survey status
 kable(filter(ground_notes, Species_Code == "SNEG")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+    }
 
 ```
 

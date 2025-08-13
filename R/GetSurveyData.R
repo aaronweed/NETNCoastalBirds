@@ -51,8 +51,8 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
     con <- RODBC::odbcConnect("NETNCB")# establish connection to DB
     
     event <- RODBC::sqlFetch(con, "tbl_Events")
-    Isl_Seg<- RODBC::sqlFetch(con, "tbl_Islands_Segments")
-    Seg_Size<-RODBC::sqlFetch(con, "tbl_Segments_Size")
+    Isl_Seg<- RODBC::sqlFetch(con, "tbl_Survey_Segments")
+    Seg_Size<-RODBC::sqlFetch(con, "tbl_Survey_Segments_Size")
     species_tlu<-RODBC::sqlFetch(con,"tlu_Species")
     
     RODBC::odbcClose(con)
@@ -64,9 +64,9 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
     
     event <- Hmisc::mdb.get(DBfile, tables = "tbl_Events", 
                      mdbexportArgs = '', stringsAsFactors = FALSE)
-    Isl_Seg <- Hmisc::mdb.get(db_path, tables="tbl_Islands_Segments", 
+    Isl_Seg <- Hmisc::mdb.get(db_path, tables="tbl_Survey_Segments", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
-    Seg_Size <- Hmisc::mdb.get(db_path, tables="tbl_Segments_Size", 
+    Seg_Size <- Hmisc::mdb.get(db_path, tables="tbl_Survey_Segments_Size", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
     species_tlu <- Hmisc::mdb.get(db_path, tables="tlu_Species", 
                          mdbexportArgs = '', stringsAsFactors = FALSE)
@@ -95,7 +95,7 @@ GetSurveyData<-function(x, species = NA, survey = NA, connect = "ODBC", DBfile =
     
     ##### Join together information on segments to bring in area/distance surveyed per island. ----
     Spec_Isl<- 
-      left_join(Isl_Seg, Seg_Size, by= c(pk_SegmentID= "fk_SegmentID"))%>% # joins tables to create table of survey effort per segement
+      left_join(Isl_Seg, Seg_Size, by= c(pk_SegmentID= "fk_SegmentID"))%>% # joins tables to create table of survey effort per segment
       select(Island, Segment, Survey_Class, Survey_Type, Target_Spp, Survey_Size, Size_Units, Active) %>% 
       left_join(event,., by=c("Survey_Class", "Survey_Type" , "Island","Segment")) %>% as_tibble() %>% # add on segment survey data
       fuzzyjoin::regex_inner_join(.,species_tlu, by=c(Target_Spp = "TargetSpp_Group")) %>%   #Add species codes to survey effort to remove target species grouping for later joining
