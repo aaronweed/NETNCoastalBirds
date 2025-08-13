@@ -97,7 +97,7 @@ SumCreche<-function(time, df = NULL, survey_data = NULL, segment= FALSE,
     droplevels(df)
   }
   
-  ### Sum data across each segement as raw and effort-adjusted numbers by observer 
+  ### Sum data across each segment as raw and effort-adjusted numbers by observer 
   
   if (time == "date" & ByObserver =="yes") {
     graph.final <- df %>%
