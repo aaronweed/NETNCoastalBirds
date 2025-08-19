@@ -10,7 +10,7 @@ params:
 ---
 
 
-```{r,intro, results='markup', echo=F, include=FALSE}
+```{r,intro, results='hide', echo=F, include=FALSE}
 
 library(NETNCoastalBirds)
 library(tidyverse)
@@ -22,19 +22,9 @@ library(fuzzyjoin)
 
 load("./data/tlu_Species.rda")
 load("./data/SurveyEffortBySpecies.rda")
-
-Incubation_methods<- {print("The nesting counts presented below show the total nests counted per comparable expert observers for each Island-Segement 
-                      each day a survey was conducted.")}
+source("./QAQCReport_functions.R")
 
 
-SumIncubation_methods<- {print("The annual nesting counts summarized in each table and figure below were derived from the annual 
-                               maximum counts among multiple Primary Surveys conducted within a year (May-July) or represent the average of the maximum count values from Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands.")}
-
-Crechmethods<- {print(paste0("The following tables and graphs summarize data collected during boat-based Common Eider (creche) surveys conducted in ", params$year, " among all Outer Islands."))}
-
-SumCreche_Annual<- {print("The annual counts summarized below were derived from the annual maximum counts among completed, Primary Surveys within a year (May-July) or represent the average of the completed, Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
-
-SumCreche_Daily<- {print("The daily counts summarized below were derived from completed, Primary Surveys conducted within a year (May-July) or represent the average of this daily count value among multiple expert birders. These count values were summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
 
 #path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
 
@@ -42,79 +32,7 @@ SumCreche_Daily<- {print("The daily counts summarized below were derived from co
 
 # plotting function to examine current vs historical counts
 
-plt_var<- function(type = "boxplot", survey, species, var) {
 
-  if(survey == "incubation"){ 
-  
-  df <- filter(incub, Species_Code == species &  stat == "max", variable == var)
-  
-  }
-  
-  if(survey == "creche"){ df<-creche
-  
-   df <- filter(creche, Species_Code == species &  stat == "max", variable == var)
-   
-  }
-  
-  if(survey == "ground"){ 
-    
-    df <- filter(nests, Species_Code == species, variable == var)
-    
-    }
-
-  
-  if(type == "boxplot") {
-    
-    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year)) +
-    geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(size= 3)
-  
-  }
-    
-    if(type == "violin"){
-    
-    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year)) + geom_violin(alpha= 0.3)+
-      geom_jitter(size= 3)
-        }
-    
- y2 <- (y2 + 
-          facet_wrap(~Island, scales = "free_x")+
-          coord_flip()+
-  #scale_color_manual(values = c("black", "red"))+ 
-  #scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  #guides(fill = "none") + # This removes the legend title for fill
-  labs(y = "Count", x ="", color = "Year")+
-  #scale_color_gradient(low = "yellow", high = "purple", name = "Year") +
-    scale_color_viridis_c(
-    option = "D",           # Options: "A", "B", "C", "D", "E", "F", "G", "H", etc.
-    name = "Year"
-  )+
-    ggtitle(paste0("Variation in maximum annual counts of ", species," ", var, " from 2007 to ", params$year, "."))+
-    theme(
-    legend.position = "right",
-    
-    # Increase the height of the legend key (for vertical legend)
-    legend.key.height = unit(2, "cm"),
-    
-    # Increase text size
-    legend.title = element_text(size = 14),
-    legend.text  = element_text(size = 12)
-  ) +
-      theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-      theme(legend.text = element_text(size = 12))+
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(axis.text.y=element_blank())+
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" )))
-
- suppressWarnings(print(y2))
-}
 ```
 
 ## Coastal Bird monitoring at Boston Harbor Islands (BOHA) {.tabset .tabset-fade .tabset-pills}
@@ -392,11 +310,11 @@ y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$y
 
 (y1 + scale_color_manual(values = c("black","darkgray", "blue"))+ labs(title= "Daily counts of Common Eider (COEI) per lifestage and  Island"))
 
-# plot counts of F-tending and duckling by survey date in current year across All Outer Islands
+# plot current year counts per life stage compared to historical data across All Outer Islands
 
-y2<- PlotBirds( filter(creche,!variable == "Average creche size"), year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable", print= FALSE)
 
-(y2 + scale_color_manual(values = c("black","darkgray", "blue"))) + labs(title= "Daily Counts of Common Eider (COEI) per lifestage across all Outer Islands")
+PlotHistBands(current_yr = params$year)
+
 
 
 # Output table of raw counts per lifestage
@@ -422,7 +340,7 @@ creche_y <- SumCreche(df = NULL ,time ="year") %>%
   year == params$year ~ "red",
   .default = "black" ))
 
-0VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
+VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 
 # per island plots by life stage (variable)
 plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
