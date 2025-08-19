@@ -14,15 +14,177 @@ SumCreche_Annual<- {print("The annual counts summarized below were derived from 
 
 SumCreche_Daily<- {print("The daily counts summarized below were derived from completed, Primary Surveys conducted within a year (May-July) or represent the average of this daily count value among multiple expert birders. These count values were summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
 
-
-PlotHistBands<- function(current_yr = "2025"){
+PlotWeeklyBands<- function(survey, current_yr, species ){
   
-  creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
+  if(survey == "creche"){ 
+    
+    df <- SumCreche(time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
+      
+      filter(!variable %in% "Average creche size" & Island %in% "All Islands") %>% 
+      
+      mutate(month=lubridate::month(time), week = lubridate::isoweek(time)) 
+  }
+  
+  
+  if(survey == "incubation"){ 
+    
+    df <- SumIncubation(time ="date")  %>%  # Summarize daily Primary Surveys
+      
+      filter(Species_Code %in% species & !Island %in% "All Islands") %>% 
+      
+      mutate(month=lubridate::month(time), week = lubridate::isoweek(time)) 
+    
+  }
+  
   
   # calculate historic variation
   
-CBB_histsum <- filter(creche, !year %in% current_yr & !variable %in% "Average creche size" & Island %in% "All Islands") |> # select data without the current year's values
-  group_by(Species_Code,  CommonName,  FullLatinName, Island, variable, month, stat) |>
+  df_histsum <- filter(df, !year %in% current_yr) %>% # exclude current year
+    group_by(., Species_Code,  CommonName,  FullLatinName, Island, variable, month, week,  stat) %>% 
+    summarize(num_samps = sum(!is.na(value)),
+              median_val = median(value, na.rm = TRUE),
+              min_val = min(value, na.rm = TRUE),
+              max_val = max(value, na.rm = TRUE),
+              lower_100 = min(value, na.rm = T),
+              upper_100 = max(value, na.rm = T),
+              lower_95 = ifelse(num_samps >= 3, quantile(value, 0.025, na.rm = T), NA),
+              upper_95 = ifelse(num_samps >= 3, quantile(value, 0.975, na.rm = T), NA),
+              lower_50 = ifelse(num_samps >= 3, quantile(value, 0.25, na.rm = T), NA),
+              upper_50 = ifelse(num_samps >= 3, quantile(value, 0.75, na.rm = T), NA),
+              .groups = "drop") |>
+    filter(!is.na(lower_50))
+  
+  df_current <- filter(df, year %in% current_yr) %>% 
+    mutate(metric_type = "value")
+  
+  df_med <- df_histsum |> select(Species_Code:stat, median_val) |>
+    mutate(metric_type = "median")
+  
+  # Pivot summary data for plotting
+  
+  df_sum_plot <- df_histsum |>
+    select(Species_Code:stat, lower_100, upper_100, lower_95, upper_95, lower_50, upper_50) |>
+    pivot_longer(cols = c(lower_100, upper_100, lower_95, upper_95, lower_50, upper_50),
+                 names_to = "metric", values_to = "value") |>
+    mutate(metric_type = ifelse(grepl("lower", metric), "lower", "upper"),
+           distrib = paste0("d", gsub("\\D", "", metric))) |>
+    select(-metric) |>
+    pivot_wider(values_from = value, names_from = metric_type) |>
+    mutate(metric_type = distrib)
+  
+  
+  
+  # Plot ribbon for each metric_type (d50, d95, d100), grouped by variable
+  
+  plot_values <- c("d100" = "#B8D8ED", "d95" = "#7FB9DD", "d50" = "#1378b5", "median" = "blue",
+                   "value" = "black")
+  
+  plot_breaks <- c("d100", "d95", "d50", "median" ,
+                   "value")
+  
+  plot_labels <-c("d100" = "Historic range", "d95" = "Hist. 95% range",
+                  "d50" = "Hist. 50% range", "median" = "Hist. median",
+                  "value" = "Current counts")
+  
+  line_values <-c("median" = "solid")
+  line_breaks <-NULL
+  
+  line_labels <- NULL
+  
+  # df_sum_plot$month <-  factor(df_sum_plot$month,
+  #                          levels = df_sum_plot$month,
+  #                          labels = month.abb[df_sum_plot$month], ordered = T)
+  # 
+  # df_current$month <- factor(df_current$month,
+  #                         levels = df_current$month,
+  #                         labels = month.abb[df_current$month], ordered = T)
+  # 
+  # df_med$month <-   factor(df_med$month,
+  #                              levels = df_med$month,
+  #                              labels = month.abb[df_med$month], ordered = T)
+  
+  # Create plot
+  
+  y1<- ggplot() +
+    geom_ribbon(data = df_sum_plot, 
+                aes(x = week, 
+                    ymin = lower, ymax = upper, fill = metric_type, group= metric_type), alpha = 0.2) +
+    
+    geom_line(data = df_med,
+              aes(y = median_val, x = week, 
+                  color = metric_type, group = metric_type,
+                  text = paste0("Island: ", Island, "<br>",
+                                "Month: ", month, "<br>",
+                                "Historic Median: ", round(median_val, 1), "<br>")), lwd = 0.7) +
+    
+    geom_point(data = df_current,
+               aes(y = value, 
+                   x = week,
+                   color = metric_type, group = metric_type)) +
+    scale_x_continuous(breaks = seq(1, 52, 1), 
+                       #minor_breaks = seq(1, 52, 1),
+                       name = "Week of Year") + 
+    #expand_limits(x= c(19, 23))+ 
+    scale_color_manual(values = plot_values,
+                       breaks = plot_breaks,
+                       labels = plot_labels,
+                       name = NULL) +
+    scale_fill_manual(values = plot_values,
+                      breaks = plot_breaks,
+                      labels = plot_labels,
+                      name = NULL) +
+    scale_linetype_manual(values = line_values,
+                          breaks = line_breaks,
+                          labels = line_labels,
+                          name = NULL) +
+    labs(
+      title = paste("Historical Seasonal Pattern (weekly) vs", current_yr, "Observations across Outer Islands"),
+      y = paste ("No. of ", df_sum_plot$CommonName[1]),
+      fill = "Metric Type",
+      color = "Metric Type"
+    ) +
+    theme_bw()+
+    theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+    theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
+    theme(axis.text.y = element_text(size = 12 )) +
+    #theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+    theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+    theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+    theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
+    theme(strip.background= element_rect(size=10, color="gray" ))+
+    theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+    facet_wrap( ~ Island, scales = "free_y", nrow= 2)
+  
+  suppressWarnings(print(y1))
+  
+}
+
+
+PlotHistBands<- function(survey, current_yr ){
+  
+  if(survey == "creche"){ 
+  
+  df <- SumCreche(time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
+  
+    filter(!variable %in% "Average creche size" & Island %in% "All Islands")
+  }
+  
+  
+  if(survey == "incubation"){ 
+    
+    df <- SumIncubation(time ="date")  %>%  # Summarize daily Primary Surveys
+      
+      filter(Island %in% "All Islands") %>% 
+      
+      mutate(month=lubridate::month(time), week = lubridate::isoweek(time))
+    
+    }
+  
+  
+  # calculate historic variation
+  
+df_histsum <- filter(df, !year %in% current_yr) %>% # exclude current year
+  group_by(., Species_Code,  CommonName,  FullLatinName, Island, variable, month, stat) %>% 
   summarize(num_samps = sum(!is.na(value)),
             median_val = median(value, na.rm = TRUE),
             min_val = min(value, na.rm = TRUE),
@@ -36,15 +198,15 @@ CBB_histsum <- filter(creche, !year %in% current_yr & !variable %in% "Average cr
             .groups = "drop") |>
   filter(!is.na(lower_50))
 
-CBBdat_current <- filter(creche, year %in% current_yr & !variable %in% "Average creche size" & Island %in% "All Islands") %>% 
+df_current <- filter(df, year %in% current_yr) %>% 
   mutate(metric_type = "value")
 
-CBBdat_med <- CBB_histsum |> select(Species_Code:stat, median_val) |>
+df_med <- df_histsum |> select(Species_Code:stat, median_val) |>
   mutate(metric_type = "median")
 
 # Pivot summary data for plotting
 
-CBB_sum_long <- CBB_histsum |>
+df_sum_plot <- df_histsum |>
   select(Species_Code:stat, lower_100, upper_100, lower_95, upper_95, lower_50, upper_50) |>
   pivot_longer(cols = c(lower_100, upper_100, lower_95, upper_95, lower_50, upper_50),
                names_to = "metric", values_to = "value") |>
@@ -58,7 +220,7 @@ CBB_sum_long <- CBB_histsum |>
 
 # Plot ribbon for each metric_type (d50, d95, d100), grouped by variable
 
-plot_values <- c("d100" = "#E4F0F8", "d95" = "#B8D8ED", "d50" = "#7FB9DD", "median" = "#1378b5",
+plot_values <- c("d100" = "#B8D8ED", "d95" = "#7FB9DD", "d50" = "#1378b5", "median" = "blue",
                 "value" = "black")
   
 plot_breaks <- c("d100", "d95", "d50", "median" ,
@@ -73,33 +235,33 @@ line_breaks <-NULL
 
 line_labels <- NULL
 
-# CBB_sum_long$month <-  factor(CBB_sum_long$month,
-#                          levels = CBB_sum_long$month,
-#                          labels = month.abb[CBB_sum_long$month], ordered = T)
+# df_sum_plot$month <-  factor(df_sum_plot$month,
+#                          levels = df_sum_plot$month,
+#                          labels = month.abb[df_sum_plot$month], ordered = T)
 # 
-# CBBdat_current$month <- factor(CBBdat_current$month,
-#                         levels = CBBdat_current$month,
-#                         labels = month.abb[CBBdat_current$month], ordered = T)
+# df_current$month <- factor(df_current$month,
+#                         levels = df_current$month,
+#                         labels = month.abb[df_current$month], ordered = T)
 # 
-# CBBdat_med$month <-   factor(CBBdat_med$month,
-#                              levels = CBBdat_med$month,
-#                              labels = month.abb[CBBdat_med$month], ordered = T)
+# df_med$month <-   factor(df_med$month,
+#                              levels = df_med$month,
+#                              labels = month.abb[df_med$month], ordered = T)
 
 # Create plot
 
 y1<- ggplot() +
-  geom_ribbon(data = CBB_sum_long, 
+  geom_ribbon(data = df_sum_plot, 
               aes(x = month, 
                   ymin = lower, ymax = upper, fill = metric_type, group= metric_type), alpha = 0.2) +
  
-  geom_line(data = CBBdat_med,
+  geom_line(data = df_med,
             aes(y = median_val, x = month, 
                 color = metric_type, group = metric_type,
                 text = paste0("Island: ", Island, "<br>",
                               "Month: ", month, "<br>",
                               "Historic Median: ", round(median_val, 1), "<br>")), lwd = 0.7) +
   
-  geom_point(data = CBBdat_current,
+  geom_point(data = df_current,
              aes(y = value, 
                  x = as.numeric(format(time, "%m")) + as.numeric(format(time, "%d")) / 31,
                  color = metric_type, group = metric_type)) +
@@ -121,16 +283,27 @@ y1<- ggplot() +
                         labels = line_labels,
                         name = NULL) +
   
-  facet_grid( ~ variable, scales = "free_y", switch = "y") +
+  facet_grid( ~ Species_Code +variable, scales = "free_y", switch = "y") +
   labs(
-    title = paste("Historical Seasonal Pattern vs", current_yr, "Observations across all Outer Islands"),
+    title = paste("Historical Seasonal Pattern (monthly) vs", current_yr, "Observations across all Outer Islands"),
     x = "Month",
     y = "No. of Common Eider",
     fill = "Metric Type",
     color = "Metric Type"
   ) +
-  theme_bw(base_size = 12) +
-  theme(strip.text = element_text(face = "bold"))
+  theme_bw()+
+  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+  theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
+  theme(axis.text.y = element_text(size = 12 )) +
+  #theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+  theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+  theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+  #theme(panel.background =  element_rect(fill="white", colour="black")) +
+  #theme(panel.grid.major = element_line(colour = "grey90")) +
+  theme(plot.title=element_text(size=12, vjust=2, face= "bold")) 
+  #theme(strip.background= element_rect(size=10, color="gray"))
+
+  
 
 suppressWarnings(print(y1))
 

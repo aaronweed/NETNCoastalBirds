@@ -96,6 +96,8 @@ events_incub<-incub_surveys %>% group_by(Island, Segment,Survey_Complete, Date, 
 
 `r Incubation_methods`
 
+`r PlotWeeklyBands(survey = "incubation", species = "DCCO", current_yr = params$year)`
+
 NETN staff should check the following sections for DCCO, GBBG, and HERG to ensure that:
 
 **1. There is at least one completed primary survey (Survey_Complete = Yes) recorded for all island-segments in the database for each species and that the survey route (and count) was actually completed when you have records also denoting an incomplete survey was conducted on the same date.**
@@ -179,6 +181,8 @@ kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed G
 
 `r SumIncubation_methods`
 
+`r PlotWeeklyBands(survey = "incubation", species = "GBBG", current_yr = params$year)`
+
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
@@ -218,6 +222,8 @@ kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from p
 ##### Nesting over time
 
 `r SumIncubation_methods`
+
+`r PlotWeeklyBands(survey = "incubation", species = "HERG", current_yr = params$year)`
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
@@ -300,7 +306,7 @@ kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes
 
 `r SumCreche_Daily`
 
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 6, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 
 creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
@@ -313,8 +319,7 @@ y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$y
 # plot current year counts per life stage compared to historical data across All Outer Islands
 
 
-PlotHistBands(current_yr = params$year)
-
+PlotHistBands(survey = "creche", current_yr = params$year)
 
 
 # Output table of raw counts per lifestage
