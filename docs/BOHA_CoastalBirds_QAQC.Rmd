@@ -324,7 +324,7 @@ y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$y
 
 ##### Ducklings
 
-`r Crechmethods`
+`r CrechmethodsHist`
 
 ```{r ducks,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
@@ -353,7 +353,7 @@ cat("\\newpage")
 
 ##### Females tending ducklings
 
-`r Crechmethods`
+`r CrechmethodsHist`
 
 ```{r Ftend,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
@@ -370,7 +370,7 @@ cat("\\newpage")
 
 ##### All  Females
 
-`r Crechmethods`
+`r CrechmethodsHist`
 
 ```{r Ftotal,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
