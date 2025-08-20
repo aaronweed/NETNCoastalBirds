@@ -87,7 +87,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   df$month <- month(df$Date) #Create month variable
   
   
-    ### Sum data across each segment as raw and effort-adjusted numbers by observer
+  ### Sum data across each segment as raw and effort-adjusted numbers by observer
   
   if (time == "date" & ByObserver =="Yes") {
     graph.final <- df %>% filter(Survey_Primary %in% "Yes") %>%
@@ -169,7 +169,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
     # first, extract the Primary PI's surveys to calc max count per year
     CLTByDay <- df.melt %>% 
       filter(Observer %in% c("CLT")) %>%  # extract Carol Trocki's (2007 to 2023)
-    group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day 
+      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day 
       dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
       group_by(Species_Code, Island, Segment,year,Observer) %>% 
       dplyr::summarise(value = max(value, na.rm = TRUE), surveys = n()) %>%   # get annual max count
@@ -194,7 +194,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
       tibble::add_column(Island = "All Islands", Segment="All")  
   }
   
-    #################################
+  #################################
   # bind together the results aggregated by time AT the SEGMENT-SCALE
   ## CALCULATE  VALUES PER ISLAND or SEGMENT BASED ON SURVEY-ADJUSTED ESTIMATES 
   ## for islands with >1 segments, sums raw counts and survey area by island and then divides sum counts / sum survey area

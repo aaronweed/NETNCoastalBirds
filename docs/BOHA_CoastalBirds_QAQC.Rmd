@@ -1,35 +1,30 @@
 ---
-title: "Coastal Bird monitoring at Boston Harbor Islands (BOHA)"
-author: "*Compiled on `r Sys.time()` by `r Sys.info()['user']` using `r R.Version()$version.string`*"
-output: 
+output:
   html_document:
-    highlight: textmate
-    number_sections: yes
-    theme: united
-    toc: yes
-    toc_depth: 3
-    toc_float: yes
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
-    fig_caption: yes
+    
+    anchor_sections: FALSE
+    
     
 params:
   year: 2025
 ---
-```{r,intro, results='markup', echo=F, include=FALSE}
-cat("\\newpage")
+
+
+```{r,intro, results='hide', echo=F, include=FALSE}
 
 library(NETNCoastalBirds)
 library(tidyverse)
 library(knitr)
 library(magrittr)
 library(kableExtra)
+library(broom)
 library(fuzzyjoin)
 
 load("./data/tlu_Species.rda")
 load("./data/SurveyEffortBySpecies.rda")
+source("./QAQCReport_functions.R")
+
+
 
 #path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
 
@@ -37,108 +32,73 @@ load("./data/SurveyEffortBySpecies.rda")
 
 # plotting function to examine current vs historical counts
 
-plt_var<- function(type = "boxplot", survey, species, var) {
 
-  if(survey == "incubation"){ 
-  
-  df <- filter(incub, Species_Code == species &  stat == "max", variable == var)
-  
-  }
-  
-  if(survey == "creche"){ df<-creche
-  
-   df <- filter(creche, Species_Code == species &  stat == "max", variable == var)
-   
-  }
-  
-  if(survey == "ground"){ 
-    
-    df <- filter(nests, Species_Code == species, variable == var)
-    
-    }
-
-  
-  if(type == "boxplot") {
-    
-    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island, shape = as.factor(year))) +
-    geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(aes( color= color), size= 3)
-  
-  }
-    
-    if(type == "violin"){
-    
-    y2<- ggplot(data= df, aes(x= Island, y= value, fill= Island, group= Island, shape = as.factor(year))) + geom_violin(alpha= 0.3)+
-      geom_jitter(aes(color= color), size= 3)
-        }
-    
- y2 <- (y2 + 
-          facet_wrap(~Island, scales = "free_x")+
-          coord_flip()+
-  scale_color_manual(values = c("black", "red"))+ 
-  #scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  guides(fill = "none", color= "none") + # This removes the legend for fill
-  labs(y = "Count", x ="", shape = "Year")+
-  ggtitle(paste0("Variation in counts of ", species," ", var, " from 2007 to ", params$year, "."))+
-    theme(legend.position = "top")+ 
-      theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-      theme(legend.text = element_text(size = 14))+
-         theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-          theme(axis.text.y = element_text(size = 12 )) +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(axis.text.y=element_blank())+
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" )))
-
- suppressWarnings(print(y2))
-}
 ```
-# **Purpose**
- 
-The following document summarizes  annual and long term survey efforts and associated counts of coastal breeding birds in BOHA as a part of NETN's long term Coastal Breeding Bird protocol (Trocki et al. 2015). The protocol conducts 3 types of birds surveys: (1) annual boat-based incubation surveys of cormorants and gulls, (2) annual boat-based creche surveys of Common Eider (COEI), and (3) periodic  ground-based surveys of multiple species (currently every 5 years). 
 
-The purpose of this document is to:
+## Coastal Bird monitoring at Boston Harbor Islands (BOHA) {.tabset .tabset-fade .tabset-pills}
 
-1. Review the annual survey effort for each survey type as a part of the program's annual QAQC process to certify data.
+`r paste0("Compiled on ", Sys.time(), " by NETN using ",  R.Version()$version.string)`
 
-2. Review the annual counts of each species for all surveys as a part of the program's annual QAQC process to certify data. 
+### **Annual Gull and Cormorant Incubation Surveys** {.tabset}
 
-3. Summarize and examine long term patterns in species nesting by survey type since the program's inception in 2007.
+#### Review Survey Effort in `r params$year`
 
-# **Incubation Surveys**
+**Staff should evaluate the tables to ensure that at least one incubation survey was completed per year and that at least one survey was designated as the Primary Survey (expert observation) for each Island and Route Segment combination. Note that there may be >1 Primary Survey for each Island/Event combination.**
 
-## Review Survey Effort in `r params$year`
+``` {r incub_events, cache=T,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-The following tables and graphs summarize the number of incubation surveys in the program's database conducted in `r params$year`. Table 1 summarizes the total number of unique observer records for each island by date and denotes survey status (whether a route was completed or not). Table 2 summarizes the number of primary and secondary surveys recorded in the database by survey date. 
-
-**NETN staff should evaluate the tables for accuracy and completeness to ensure that at least one incubation survey was completed per year and that at least one survey was designated as the Primary Survey.**
-
-``` {r incub_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+### Subset by outer Islands 
+  
+  outer<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", 
+            "Outer Brewster", "Shag Rocks","Little Brewster") 
 
 incub_raw = GetIncubationData()
 
 # surveys per segment 
-incub_surveys<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year) %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
+incub_surveys<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Island %in% outer) %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
 
-# incubation survey events by observer
-events_incub<-incub_surveys %>% group_by(Island, Segment, Date, Survey_Complete) %>% tally(name= "Observers") %>% spread(Date, Observers)
+# Count the number of unique observers for primary and secondary incubation surveys by event
+obs_incub<-incub_surveys %>% group_by(Island, Segment, Date, Survey_Complete, Survey_Primary) %>% tally(name= "Observers") %>% 
+  # mutate(Observers = cell_spec(Observers, format= "html", background = ifelse(Survey_Primary =="Yes" & Observers < 1 , "orange", ""),
+  #                           bold = ifelse(Survey_Primary =="Yes" & Observers >= 1, TRUE, FALSE))) %>% 
+  spread(Date, Observers, fill = "No Survey")
 
-kable(events_incub, caption= paste0("Table 1. Number of unique observers by date during Incubation Surveys in ", params$year, ". Confirm that at least one primary survey was conducted per year.")) %>%
+
+# output Table 1 for Primary  surveys with conditional formatting 
+
+kableExtra::kbl(filter(obs_incub,Survey_Primary == "Yes"), format = 'html', escape = FALSE, caption= paste0("Table 1.  Number of unique observers conducting a Primary Incubation Survey in ", params$year, " per date among Outer Islands. Confirm that at least one primary survey was conducted at all islands per date. Note that there may be an inconsistent nnumber of surveys conducted at Shag Rocks and the Graves due to the tidal stage at time of the survey.")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
-# primary vs secondary incubation surveys by event
-obs_incub<-incub_surveys %>% group_by(Island, Segment, Date, Survey_Complete, Survey_Primary) %>% tally(name= "Observers") %>% spread(Survey_Primary, Observers, fill = 0) %>% rename(Primary = Yes, `Not Primary` = No)
 
-kable(obs_incub, caption= paste0("Number of unique observers designated as Primary and Non-Primary for Incubation Surveys in ", params$year)) %>%
+# output Table 2 for Non-Primary surveys with conditional formatting 
+
+kableExtra::kbl(filter(obs_incub,Survey_Primary == "No"), 
+          
+                format = 'html', escape = FALSE, caption= paste0("Table 2.  Number of unique observers conducting a Non_Primary Incubation Survey in ", params$year, " per date among Outer Islands.")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+
+# Count the number of unique observers by incubation survey event
+
+events_incub<-incub_surveys %>% group_by(Island, Segment,Survey_Complete, Date, ) %>% tally(name= "Observers") %>% spread(Date, Observers, fill = "No Survey")
+                  
+# # Output Table 3 
+# kableExtra::kbl(events_incub, escape = FALSE, align = 'c', caption= paste0("Table 3. Total number of unique observers (primary and non-primary) by survey date during Incubation Surveys conducted among Outer Islands in ", params$year, ".")) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 ```
 
-The following sections summarize the annual and long term survey counts for cormorants and gulls surveyed during **boat-based Incubation surveys**. NETN staff should check the following sections of DCCO, GBBG, and HERG to ensure that:
+\pagebreak
+
+#### DCCO {.tabset}
+
+##### Raw counts from `r params$year`
+
+`r Incubation_methods`
+
+<!--
+
+NETN staff should check the following sections for DCCO, GBBG, and HERG to ensure that:
 
 **1. There is at least one completed primary survey (Survey_Complete = Yes) recorded for all island-segments in the database for each species and that the survey route (and count) was actually completed when you have records also denoting an incomplete survey was conducted on the same date.**
 
@@ -152,46 +112,49 @@ The following sections summarize the annual and long term survey counts for corm
 
   **b. NETN staff should examine graphical and tabular summaries of the long term survey record to assess whether the current year count    is an outlier. See section: Nesting per island over time for each species.**
 
-\pagebreak
+--->
 
-## Double-crested Cormorant (*Phalacrocorax auritus*)
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
-### Raw counts from current year `r params$year`
+PlotWeeklyObserver(survey = "incubation", species = "DCCO", current_yr = params$year)
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-dcco_incub<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
+dcco_incub<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer,  Obs_Notes)
 
 # raw count data by observer
-kable(dcco_incub, caption= "Table 3. Current year counts of Double-crested Cormorant from primary survey",  padding =2) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year counts of Double-crested Cormorant from primary surveys conducted among Outer Islands",  padding =2) %>%
+  kable_styling(bootstrap_options = c("condensed"), fixed_thead = T)
 
 ```
 
-### Nesting per island over time
+##### Nesting over time
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+`r SumIncubation_methods`
+
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
 options(knitr.kable.NA = '')
 
-incub <- SumIncubation(df= NULL,  time = "year") %>% mutate(shape = case_when(
-  year == params$year ~ "8",
-  .default = "19" )) %>% 
-  dplyr::mutate(color = case_when(
-  year == params$year ~ "red",
-  .default = "black" ))
+incub <- SumIncubation(  time = "year") 
+# %>% mutate(shape = case_when(
+#   year == params$year ~ "8",
+#   .default = "19" )) %>% 
+#   dplyr::mutate(color = case_when(
+#   year == params$year ~ "red",
+#   .default = "black" ))
 
 
 DCCO<- filter(incub,Species_Code == "DCCO")
 
 # add table of raw counts
-kable(DCCO[,c("Island","time","value")] %>% spread(time, value), caption= "Table 4. Annual counts of Double-crested Cormorant",padding =2) %>%
+kableExtra::kbl(DCCO[,c("Island","time","value")] %>% spread(time, value), caption= "Table 4. Maximum annual counts of Double-crested Cormorant",padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 cat("\\newpage")
 
 # plot time series per Island
-PlotBirds(DCCO, raw_count = T, stat = "max")
+PlotBirds(DCCO, raw_count = T, stat = "max", plot_title = FALSE)
 
 # create violin plot
 
@@ -201,29 +164,36 @@ plt_var(type= "violin", survey = "incubation", species = "DCCO", var ="Incubatin
 ```
 
 
-## Great Black-backed Gull (*Larus marinus*)
+#### GBBG {.tabset}
 
-### Raw counts from current year `r params$year`
+##### Raw counts from `r params$year`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+`r Incubation_methods`
 
-gbbg_incub<- incub_raw %>% filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+
+PlotWeeklyObserver(survey = "incubation", species = "GBBG", current_yr = params$year)
+
+gbbg_incub<- incub_raw %>% filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete,Nests = Unit_Count, Observer,  Obs_Notes)
 
 # raw count data by observer
-kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed Gulls from primary survey",  padding =2) %>%
+kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed Gulls from primary surveys",  padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 ```
 
-### Nesting per island over time
+##### Nesting over time
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+`r SumIncubation_methods`
+
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12, message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
 GBBG<- filter(incub,Species_Code == "GBBG")
 
 # add table of raw counts
-kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Table 6. Annual counts of Great Black-backed Gull",padding =2) %>%
+kable(GBBG[,c("Island","time","value")] %>% spread(time, value), caption= "Table 6. Maximum annual counts of Great Black-backed Gull",padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # plot time series per Island
@@ -237,30 +207,36 @@ plt_var(type= "violin", survey = "incubation", species = "GBBG", var ="Incubatin
 ```
 \pagebreak 
 
-## Herring Gull (*Larus argentatus*)
+#### HERG {.tabset}
 
-### Raw counts from current year `r params$year`
+##### Raw counts from `r params$year`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+`r Incubation_methods`
 
-herg_incub<- incub_raw %>% filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+
+PlotWeeklyObserver(survey = "incubation", species = "HERG", current_yr = params$year)
+
+herg_incub<- incub_raw %>% filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
 
 # raw count data by observer
-kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from primary survey",  padding =2) %>%
+kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from primary surveys",  padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 ```
 
-### Nesting per island over time
+##### Nesting over time
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+`r SumIncubation_methods`
+
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
 
 HERG<- filter(incub,Species_Code == "HERG")
 
 # add table of raw counts
-kable(HERG[,c("Island","time","value")] %>% spread(time, value), caption= "Table 8. Annual counts of Herring Gull",padding =2) %>%
+kable(HERG[,c("Island","time","value")] %>% spread(time, value), caption= "Table 8. Maximum annual counts of Herring Gull",padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 
@@ -274,14 +250,15 @@ y<- plt_var(type= "violin", survey = "incubation", species = "HERG", var ="Incub
 
 ```
 
-# **Creche Surveys of Common Eider (*Somateria mollissima*)**
-
-The following tables and graphs summarize data from boat-based creche surveys in the program's database conducted in `r params$year`. 
+### **Annual COEI Creche Surveys** {.tabset}
 
 
-## Review Survey Effort in `r params$year`
 
-**NETN staff should evaluate the below tables for accuracy and completeness to ensure that (1) at least one creche survey was completed per year during the peak season, (2) evaluate, document and reconcile why there may be incomplete surveys denoted as a primary survey for a particular date, (3) assess that data for all four life stages were collected at each Island-Segment and Date, and (5) confirm that at least one survey was designated as the Primary Survey per date.**
+#### Review Survey Effort in `r params$year`
+
+`r Crechmethods`
+
+**NETN staff should evaluate the below tables to ensure that (1) at least 3 to 5 creche surveys were completed per year during the peak season by an expert birder (Primary Survey), (2) evaluate, document and reconcile why there may be incomplete surveys denoted as a primary survey for a particular date, and (3) confirm that counts for all four life stages were collected at each Island-Segment and Date.**
 
 
 ``` {r creche_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
@@ -291,58 +268,125 @@ creche_raw<-GetCrecheData()
 # filter out complete surveys per segment for current year 
 creche_surveys<- creche_raw %>% filter(year %in% params$year) %>% select(Island, Segment, Date, Species_Unit, Observer, Group_Notes, Survey_Notes, Survey_Complete, Survey_Primary)
 
-# create table summarizing creche survey events by observer
-events_creche<-creche_surveys %>% select(-Group_Notes, -Survey_Notes, -Species_Unit) %>%  group_by(Island, Segment, Date, Survey_Complete,  Survey_Primary) %>% distinct() %>%  tally(name= "Observers") %>% spread(Date, Observers)
+# create tables summarizing creche survey events by observer
+events_creche<-creche_surveys %>% select(-Group_Notes, -Survey_Notes, -Species_Unit) %>%  group_by(Island, Segment, Date, Survey_Complete,  Survey_Primary) %>% distinct() %>%  tally(name= "Observers") %>% spread(Date, Observers, fill ="No survey")
 
-kable(events_creche, caption= paste0("Table 9. Number of unique observers conducting creche surveys by date in ", params$year ,". Empty cells denote that no survey was conducted meeting the table criteria. At least one observer should be denoted for completed surveys per Survey_Primary event.")) %>%
+# Table of Primary Surveys
+kable(events_creche %>% filter(Survey_Primary == "Yes") %>% select(-Survey_Primary), caption= paste0("Table 9. Number of unique observers conducting complete, Primary Surveys by date in ", params$year ," . At least one observer should be denoted for each Island-Segment date unless the area is not visible during high tide (Roaring Bulls, The Graves, Shagh Rocks).")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
+# Table of Non-Primary Surveys
+kable(events_creche %>% filter(Survey_Primary == "No") %>% select(-Survey_Primary), caption= paste0("Table 10. Number of unique observers conducting complete, Non-Primary Surveys by date in ", params$year)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+
 # create table summarizing number of life stages recorded per event (island and date) for only complete surveys
-obs_creche<-creche_surveys %>% select(-Group_Notes, -Observer, -Survey_Notes) %>% group_by(Island, Segment, Date, Species_Unit) %>%  distinct() %>% group_by(Island, Segment, Date) %>% tally(name= "Life_Stages") %>%  pivot_wider(names_from = Date, values_from =  Life_Stages, values_fill = NA)
+obs_creche<-creche_surveys  %>% filter(Survey_Primary == "Yes") %>% select(-Group_Notes, -Observer, -Survey_Notes) %>% group_by(Island, Segment, Date, Species_Unit) %>%  distinct() %>% group_by(Island, Segment, Date) %>% tally(name= "Life_Stages") %>% 
+  spread(Date, Life_Stages, fill ="No survey")
 
 #obs_creche$Life_Stages<-cell_spec(obs_creche$Life_Stages, color= ifelse(obs_creche$Life_Stages == 4, "black", "red"))
 
-kable(obs_creche, caption= paste0("Table 10. Number of life stages counted during creche surveys by date in ", params$year ,". Empty cells either denote that no survey was conducted or that the survey was incomplete. Four life stages should be monitored per event.")) %>%
+kable(obs_creche, caption= paste0("Table 11. Number of life stages counted during complete, Primary Surveys by date in ", params$year ,". Four life stages should be monitored per event.")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 cat("\\newpage")
 ```
 
-The following records were denoted as **incomplete surveys** in ` r params$year`:
+The following records were denoted as **incomplete surveys** in `r params$year`:
  
 ``` {r creche_rev, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes"), caption = "Table 11. Details from records listed as the Primary Survey but also as Incomplete") %>%
+if(nrow( creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes")) <1 ){
+  print(paste0("There are no records denoted as Incomplete in ", params$year))
+  
+} else{
+
+kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes"), caption = "Table 12. Details from records listed as the Primary Survey but also as Incomplete") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+}
 ```
 
 
-### Current year (`r params$year`) surveys by date
+#### Review surveys by date for (`r params$year`) {.tabset}
 
+`r SumCreche_Daily`
 
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r crecheday,cache=T,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 
-creche <- SumCreche(time ="date")
+creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
 
 # plot counts of F-tending and ducklings by survey date in current year for each island
-PlotBirds(creche, year= params$year, raw_count = T, stat = "sum", legend= T, var= c("COEI Ducklings" ,"Adult female COEI tending"))
+y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$year, raw_count = T, stat = "sum", legend= T, print= FALSE)
 
+(y1 + scale_color_manual(values = c("black","darkgray", "blue"))+ labs(title= "Daily counts of Common Eider (COEI) per lifestage and  Island"))
 
-df<- filter(creche, year== params$year & !Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending")) %>% select(Island,time,variable,value) %>% spread(time,value) %>% mutate(variable= abbreviate(variable, minlength = 12, method= "both.sides"))
+```
 
-# plot counts of F-tending and duckling by survey date in current year across All Outer Islands
+##### Ducklings
 
-PlotBirds( filter(creche,!variable == "Average creche size"), year= params$year, island ="All Islands", raw_count = T, stat = "sum", legend= F, facet= "variable")+ scale_color_manual(values = c("black","darkgray", "blue"))
+`r Crechmethods`
 
-kable(df, caption = paste0("Table 12. Counts per life stage of Common Eider during creche surveys in ", params$year))  %>%
+```{r ducks,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
+
+# plot current year counts per life stage compared to historical data for all island segments
+
+VAR<-c("Chick", "F-Lone", "F-Tend"); VAR<-set_names(VAR, nm=VAR)
+
+# per island plots by life stage (variable)
+COEIplots<-purrr::map(VAR, ~PlotWeeklyObserver(survey = "creche", current_yr = params$year, var = ., print= FALSE ))
+
+COEIplots[[1]]
+
+# Output table of raw counts per lifestage
+
+df<- filter(creche, year== params$year & !Island == "All Islands" ) %>% select(Island,Date = time,variable,value) %>% spread(Date,value) 
+
+kable(df %>% filter(variable == "COEI Ducklings") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 cat("\\newpage")
 
 ```
 
-## Annual counts over time by life stage
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+##### Females tending ducklings
+
+`r Crechmethods`
+
+```{r Ftend,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+COEIplots[[3]]
+
+
+kable(df %>% filter(variable == "Adult female COEI tending") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+cat("\\newpage")
+
+```
+
+##### All  Females
+
+`r Crechmethods`
+
+```{r Ftotal,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+COEIplots[[2]]
+
+kable(df %>% filter(variable == "Total Number of Female COEI Observed") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+```
+
+
+#### Annual counts over time by life stage
+`r SumCreche_Annual`
+
+```{r creche_year,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 creche_y <- SumCreche(df = NULL ,time ="year") %>% 
   mutate(shape = case_when(
   year == params$year ~ "8",
@@ -366,18 +410,15 @@ print(plots2[[1]]);cat("\\newpage")# F-tend time series all islands
 # plot duckling stats
 
 print(plots[[3]]);cat("\\newpage")# Ducklings time series per island
-b<-print(plots2[[3]]);cat("\\newpage")# Ducklings time series for all islands
+print(plots2[[3]]);cat("\\newpage")# Ducklings time series all islands
 
-
-a<-print(plots2[[1]]);cat("\\newpage")# total females for all islands
-
-# plot duckling and total female tending stats
-
-ggpubr::ggarrange(a,b)
+# plot all female counts
+print(plots[[4]]);cat("\\newpage")# total femalestime series per island
+print(plots2[[4]]);cat("\\newpage")# total females for all islands
 
 
 # create box plot of all life stages for all islands
-ggplot(data= filter(creche_y, Island == "All Islands", stat == "max"), aes(x= variable, y= value, fill= variable, group= variable)) +
+ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", !variable == "Average creche size"), aes(x= variable, y= value, fill= variable, group= variable)) +
   geom_violin(alpha= 0.3, notch= F)+ 
   geom_jitter(aes(shape = shape, color= color), size= 3) +
   scale_color_manual(values = c("black", "red"))+ 
@@ -400,31 +441,51 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max"), aes(x= va
 
 # assess trends in ducklings and f-tend
 
-df<- filter(creche_y, Island == "All Islands" & variable %in% c("COEI Ducklings" ,"Adult female COEI tending") & stat =="max" & year %in% c(2007:2019))
+df<- filter(creche_y, Island == "All Islands" & !variable == "Average creche size" & stat =="max" & year %in% c(2007:2025))
 
-PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")
-  
-
-ducklings<-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable =="COEI Ducklings"))
-summary(ducklings)
+PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")+ scale_color_manual(values = c("black","darkgray", "blue"))
 
 
-ftend <-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable == "Adult female COEI tending"))
-summary(ftend)
+  # fit linear trend models 
+
+ducklings<-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable =="COEI Ducklings")) %>% tidy()
+
+kable(ducklings, caption = "Linear Trend Model Summary for Ducklings", digits = 3)
+
+
+ftend <-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable == "Adult female COEI tending")) %>% tidy()
+
+kable(ftend, caption = "Linear Trend Model Summary for Tending Females", digits = 3)
+
+FTotal <-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable == "Total Number of Female COEI Observed")) %>% tidy()
+
+kable(FTotal, caption = "Linear Trend Model Summary for All Females", digits = 3)
+
 
 ```
 \pagebreak
 
-# **Ground-based Nest Surveys**
+<!--
+
+### **Ground-based Nest Surveys** {.tabset}
 
 The following tables and graphs summarize data from boat-based creche surveys in the program's database conducted in `r params$year`. 
 
 **NETN staff should evaluate the below tables for accuracy and completeness to ensure that (1) at least one ground survey was completed during the peak season for all appropriate Island-Segments (see protocol), (2) evaluate, document and reconcile why there may be incomplete surveys denoted as a primary survey for a particular date, (3) confirm that at least one survey was designated as the Primary Survey for each species and per date, and (4) evaluate what proportion of surveys conducted direct vs indirect (flush) counting methods.**
 
-## Review Survey Effort in `r params$year`
+#### **Review Survey Effort in `r params$year`**
 
 ``` {r ground_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+
+# Notes: 
+# 
+# 1. It may be useful to bring in the full table of islands that were supposed to be surveyed to check completeness of surveying work
+# 2. Double check that partial surveys occurred and that the portion of the route survey was estimated in the DB. As of now the % surveyed is not being imported into the R package object (confirm data field with Adam).
+
+
+
 # bring in raw event level data
+
 nests_raw<-GetNestData()
 
 # create data summarizing all ground-based nest counts
@@ -465,20 +526,12 @@ kable(filter(ground_notes, Survey_Complete == "No"), caption= paste0("Table 14. 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
   
 }
-
-
-
-
 ```
 
-Notes: 
 
-1. It may be useful to bring in the full table of islands that were supposed to be surveyed to check completeness of surveying work
-2. Double check that partial surveys occurred and that the portion of the route survey was estimated in the DB. As of now the % surveyed is not being imported into the R package object (confirm data field with Adam).
+#### **Common Eider (*Somateria mollissima*)**
 
-## **Common Eider (*Somateria mollissima*)**
-
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -498,7 +551,7 @@ kable(ground_notes %>% filter(Species_Code == "COEI")) %>%
 
 ```
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -513,9 +566,9 @@ PlotBirds(coei, raw_count= TRUE, legend = T, var = "Nests", plot_title = FALSE, 
   scale_color_discrete()
 ```
 
-## **Double-crested Cormorant (*Phalacrocorax auritus*)**
+#### **Double-crested Cormorant (*Phalacrocorax auritus*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -539,7 +592,7 @@ kable(ground_notes %>% filter(Species_Code == "DCCO")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -555,9 +608,9 @@ PlotBirds(dcco2, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 
 
-## **Great Black-backed Gull (*Larus marinus*)**
+#### **Great Black-backed Gull (*Larus marinus*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
@@ -578,7 +631,7 @@ kable(filter(ground_notes, Species_Code == "GBBG")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -592,9 +645,9 @@ PlotBirds(gbbg2, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
 
-## **Herring Gull (*Larus argentatus*)**
+#### **Herring Gull (*Larus argentatus*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
@@ -615,7 +668,7 @@ kable(filter(ground_notes, Species_Code == "HERG")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -630,9 +683,9 @@ PlotBirds(herg2, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 
 
-## **Black-crowned night Heron (*Nycticorax nycticorax*)**
+#### **Black-crowned night Heron (*Nycticorax nycticorax*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -653,7 +706,7 @@ kable(filter(ground_notes, Species_Code == "BCNH")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -666,9 +719,9 @@ bcnh<-filter(nests, Species_Code == "BCNH")
 PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
-## **Glossy Ibis (*Plegadis falcinellus*)**
+#### **Glossy Ibis (*Plegadis falcinellus*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 
@@ -689,7 +742,7 @@ kable(filter(ground_notes,Species_Code == "GLIB")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -702,9 +755,9 @@ glib<-filter(nests, Species_Code == "GLIB")
 PlotBirds(glib, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
-## **Great Egret (*Ardea alba*)**
+#### **Great Egret (*Ardea alba*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -725,7 +778,7 @@ kable(filter(ground_notes, Species_Code == "GREG")) %>%
 ```
 \pagebreak 
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -738,9 +791,9 @@ greg<-filter(nests, Species_Code == "GREG")
 PlotBirds(greg, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
-## **Snowy Egret (*Egretta thula*)**
+#### **Snowy Egret (*Egretta thula*)**
 
-### Current year (`r params$year`)
+##### Current year (`r params$year`)
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 if(nrow(ground_surveys) == 0){
@@ -759,7 +812,7 @@ kable(filter(ground_notes, Species_Code == "SNEG")) %>%
 
 ```
 
-### Counts over time
+##### Counts over time
 
 ```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
@@ -773,3 +826,12 @@ sneg<-filter(nests, Species_Code == "SNEG")
 PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
+### **Additional Incubation Surveys** {.tabset}
+
+
+
+### **Annual Summaries** {.tabset}
+
+#### American Oystercatcher
+
+-->

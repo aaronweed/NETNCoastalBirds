@@ -1,0 +1,16 @@
+NETNCoastalBirds
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+lubridate
+knitr
+magrittr
+kableExtra
+broom
+fuzzyjoin
