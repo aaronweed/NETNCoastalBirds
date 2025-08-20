@@ -87,10 +87,10 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   df$month <- month(df$Date) #Create month variable
   
   
-    ### Sum data across each segment as raw and effort-adjusted numbers by observer
+  ### Sum data across each segment as raw and effort-adjusted numbers by observer
   
-  if (time == "date" & ByObserver =="yes") {
-    graph.final <- df %>%
+  if (time == "date" & ByObserver =="Yes") {
+    graph.final <- df %>% filter(Survey_Primary %in% "Yes") %>%
       group_by(Island, Segment, Date,month, year, Species_Code, Survey_Type, Survey_Primary,
                Survey_Duplicate, Survey_Complete, Observer) %>% 
       dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) %>% ## sum counts across observers
@@ -120,23 +120,24 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   #################################################
   
   ########### Sum counts per date for all surveys counted on the same island across segments  #######################################
-  # Note that in some years (mainly 2007-2009) there can be more than one primary survey per day for a segment (Little Calf and Calf). This is because of how the data 
-  # were translated from past recording at the island scale to how we handle data in the segments in the current database BE. 
+  # Note that in some years (mainly 2007-2009) there can be more than one primary survey per day for a segment (Little Calf and Calf). 
+  # This is because of how the data were translated from past recording at the island scale to how we handle data in the segments in the current database BE. 
   # These are NOT to be considered duplicate surveys but complete the survey for that island so they should be summed together. 
   #######################################
   if (time == "date") {
     
     # count the primary surveys per day
-    #df.melt %>% group_by(Species_Code, Island, Segment,Date,Survey_Primary, Observer) %>% tally() %>% View()
+    #df.melt %>% group_by(Species_Code, Island, Segment,Date,Survey_Primary, Observer, ObsSkillLevel) %>% tally() %>% View()
     
+    # sumarize the number of nests counted per segment each day
     SumBySegment <- df.melt %>% 
       group_by(Species_Code, Island, Segment, Date, month, year, Observer) %>% 
       dplyr::summarise(value = sum(value, na.rm = TRUE), surveys=n()) %>% # sum per segment when >1 primary surveys per date. 
       dplyr::rename(time = Date) %>% 
       dplyr::mutate(stat ="sum")
-      
     
-    yrs_NoCLT<-c("2009","2010","2012" ,"2024", "2025")# 3 years Carol wasn't an observer b/c she was taking photos
+    
+    yrs_NoCLT<-c("2009","2010","2012", "2024" ,"2025")# 3 years Carol wasn't an observer b/c she was taking photos
     
     ## Sum the number of adults on each date across all islands from specific observers
     ### Calculate for all Islands
@@ -147,6 +148,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
       dplyr::rename(time = Date) %>% 
       dplyr::mutate(stat ="sum")
   }
+  
   
   ############# Sum counts per year or across all surveys per island across segments
   # Note that there can be more than one primary survey per year
@@ -162,71 +164,27 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
   #df.melt %>% group_by(Species_Code, Island, Segment,year,Survey_Primary, Observer) %>% tally() %>% View()
   
   if (time == "year") {
+    yrs_NoCLT<-c("2009","2010","2012", "2024", "2025")# 4 years Carol wasn't an observer b/c she was taking photos
     
-    # 
+    # first, extract the Primary PI's surveys to calc max count per year
+    CLTByDay <- df.melt %>% 
+      filter(Observer %in% c("CLT")) %>%  # extract Carol Trocki's (2007 to 2023)
+      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by date to account for multiple surveys per day 
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>% # get daily totals
+      group_by(Species_Code, Island, Segment,year,Observer) %>% 
+      dplyr::summarise(value = max(value, na.rm = TRUE), surveys = n()) %>%   # get annual max count
+      dplyr::mutate(stat ="max")
     
-    # Step 1: Identify Combinations of primary survey events where there is a realistic count and a duplicate 0 count for each observer/event
-    conflicting_combos <- df.melt %>%
-      group_by(Species_Code, Island, Segment, year, Date, Observer) %>%
-      summarise(
-        has_zero = any(value == 0),
-        has_gt_zero = any(value > 0),
-        .groups = "drop"
-      ) %>%
-      filter(has_zero & has_gt_zero)
+    OthersByDay<- df.melt %>% filter(year %in% yrs_NoCLT) %>% 
+      group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum by observer to account for multiple surveys per day 
+      dplyr::summarise(value = sum(value, na.rm = TRUE)) %>%   # get daily totals by observer for each segment
+      group_by(Species_Code, Island, Segment,year) %>% 
+      dplyr::summarise(value= round(mean(value, na.rm = TRUE),0), surveys=n()) %>% # calculate the mean of daily counts 
+      dplyr::mutate(stat ="max", Observer = "Multiple") 
     
-   
-    # Step 2: Exclude only the rows (conflicting_combos) where value == 0 for those combinations
-    df_clean <- df.melt %>%
-      anti_join(
-        conflicting_combos %>%
-          mutate(value = 0),  # only target rows where value == 0
-        by = c("Species_Code", "Island", "Segment", "year", "Date", "Observer", "value")
-      )
-    
-    # check how many rows were removed 
-    
-    #nrow(df.melt)-(nrow(df_clean))
-    
-    
-    
-    ## As of 2025, there were 5 duplicate surveys conducted on the same date by comparable experts.
-   
-    # Count the number of unique events with > 1 unique observers for each  Species_Code, Island, Segment, year, Date 
-    # denotes duplicate surveys conducted side by side
-    
-    df_clean %>% filter(Survey_Duplicate == "Yes") %>% 
-      group_by(Species_Code, Island, Segment, year, Date) %>%
-      summarise(
-        num_observers = n_distinct(Observer),
-        .groups = "drop"
-      ) %>%  filter(num_observers >1) %>% distinct(Island, Segment, year, Date) %>%  View()
-    
-    # calculate summary statistics of daily nest counts within each survey year and by Observer for all Primary Surveys
-    
-    CountsByObserver <- df_clean %>% #df_clean only contains primary surveys
-      filter(Survey_Duplicate == "Yes") %>% 
-       group_by(Species_Code, Island, Segment,year, Date, Observer) %>% ## first sum Daily totals per observer
-      dplyr::summarise(total_value = sum(value, na.rm = TRUE), .groups = "drop") %>% # get daily totals
-      group_by(Species_Code, Island, Segment,year,Observer) %>%  #Summary statistics across observers per year/species
-      summarise(
-        mean = mean(total_value, na.rm = TRUE),
-        se = sd(total_value, na.rm = TRUE) / sqrt(n()),
-        max = max(total_value, na.rm = TRUE),
-        min = min(total_value, na.rm = TRUE),
-        n = n(),
-        .groups = "drop"
-      ) %>%
-      pivot_longer(
-        cols = c(mean, se, max, min, n),
-        names_to = "stat",
-        values_to = "value"
-      ) %>% 
+    SumBySegment<-bind_rows(CLTByDay, OthersByDay) %>% 
+      arrange(Species_Code, Island, year)%>% 
       dplyr::rename(time = year)
-    
-    
-
-    
     
     ## Summarize the number of incubating adults in each year across all islands
     ### Calculate for all Islands
@@ -236,7 +194,7 @@ SumIncubation <- function(df = NULL, time, species = NA, output = "graph", ByObs
       tibble::add_column(Island = "All Islands", Segment="All")  
   }
   
-    #################################
+  #################################
   # bind together the results aggregated by time AT the SEGMENT-SCALE
   ## CALCULATE  VALUES PER ISLAND or SEGMENT BASED ON SURVEY-ADJUSTED ESTIMATES 
   ## for islands with >1 segments, sums raw counts and survey area by island and then divides sum counts / sum survey area

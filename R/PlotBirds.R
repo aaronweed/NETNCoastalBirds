@@ -141,7 +141,7 @@ PlotBirds<-function(data, raw_count= FALSE, species= NA, island=NA, year= NA, st
   
 ### ADD FACETING 
   if(!anyNA(facet)) {
-    y2 <- (y2 + facet_wrap(facet, scales = Y_scale, ncol = 3 ))
+    y2 <- (y2 + facet_wrap(facet, scales = Y_scale, ncol = 2 ))
     
   }
 #### TOGGLE plot title (above plot) 

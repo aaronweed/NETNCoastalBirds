@@ -45,7 +45,7 @@ source("./QAQCReport_functions.R")
 
 **Staff should evaluate the tables to ensure that at least one incubation survey was completed per year and that at least one survey was designated as the Primary Survey (expert observation) for each Island and Route Segment combination. Note that there may be >1 Primary Survey for each Island/Event combination.**
 
-``` {r incub_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+``` {r incub_events, cache=T,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
 ### Subset by outer Islands 
   
@@ -96,7 +96,7 @@ events_incub<-incub_surveys %>% group_by(Island, Segment,Survey_Complete, Date, 
 
 `r Incubation_methods`
 
-`r PlotWeeklyBands(survey = "incubation", species = "DCCO", current_yr = params$year)`
+<!--
 
 NETN staff should check the following sections for DCCO, GBBG, and HERG to ensure that:
 
@@ -112,9 +112,12 @@ NETN staff should check the following sections for DCCO, GBBG, and HERG to ensur
 
   **b. NETN staff should examine graphical and tabular summaries of the long term survey record to assess whether the current year count    is an outlier. See section: Nesting per island over time for each species.**
 
+--->
 
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+PlotWeeklyObserver(survey = "incubation", species = "DCCO", current_yr = params$year)
+
 
 dcco_incub<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer,  Obs_Notes)
 
@@ -129,7 +132,7 @@ kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year co
 `r SumIncubation_methods`
 
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
 options(knitr.kable.NA = '')
 
@@ -167,7 +170,9 @@ plt_var(type= "violin", survey = "incubation", species = "DCCO", var ="Incubatin
 
 `r Incubation_methods`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+
+PlotWeeklyObserver(survey = "incubation", species = "GBBG", current_yr = params$year)
 
 gbbg_incub<- incub_raw %>% filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete,Nests = Unit_Count, Observer,  Obs_Notes)
 
@@ -181,9 +186,8 @@ kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed G
 
 `r SumIncubation_methods`
 
-`r PlotWeeklyBands(survey = "incubation", species = "GBBG", current_yr = params$year)`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12, message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
 GBBG<- filter(incub,Species_Code == "GBBG")
@@ -209,7 +213,9 @@ plt_var(type= "violin", survey = "incubation", species = "GBBG", var ="Incubatin
 
 `r Incubation_methods`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+
+PlotWeeklyObserver(survey = "incubation", species = "HERG", current_yr = params$year)
 
 herg_incub<- incub_raw %>% filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") %>% select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
 
@@ -223,9 +229,7 @@ kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from p
 
 `r SumIncubation_methods`
 
-`r PlotWeeklyBands(survey = "incubation", species = "HERG", current_yr = params$year)`
-
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 #incub <- SumIncubation(time = "year")
 
@@ -302,11 +306,11 @@ kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes
 ```
 
 
-#### Review surveys by date for (`r params$year`)
+#### Review surveys by date for (`r params$year`) {.tabset}
 
 `r SumCreche_Daily`
 
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 6, fig.width= 12,message=FALSE}
+```{r crecheday,cache=T,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 
 creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
@@ -316,27 +320,73 @@ y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$y
 
 (y1 + scale_color_manual(values = c("black","darkgray", "blue"))+ labs(title= "Daily counts of Common Eider (COEI) per lifestage and  Island"))
 
-# plot current year counts per life stage compared to historical data across All Outer Islands
+```
 
+##### Ducklings
 
-PlotHistBands(survey = "creche", current_yr = params$year)
+`r Crechmethods`
 
+```{r ducks,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
+
+# plot current year counts per life stage compared to historical data for all island segments
+
+VAR<-c("Chick", "F-Lone", "F-Tend"); VAR<-set_names(VAR, nm=VAR)
+
+# per island plots by life stage (variable)
+COEIplots<-purrr::map(VAR, ~PlotWeeklyObserver(survey = "creche", current_yr = params$year, var = ., print= FALSE ))
+
+COEIplots[[1]]
 
 # Output table of raw counts per lifestage
 
-df<- filter(creche, year== params$year & !Island == "All Islands" & !variable == "Average creche size") %>% select(Island,Date = time,variable,value) %>% spread(variable,value) 
+df<- filter(creche, year== params$year & !Island == "All Islands" ) %>% select(Island,Date = time,variable,value) %>% spread(Date,value) 
 
-kable(df, caption = paste0("Table 12. Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
+kable(df %>% filter(variable == "COEI Ducklings") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 cat("\\newpage")
 
 ```
 
+##### Females tending ducklings
+
+`r Crechmethods`
+
+```{r Ftend,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+COEIplots[[3]]
+
+
+kable(df %>% filter(variable == "Adult female COEI tending") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+cat("\\newpage")
+
+```
+
+##### All  Females
+
+`r Crechmethods`
+
+```{r Ftotal,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+options(knitr.kable.NA = '')
+
+COEIplots[[2]]
+
+kable(df %>% filter(variable == "Total Number of Female COEI Observed") , caption = paste0("Counts per life stage of Common Eider during Primary Surveys ", params$year))  %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+```
+
+
 #### Annual counts over time by life stage
 `r SumCreche_Annual`
 
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+```{r creche_year,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
 creche_y <- SumCreche(df = NULL ,time ="year") %>% 
   mutate(shape = case_when(
   year == params$year ~ "8",
@@ -415,7 +465,7 @@ kable(FTotal, caption = "Linear Trend Model Summary for All Females", digits = 3
 ```
 \pagebreak
 
-
+<!--
 
 ### **Ground-based Nest Surveys** {.tabset}
 
@@ -784,3 +834,4 @@ PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 #### American Oystercatcher
 
+-->
