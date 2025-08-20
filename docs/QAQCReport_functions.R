@@ -1,8 +1,8 @@
 
 # Scripts for caption and plotting functions to support QAQC reporting for NETN's Coastal Breeding Bird Program 
 
-Incubation_methods<- {print("The nesting counts presented below show the total nests counted per comparable expert observers for each Island-Segement 
-                      each day a survey was conducted.")}
+Incubation_methods<- {print("The nesting counts presented below show the daily number of nests counted by expert observers on each Island-Segment 
+                       in comparison to the historical variation. Historical variation is summarized by the standardized week of each year.")}
 
 
 SumIncubation_methods<- {print("The annual nesting counts summarized in each table and figure below were derived from the annual 
@@ -10,10 +10,16 @@ SumIncubation_methods<- {print("The annual nesting counts summarized in each tab
 
 Crechmethods<- {print(paste0("The following tables and graphs summarize all Primary Survey counts collected during boat-based Common Eider (creche) surveys conducted in ", params$year, " among all Outer Islands."))}
 
-SumCreche_Annual<- {print("The annual counts summarized below were derived from the annual maximum counts among completed, Primary Surveys within a year (May-July) or represent the average of the completed, Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
+CrechmethodsHist<- {print(paste0("The following graphs summarize all Primary Survey counts collected 
+                                 during boat-based Common Eider (creche) surveys conducted in ", params$year, 
+                                 " among all Outer Islands in comparison to the historical variation. Historical variation is summarized by the standardized week of each year."))}
 
-SumCreche_Daily<- {print("The daily counts summarized below for each life stage (scroll down) were derived from completed, Primary Surveys conducted within a year (May-July) or represent the average of this daily count value among multiple expert birders. These count values were summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
 
+SumCreche_Annual<- {print("The annual counts summarized below were derived from the annual maximum counts among 
+                          completed, Primary Surveys within a year (May-July) or represent the average of the completed, Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
+
+SumCreche_Daily<- {print("The daily counts summarized below and for each life stage (scroll down) were derived from 
+                         completed, Primary Surveys conducted within a year (May-July) or represent the average of this daily count value among multiple expert birders. These count values were summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
 
 PlotWeeklyBands<- function(survey, current_yr, species ){
   
