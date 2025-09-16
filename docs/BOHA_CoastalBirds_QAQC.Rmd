@@ -22,7 +22,7 @@ library(fuzzyjoin)
 
 load("./data/tlu_Species.rda")
 load("./data/SurveyEffortBySpecies.rda")
-source("./QAQCReport_functions.R")
+source("./docs/QAQCReport_functions.R")
 
 
 
@@ -310,7 +310,7 @@ kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes
 
 `r SumCreche_Daily`
 
-```{r crecheday,cache=T,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r crecheday,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 
 creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
@@ -465,7 +465,7 @@ kable(FTotal, caption = "Linear Trend Model Summary for All Females", digits = 3
 ```
 \pagebreak
 
-<!--
+#<!--
 
 ### **Ground-based Nest Surveys** {.tabset}
 
@@ -563,7 +563,7 @@ plt_var(type= "violin", survey = "ground", species = "COEI", var ="Nests")
 coei<-filter(nests, Species_Code == "COEI")
 
 PlotBirds(coei, raw_count= TRUE, legend = T, var = "Nests", plot_title = FALSE, overlay = "island", facet = "Species_Code")+
-  scale_color_discrete()
+  scale_color_discrete() 
 ```
 
 #### **Double-crested Cormorant (*Phalacrocorax auritus*)**
@@ -826,6 +826,8 @@ sneg<-filter(nests, Species_Code == "SNEG")
 PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
+<!--
+
 ### **Additional Incubation Surveys** {.tabset}
 
 
@@ -834,4 +836,4 @@ PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 #### American Oystercatcher
 
--->
+<--

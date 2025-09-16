@@ -182,9 +182,14 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   if(survey == "creche"){
 
     
-    df <- GetCrecheData() %>%  # Summarize daily Primary Surveys
+    df <- GetCrecheData()  # Summarize daily Primary Surveys
 
-      filter(Survey_Primary %in% "Yes" & Survey_Complete %in% "Yes" & Island %in% outer) %>%
+
+    df$Island <- plyr::mapvalues(df$Island, 
+                                 from = c("Roaring Bulls"), 
+                                 to = c("The Graves"))
+    df<- df %>% 
+          filter(Survey_Primary %in% "Yes" & Survey_Complete %in% "Yes" & Island %in% outer) %>%
 
       mutate(
         Date = as.Date(Date),
@@ -291,7 +296,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
     geom_point(data = df_current,
                aes(y = Unit_Count, 
                    x = week,
-                   color = metric_type, group = metric_type, shape= Observer)) +
+                   color = metric_type, group = metric_type)) +
     scale_x_continuous(breaks = seq(1, 52, 1), 
                        #minor_breaks = seq(1, 52, 1),
                        name = "Week of Year") + 
