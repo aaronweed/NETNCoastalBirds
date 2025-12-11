@@ -20,9 +20,9 @@ library(kableExtra)
 library(broom)
 library(fuzzyjoin)
 
-load("./data/tlu_Species.rda")
-load("./data/SurveyEffortBySpecies.rda")
-source("./docs/QAQCReport_functions.R")
+load("../data/tlu_Species.rda")
+load("../data/SurveyEffortBySpecies.rda")
+source("../docs/QAQCReport_functions.R")
 
 
 
@@ -715,7 +715,7 @@ kable(filter(ground_notes, Species_Code == "BCNH")) %>%
 plt_var(type= "violin", survey = "ground", species = "BCNH", var ="Nests")
 
 # plot counts over time per island
-bcnh<-filter(nests, Species_Code == "BCNH")
+bcn0h<-filter(nests, Species_Code == "BCNH")
 PlotBirds(bcnh, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
