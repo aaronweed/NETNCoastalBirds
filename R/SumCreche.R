@@ -106,7 +106,7 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
   
   ### Sum data across each segment as raw and effort-adjusted numbers by observer 
   
-  if (time == "date" & ByObserver =="yes") {
+  if (time == "date" & ByObserver == "yes") {
     graph.final <- df %>%
       group_by(Island, Segment,  Date,month, year, Species_Code, Survey_Type, Survey_Primary,
                Survey_Duplicate, Survey_Complete, Species_Unit,Observer) %>%
@@ -118,8 +118,11 @@ SumCreche<-function(df = NULL, time, survey_data = SurveyEffortBySpecies, segmen
       dplyr::mutate(Survey_Size = Survey_Size/1000) %>% 
       tibble::add_column(Survey_Units = "km") %>% # denote what survey effort units are
       dplyr::select(Species_Code, Island, Segment, Survey_Type, time = Date, month, year, Survey_Primary,
-                    Survey_Duplicate, Survey_Complete, Species_Unit, value, valuePerSurveySize,Survey_Size, Survey_Units,Observer)
-    
+                    Survey_Duplicate, Survey_Complete, Species_Unit, value, valuePerSurveySize,Survey_Size, Survey_Units,Observer) %>% 
+      # change Species_Unit levels
+      mutate(Species_Unit = case_when(Species_Unit == "Chick" ~ "COEI Ducklings", Species_Unit == "F-Lone" ~ "Adult female COEI alone",
+                                      Species_Unit == "F-Tend" ~ "Adult female COEI tending"))
+                                        
     return(graph.final)
     
   } else {

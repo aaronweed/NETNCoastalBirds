@@ -199,9 +199,10 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
       ) %>% 
       dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
       
-      group_by( Island, Species_Code, Segment, Date, year, month, week, Species_Unit, Observer) %>% 
+      group_by(Species_Code,  Date, year, month, week, Species_Unit, Observer) %>% 
      
-      summarize(Unit_Count= sum(Unit_Count, na.rm = TRUE)) # summarize segment level counts by each oberver on each day
+      summarize(Unit_Count= sum(Unit_Count, na.rm = TRUE)) %>% # summarize segment level counts by each observer on each day
+      mutate(Island = "Outer Islands") 
   }
   
   
@@ -223,7 +224,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   
   df_histsum <- filter(df, !year %in% current_yr) %>% # exclude current year
     {if(survey == "creche")  filter(., Species_Unit %in% var) else . } %>% 
-    {if(survey == "creche") group_by(.,Island, Species_Code,  Segment, Species_Unit, week ) else # sum by life stage if needed
+    {if(survey == "creche") group_by(., Island, Species_Unit, week ) else # sum by life stage if needed
       group_by(.,Island, Segment, Species_Code, week) } %>% ## first summarize data by Island
     summarize(num_samps = sum(!is.na(Unit_Count)),
               median_val = median(Unit_Count, na.rm = TRUE),
@@ -330,7 +331,8 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
     theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
     #theme(strip.background= element_rect(size=10, color="gray" ))+
     #theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-    facet_wrap( ~ Island +Segment, scales = "free_y", ncol= 3)
+    {if(survey == "creche") facet_wrap( ~ Island , scales = "free_y", ncol= 3) else
+      facet_wrap( ~ Island +Segment, scales = "free_y", ncol= 3)}
   
   
   #### CHOOSE TO PRINT ON EXECUTION OR CREATE OBJECT; THE LATTER HELPFUL WHEN LOOPING  
