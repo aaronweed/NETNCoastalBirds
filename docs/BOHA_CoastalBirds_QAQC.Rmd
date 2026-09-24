@@ -33,10 +33,13 @@ library(fuzzyjoin)
 library(lubridate)
 
 load("./data/tlu_Species.rda")
+
+load("./data/SurveyEffortBySpecies.rda")
 source("./docs/QAQCReport_functions.R")
 
 cbb <- importCBBData("./data/NETN_CoastalBirds_Dataset_20260828.zip")
-SurveyEffortBySpecies<-cbb$seg_event
+
+# SurveyEffortBySpecies<-cbb$seg_event # missing DCCO MIddle All
 ```
 
 ## Coastal Bird monitoring at Boston Harbor Islands (BOHA) {.tabset .tabset-fade .tabset-pills}
@@ -138,7 +141,7 @@ kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year co
 
 ```{r DCCO_sum}
 
-incub_new <- SumIncubation(df= incub_raw,  time = "year") 
+incub <- SumIncubation(df= df,  survey_effort= SurveyEffortBySpecies, time = "year") 
 
 # %>% mutate(shape = case_when(
 #   year == params$year ~ "8",
@@ -148,16 +151,19 @@ incub_new <- SumIncubation(df= incub_raw,  time = "year")
 #   .default = "black" ))
 
 
-DCCO<- filter(incub,Species_Code == "DCCO")
+DCCO<- filter(incub, Species_Code == "DCCO")
 
 # add table of raw counts
-kableExtra::kbl(DCCO[,c("Island","time","value")] %>% spread(time, value), caption= "Table 4. Maximum annual counts of Double-crested Cormorant",padding =2) %>%
+
+DCCO %>% filter(stat == "sd") %>% select(Island, time, value) %>% pivot_wider(names_from = time,values_from = value ) %>% 
+
+kableExtra::kbl(caption= "Table 4. Maximum annual counts of Double-crested Cormorant",padding =2) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 cat("\\newpage")
 
 # plot time series per Island
-PlotBirds(DCCO, raw_count = T, stat = "max", plot_title = FALSE)
+PlotBirds(DCCO, raw_count = T, stat = "mean", plot_title = FALSE)
 
 # create violin plot
 

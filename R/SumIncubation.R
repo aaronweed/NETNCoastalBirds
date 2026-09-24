@@ -2,8 +2,7 @@
 
 #' @title Sum Incubation Surveys
 #'
-#' @import dplyr 
-#' @importFrom tidyr spread gather
+#' @import dplyr mutate
 #' @importFrom magrittr %>% 
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
@@ -37,9 +36,9 @@
 #' @examples 
 #' \dontrun{ 
 #' importCBBData(new_env= TRUE) #creates CBB_TABLES object
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year",  seg_event = cbb$seg_event, species = "DCCO", output = "graph")
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date",  seg_event = cbb$seg_event, species = "DCCO", output = "graph")
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date",  seg_event = cbb$seg_event, ByObserver = "yes")
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year",  survey_effort = cbb$seg_event, species = "DCCO", output = "graph")
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date",  survey_effort = cbb$seg_event, species = "DCCO", output = "graph")
+#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date",  survey_effort = cbb$seg_event, ByObserver = "yes")
 #' }
 #' @export
 #' 
@@ -58,7 +57,7 @@ SumIncubation <- function(
   output <- match.arg(output)
   ByObserver <- match.arg(ByObserver)
   
-  if (is.null(seg_event)) {
+  if (is.null(survey_effort)) {
     stop("Please provide the segment-event survey effort data.")
   }
   
