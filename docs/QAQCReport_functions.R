@@ -29,7 +29,7 @@ PlotWeeklyBands<- function(survey, current_yr, species ){
   
   if(survey == "creche"){ 
     
-    df <- SumCreche(time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
+    df <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
       
       filter(!variable %in% "Average creche size" & Island %in% "All Islands") %>% 
       
@@ -39,7 +39,7 @@ PlotWeeklyBands<- function(survey, current_yr, species ){
   
   if(survey == "incubation"){ 
     
-    df <- SumIncubation(time= "date")  %>%  
+    df <- SumIncubation(df= cbb$incubation_raw,time= "date")  %>%  
       
       filter(Species_Code %in% species & !Island %in% "All Islands") %>% 
       
@@ -177,20 +177,20 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   library(NETNCoastalBirds)
   
   outer<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", 
-          "Outer Brewster", "Shag Rocks","Little Brewster")
+            "Outer Brewster", "Shag Rocks","Little Brewster")
   
   if(survey == "creche"){
-
     
-    df <- GetCrecheData()  # Summarize daily Primary Surveys
-
-
+    
+    df <- cbb$creche_raw()  # Summarize daily Primary Surveys
+    
+    
     df$Island <- plyr::mapvalues(df$Island, 
                                  from = c("Roaring Bulls"), 
                                  to = c("The Graves"))
     df<- df %>% 
-          filter(Survey_Primary %in% "Yes" & Survey_Complete %in% "Yes" & Island %in% outer) %>%
-
+      filter(Survey_Primary %in% "Yes" & Survey_Complete %in% "Yes" & Island %in% outer) %>%
+      
       mutate(
         Date = as.Date(Date),
         week = isoweek(Date),
@@ -200,7 +200,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
       dplyr::filter(Species_Unit %in% c("F-Lone", "Chick","F-Tend" )) %>% droplevels() %>% 
       
       group_by(Species_Code,  Date, year, month, week, Species_Unit, Observer) %>% 
-     
+      
       summarize(Unit_Count= sum(Unit_Count, na.rm = TRUE)) %>% # summarize segment level counts by each observer on each day
       mutate(Island = "Outer Islands") 
   }
@@ -208,16 +208,16 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   
   if(survey == "incubation"){ 
     
-        df <- GetIncubationData()   %>% 
+    df <- cbb$incubation_raw   %>% 
       filter(Species_Code %in% species & Survey_Primary %in% "Yes" & Survey_Complete %in% "Yes" & Island %in% outer) %>% 
       mutate(
         Date = as.Date(Date),
         week = isoweek(Date),
         Species_Code = as.factor(Species_Code),
         Observer = as.factor(Observer)
-  )
+      )
     
-}
+  }
   
   
   # calculate historic variation
@@ -237,7 +237,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
               lower_50 = ifelse(num_samps >= 3, quantile(Unit_Count, 0.25, na.rm = T), NA),
               upper_50 = ifelse(num_samps >= 3, quantile(Unit_Count, 0.75, na.rm = T), NA),
               .groups = "drop") %>% 
-          filter(!is.na(lower_50))
+    filter(!is.na(lower_50))
   
   df_current <- filter(df, year %in% current_yr) %>% 
     { if(survey == "creche")  filter(., Species_Unit %in% var) else .} %>%
@@ -317,7 +317,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
     labs(
       title = paste("Historical Seasonal Pattern (weekly) vs", current_yr, "Observations across Outer Islands"),
       y = {if (survey == "creche") paste ("No. of ", df_sum_plot$Species_Code[1], " ", df_sum_plot$Species_Unit[1]) else paste ("No. of ", df_sum_plot$Species_Code[1])}
-        ,
+      ,
       fill = "Metric Type",
       color = "Metric Type"
     ) +
@@ -345,7 +345,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   else{
     
     return(y1)
-  
+    
   }
 }
 
@@ -357,61 +357,61 @@ PlotHistBands<- function(survey, current_yr ){
   library(NETNCoastalBirds)
   
   if(survey == "creche"){ 
-  
-  df <- SumCreche(time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
-  
-    filter(!variable %in% "Average creche size" & Island %in% "All Islands")
+    
+    df <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") %>%  # Summarize daily Primary Surveys
+      
+      filter(!variable %in% "Average creche size" & Island %in% "All Islands")
   }
   
   
   if(survey == "incubation"){ 
     
-    df <- SumIncubation(time ="date")  %>%  # Summarize daily Primary Surveys
+    df <- SumIncubation(df= cbb$incubation_raw, time ="date")  %>%  # Summarize daily Primary Surveys
       
       filter(Island %in% "All Islands") %>% 
       
       mutate(month=lubridate::month(time), week = lubridate::isoweek(time))
     
-    }
+  }
   
   
   # calculate historic variation
   
-df_histsum <- filter(df, !year %in% current_yr) %>% # exclude current year
-  group_by(., Species_Code,  CommonName,  FullLatinName, Island, variable, month, stat) %>% 
-  summarize(num_samps = sum(!is.na(value)),
-            median_val = median(value, na.rm = TRUE),
-            min_val = min(value, na.rm = TRUE),
-            max_val = max(value, na.rm = TRUE),
-            lower_100 = ifelse(num_samps >= 3, min(value, na.rm = T), NA),
-            upper_100 = ifelse(num_samps >= 3, max(value, na.rm = T), NA),
-            lower_95 = ifelse(num_samps >= 3, quantile(value, 0.025, na.rm = T), NA),
-            upper_95 = ifelse(num_samps >= 3, quantile(value, 0.975, na.rm = T), NA),
-            lower_50 = ifelse(num_samps >= 3, quantile(value, 0.25, na.rm = T), NA),
-            upper_50 = ifelse(num_samps >= 3, quantile(value, 0.75, na.rm = T), NA),
-            .groups = "drop") |>
-  filter(!is.na(lower_50))
-
-df_current <- filter(df, year %in% current_yr) %>% 
-  mutate(metric_type = "value")
-
-df_med <- df_histsum |> select(Species_Code:stat, median_val) |>
-  mutate(metric_type = "median")
-
-# Pivot summary data for plotting
-
-df_sum_plot <- df_histsum |>
-  select(Species_Code:stat, lower_100, upper_100, lower_95, upper_95, lower_50, upper_50) |>
-  pivot_longer(cols = c(lower_100, upper_100, lower_95, upper_95, lower_50, upper_50),
-               names_to = "metric", values_to = "value") |>
-  mutate(metric_type = ifelse(grepl("lower", metric), "lower", "upper"),
-         distrib = paste0("d", gsub("\\D", "", metric))) |>
-  select(-metric) |>
-  pivot_wider(values_from = value, names_from = metric_type) |>
-  mutate(metric_type = distrib)
-
-
-
+  df_histsum <- filter(df, !year %in% current_yr) %>% # exclude current year
+    group_by(., Species_Code,  CommonName,  FullLatinName, Island, variable, month, stat) %>% 
+    summarize(num_samps = sum(!is.na(value)),
+              median_val = median(value, na.rm = TRUE),
+              min_val = min(value, na.rm = TRUE),
+              max_val = max(value, na.rm = TRUE),
+              lower_100 = ifelse(num_samps >= 3, min(value, na.rm = T), NA),
+              upper_100 = ifelse(num_samps >= 3, max(value, na.rm = T), NA),
+              lower_95 = ifelse(num_samps >= 3, quantile(value, 0.025, na.rm = T), NA),
+              upper_95 = ifelse(num_samps >= 3, quantile(value, 0.975, na.rm = T), NA),
+              lower_50 = ifelse(num_samps >= 3, quantile(value, 0.25, na.rm = T), NA),
+              upper_50 = ifelse(num_samps >= 3, quantile(value, 0.75, na.rm = T), NA),
+              .groups = "drop") |>
+    filter(!is.na(lower_50))
+  
+  df_current <- filter(df, year %in% current_yr) %>% 
+    mutate(metric_type = "value")
+  
+  df_med <- df_histsum |> select(Species_Code:stat, median_val) |>
+    mutate(metric_type = "median")
+  
+  # Pivot summary data for plotting
+  
+  df_sum_plot <- df_histsum |>
+    select(Species_Code:stat, lower_100, upper_100, lower_95, upper_95, lower_50, upper_50) |>
+    pivot_longer(cols = c(lower_100, upper_100, lower_95, upper_95, lower_50, upper_50),
+                 names_to = "metric", values_to = "value") |>
+    mutate(metric_type = ifelse(grepl("lower", metric), "lower", "upper"),
+           distrib = paste0("d", gsub("\\D", "", metric))) |>
+    select(-metric) |>
+    pivot_wider(values_from = value, names_from = metric_type) |>
+    mutate(metric_type = distrib)
+  
+  
+  
 # Plot ribbon for each metric_type (d50, d95, d100), grouped by variable
 
 plot_values <- c("d100" = "#B8D8ED", "d95" = "#7FB9DD", "d50" = "#1378b5", "median" = "blue",

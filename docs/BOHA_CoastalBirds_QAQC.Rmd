@@ -6,12 +6,23 @@ output:
     
     
 params:
-  year: 2021
+  year: 2026
 ---
 
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = FALSE,       # Hide code from the final output
+  warning = FALSE,    # Suppress warnings
+  message = FALSE,    # Suppress messages
+  fig.pos='h',
+  fig.width = 8,      # Set default figure width
+  fig.height = 12,     # Set default figure height
+  fig.align = "center" # Center align all plots
+)
+```
 
-```{r,intro, results='hide', echo=F, include=FALSE}
-
+```{r,imports,include=FALSE}
 library(NETNCoastalBirds)
 library(tidyverse)
 library(knitr)
@@ -19,20 +30,13 @@ library(magrittr)
 library(kableExtra)
 library(broom)
 library(fuzzyjoin)
+library(lubridate)
 
-load("../data/tlu_Species.rda")
-load("../data/SurveyEffortBySpecies.rda")
-source("../docs/QAQCReport_functions.R")
+load("./data/tlu_Species.rda")
+source("./docs/QAQCReport_functions.R")
 
-
-
-#path<-"C:/Users/aweed/OneDrive - DOI/Documents/NETN Protocols/Coastal Birds/R/R package/NETNCoastalBirds/inst/extdata/"
-
-#suppressWarnings({importCBBData(path, zip_name= "CSV_Dataset_Export_20230119.zip", new_env = TRUE)})
-
-# plotting function to examine current vs historical counts
-
-
+cbb <- importCBBData("./data/NETN_CoastalBirds_Dataset_20260828.zip")
+SurveyEffortBySpecies<-cbb$seg_event
 ```
 
 ## Coastal Bird monitoring at Boston Harbor Islands (BOHA) {.tabset .tabset-fade .tabset-pills}
@@ -45,14 +49,14 @@ source("../docs/QAQCReport_functions.R")
 
 **Staff should evaluate the tables to ensure that at least one incubation survey was completed per year and that at least one survey was designated as the Primary Survey (expert observation) for each Island and Route Segment combination. Note that there may be >1 Primary Survey for each Island/Event combination.**
 
-``` {r incub_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+``` {r incub_events}
 
 ### Subset by outer Islands 
   
   outer<- c("Calf", "Little Calf", "Green", "The Graves", "Middle Brewster", 
             "Outer Brewster", "Shag Rocks","Little Brewster") 
 
-incub_raw = GetIncubationData()
+incub_raw = cbb$incubation_raw
 
 # surveys per segment 
 incub_surveys<- incub_raw %>% filter(Species_Code == "DCCO" & year %in% params$year & Island %in% outer) %>% select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
@@ -114,7 +118,7 @@ NETN staff should check the following sections for DCCO, GBBG, and HERG to ensur
 
 --->
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+```{r DCCO_raw}
 
 PlotWeeklyObserver(survey = "incubation", species = "DCCO", current_yr = params$year)
 
@@ -132,11 +136,10 @@ kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year co
 `r SumIncubation_methods`
 
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
+```{r DCCO_sum}
 
-options(knitr.kable.NA = '')
+incub_new <- SumIncubation(df= incub_raw,  time = "year") 
 
-incub <- SumIncubation(  time = "year") 
 # %>% mutate(shape = case_when(
 #   year == params$year ~ "8",
 #   .default = "19" )) %>% 
@@ -189,7 +192,9 @@ kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed G
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12, message=FALSE}
 options(knitr.kable.NA = '')
-#incub <- SumIncubation(time = "year")
+
+incub <- SumIncubation(incub_raw, time = "year")
+
 GBBG<- filter(incub,Species_Code == "GBBG")
 
 # add table of raw counts
@@ -263,7 +268,7 @@ y<- plt_var(type= "violin", survey = "incubation", species = "HERG", var ="Incub
 
 ``` {r creche_events, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 
-creche_raw<-GetCrecheData()
+creche_raw<-cbb$creche_raw
 
 # filter out complete surveys per segment for current year 
 creche_surveys<- creche_raw %>% filter(year %in% params$year) %>% select(Island, Segment, Date, Species_Unit, Observer, Group_Notes, Survey_Notes, Survey_Complete, Survey_Primary)
@@ -313,7 +318,7 @@ kable(creche_surveys %>% filter(Survey_Complete == "No" & Survey_Primary == "Yes
 ```{r crecheday,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
 options(knitr.kable.NA = '')
 
-creche <- SumCreche(time ="date", islands = "outer") # Summarize daily Primary Surveys
+creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
 
 # plot counts of F-tending and ducklings by survey date in current year for each island
 y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$year, raw_count = T, stat = "sum", legend= T, print= FALSE)
@@ -482,10 +487,9 @@ The following tables and graphs summarize data from boat-based creche surveys in
 # 2. Double check that partial surveys occurred and that the portion of the route survey was estimated in the DB. As of now the % surveyed is not being imported into the R package object (confirm data field with Adam).
 
 
-
 # bring in raw event level data
 
-nests_raw<-GetNestData()
+nests_raw<-cbb$nest_surveys_raw
 
 # create data summarizing all ground-based nest counts
 nests <- SumNestSurveys(df= NULL,time= "year") %>% mutate(shape = case_when(
