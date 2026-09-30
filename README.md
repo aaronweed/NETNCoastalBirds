@@ -16,7 +16,6 @@ The package provides a workflow for:
 
 * importing monitoring data from the NETN Coastal Bird Access database or exported database tables;
 * retrieving survey-effort information;
-* standardizing raw survey data;
 * summarizing observations by date, year, island, segment, species, and life stage;
 * calculating effort-adjusted observations;
 * examining survey history and sampling effort;
@@ -51,23 +50,7 @@ library(NETNCoastalBirds)
 
 There are two primary ways to work with the monitoring data.
 
-### Option 1: Use the data bundled with the package
-
-The package contains saved versions of the monitoring datasets. These are convenient for analysis and examples but may not represent the most recent data in the NETN Coastal Bird database.
-
-For example:
-
-```r
-nest_data <- GetNestData(connect = "No")
-
-incubation_data <- GetIncubationData(connect = "No")
-
-creche_data <- GetCrecheData(connect = "No")
-
-amoy_data <- GetAMOYData(connect = "No")
-```
-
-### Option 2: Retrieve current data from the database
+### Option 1: Retrieve data from the network's database
 
 Users with access to the NETN Coastal Bird Access database can retrieve current data using the Windows ODBC connection named `NETNCB`.
 
@@ -85,25 +68,17 @@ amoy_data <- GetAMOYData()
 
 The data-retrieval functions use the underlying Access database to construct standardized data frames for subsequent analysis.
 
-> **Note:** The current package data were last validated on **August 20, 2025**. The bundled data should therefore not be assumed to represent the current state of the monitoring database.
-
 ---
 
-# Importing exported database data
+### Option 2: Importing data package
 
-The package also supports analysis using tables exported from the NETN Coastal Bird database.
+The data package contains tables exported from the NETN Coastal Bird database that is published annually at this URL [DS link].
 
 `importCBBData()` imports the exported database views and stores them in the `CBB_TABLES` environment by default.
 
 For example:
 
-```r
-importCBBData(
-  path = "C:/Coastal_Birds/exports/NETN"
-)
-```
-
-A ZIP archive containing the exported tables can also be imported:
+A ZIP archive containing the exported tables can be imported:
 
 ```r
 importCBBData(
@@ -124,41 +99,32 @@ The imported database views include:
 * Surveillance surveys
 * Incidental observations
 
-The resulting tables can then be supplied directly to the summary functions.
-
-For example:
-
-```r
-SumNestSurveys(
-  df = CBB_TABLES$qry_Dataset_3_Survey_Nest,
-  time = "year"
-)
-```
-
 ---
 
-# Survey effort
+# Survey Effort
 
-Many monitoring summaries can be expressed as effort-adjusted observations. The package includes `GetSurveyData()` for retrieving survey effort by species, island, segment, and survey type.
+Many monitoring summaries can be expressed as effort-adjusted observations. 
 
-For example:
+`importCBBData()` creates a data frame object from the data package for retrieving survey effort by species, island, segment, and survey type.
+
+For example, 
 
 ```r
-GetSurveyData(
-  species = "DCCO",
-  survey = "Incubation"
+
+cbb<- importCBBData(
+  path = "C:/Coastal_Birds/exports/NETN",
+  zip_name = "CBB_Dataset_Export_20230119.zip"
 )
+
+cbb$seg_event
+
 ```
-
-Survey effort includes the area or distance surveyed and the corresponding units.
-
-The package also includes the `SurveyEffortBySpecies` dataset containing standardized survey-effort information.
 
 ---
 
 # Summarizing monitoring data
 
-## Nest surveys
+## Ground Nest surveys
 
 `SumNestSurveys()` summarizes ground-based nest surveys by date or year and can return raw and effort-adjusted counts.
 
@@ -174,20 +140,14 @@ nest_summary <- SumNestSurveys(
 
 The function can summarize:
 
-* nests;
-* chicks;
-* eggs;
-* chicks per nest;
-* eggs per nest; and
-* clutch-related measures.
-
-Annual summaries account for repeated surveys, including the use of the maximum nest count for species and sites where multiple surveys occur within a year.
-
+* Number of nests;
+* Number of chicks; and
+* Number of eggs.
 ---
 
-## Incubation surveys
+## Boat-based Incubation surveys
 
-`SumIncubation()` summarizes boat-based incubation surveys, particularly for Double-crested Cormorants and gulls.
+`SumIncubation()` summarizes boat-based incubation surveys for Double-crested Cormorants and gulls.
 
 ```r
 incubation_summary <- SumIncubation(
@@ -196,6 +156,8 @@ incubation_summary <- SumIncubation(
   output = "graph"
 )
 ```
+
+Annual summaries account for repeated surveys, including the use of the maximum nest count for species and sites where multiple surveys occur within a year.
 
 Annual summaries can include statistics such as:
 
@@ -208,7 +170,7 @@ The function can also return observations summarized by observer for date-level 
 
 ---
 
-## Common Eider creche surveys
+## Boat-based Common Eider creche surveys
 
 `SumCreche()` summarizes Common Eider (`COEI`) creche surveys.
 
@@ -221,14 +183,11 @@ creche_summary <- SumCreche(
 
 The resulting summaries include measures such as:
 
-* adult females tending ducklings;
-* ducklings;
-* total female Common Eiders observed; and
-* average creche size.
+* Number of adult females tending ducklings;
+* Number of ducklings; and
+* Number of total female Common Eiders observed.
 
-The function can also calculate effort-adjusted observations based on survey distance.
-
-For observer-level summaries:
+For observer-level daily summaries per island:
 
 ```r
 creche_observer <- SumCreche(
@@ -254,30 +213,6 @@ The current implementation summarizes observations from the Spinnaker platform.
 
 ---
 
-## Gull and Double-crested Cormorant surveys
-
-`SumGulls_DCCO()` provides summaries of gull and Double-crested Cormorant observations from incubation and nest surveys.
-
-For example:
-
-```r
-dcco <- SumGulls_DCCO(
-  time = "year",
-  species = "DCCO",
-  output = "graph"
-)
-```
-
-Species can include:
-
-```r
-"DCCO"
-"GBBG"
-"HERG"
-```
-
----
-
 ## American Oystercatcher
 
 `GetAMOYData()` retrieves raw American Oystercatcher survey observations.
@@ -298,16 +233,6 @@ amoy_pairs <- AMOY_MatingPairSumm()
 
 `PlotBirds()` provides a common plotting interface for summarized monitoring data.
 
-For example:
-
-```r
-PlotBirds(
-  nest_summary,
-  species = "COEI",
-  var = "Nests"
-)
-```
-
 The function can be used with output from:
 
 * `SumNestSurveys()`
@@ -321,18 +246,20 @@ It supports:
 * filtering by species;
 * selecting a life-stage or other variable;
 * annual statistics;
-* log-scaled plots;
+* log-scaled counts;
 * faceting by island, species, or variable; and
 * overlaying species, life stages, or islands.
 
 For example:
 
 ```r
+nest_summary<-SumNestSurvey(df = CBB_TABLES$qry_Dataset_3_Survey_Nest, time = "year")
+
 PlotBirds(
-  dcco,
-  species = "DCCO",
-  var = "Incubating adults",
-  stat = "mean"
+  nest_summary,
+  species = "COEI",
+  stat ="max",
+  var = "Nests"
 )
 ```
 
@@ -357,26 +284,6 @@ The resulting matrix can be used to examine the spatial and temporal coverage of
 
 ---
 
-# Bundled datasets
-
-Several standardized datasets are included with the package and can be accessed directly after loading `NETNCoastalBirds`.
-
-Examples include:
-
-| Dataset                 | Description                                                    |
-| ----------------------- | -------------------------------------------------------------- |
-| `SurveyEffortBySpecies` | Survey effort by species, island, segment, and survey type     |
-| `CrecheByObserver`      | Common Eider creche observations summarized by observer        |
-| `CrecheSurveysByDate`   | Common Eider creche observations summarized by island and date |
-| `IncubationByObserver`  | Incubation observations summarized by observer                 |
-| `IncubationByYear`      | Incubation observations summarized by island and year          |
-| `NestSurveysByDate`     | Nest-survey observations summarized by island and date         |
-| `NestSurveysByYear`     | Nest-survey observations summarized by island and year         |
-
-These objects provide convenient starting points for analysis without requiring a connection to the monitoring database.
-
----
-
 # Typical analysis workflow
 
 A typical workflow using the package is:
@@ -387,12 +294,15 @@ A typical workflow using the package is:
 library(NETNCoastalBirds)
 ```
 
-### 2. Obtain the monitoring data
+### 2. Import the monitoring data
 
 Either use the bundled data:
 
 ```r
-nest_data <- GetNestData(connect = "No")
+importCBBData(
+  path = "C:/Coastal_Birds/exports/NETN",
+  zip_name = "CBB_Dataset_Export_20230119.zip"
+)
 ```
 
 or retrieve current data from the database:
@@ -402,6 +312,8 @@ nest_data <- GetNestData()
 ```
 
 ### 3. Summarize the observations
+
+For example, for each year:
 
 ```r
 nest_summary <- SumNestSurveys(
@@ -453,12 +365,9 @@ The current package contains functions supporting multiple coastal breeding bird
 * Double-crested Cormorant (`DCCO`)
 * Great Black-backed Gull (`GBBG`)
 * Great Egret (`GREG`)
-* Great Blue Heron (`GBBG`/related survey records)
 * Herring Gull (`HERG`)
 * Least Tern (`LETE`)
 * Snowy Egret (`SNEG`)
-* Spotted Sandpiper (`SPSA`)
-* Willet (`WILL`)
 * Glossy Ibis (`GLIB`)
 
 Species availability varies among survey types.
@@ -480,10 +389,7 @@ The primary exported functions are:
 
 ### Summaries
 
-* `AMOY_MatingPairSumm()`
-* `SumCOTE()`
 * `SumCreche()`
-* `SumGulls_DCCO()`
 * `SumIncubation()`
 * `SumNestSurveys()`
 
@@ -492,30 +398,13 @@ The primary exported functions are:
 * `PlotBirds()`
 * `GetSurveyMat()`
 
-Function documentation is available from within R:
-
-```r
-?GetNestData
-?SumNestSurveys
-?SumIncubation
-?SumCreche
-?PlotBirds
-?GetSurveyMat
-```
-
 ---
 
 # Data provenance
 
 The monitoring data used by this package originate from the **NETN Coastal Breeding Bird Monitoring Program** and its associated database and monitoring protocols.
 
-The package currently contains data last validated on:
-
-**August 20, 2025**
-
 Because the underlying monitoring database is periodically updated, users conducting analyses intended to represent the most current monitoring information should retrieve current data when database access is available.
-
-The package also provides the ability to work from exported database tables when direct ODBC access is not available.
 
 ---
 
@@ -525,7 +414,7 @@ Additional information about the NETN Coastal Breeding Bird Monitoring Program, 
 
 [NETN Coastal Birds](https://www.nps.gov/im/netn/coastal-birds.htm)
 
-The package documentation cites:
+The monitoring protocol:
 
 > Trocki, C. L., B. R. Mitchell, and P. W. C. Paton. 2015. *Coastal breeding bird monitoring protocol for Boston Harbor Islands National Recreation Area: 2015 revision.* Natural Resource Report NPS/NETN/NRR—2015/954. National Park Service, Fort Collins, Colorado.
 
