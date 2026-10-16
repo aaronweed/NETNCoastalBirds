@@ -364,7 +364,7 @@ importCBBData <- function(zip_file) {
     temp.nest$Chick_Count == 999
   ] <- NA
   
-  # Match the current ODBC branch of GetNestData().
+  # Match GetNestData().
   nest_surveys_raw <- temp.nest |>
     dplyr::select(
       Park,

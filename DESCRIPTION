@@ -44,10 +44,12 @@ Collate:
     'SumCOTE.R'
     'SumCreche.R'
     'SumGulls_DCCO.R'
+    'SumIncubation_new.R'
+    'SumIncubation_old.R'
     'SurveyEffortBySpecies.R'
     'creche_raw.R'
     'getSurveyMat.R'
     'importCBBData.R'
     'species_tlu_Data.R'
-RoxygenNote: 7.3.1
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

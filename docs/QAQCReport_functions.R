@@ -182,7 +182,7 @@ PlotWeeklyObserver<- function(survey, current_yr, species, var , print= TRUE){
   if(survey == "creche"){
     
     
-    df <- cbb$creche_raw()  # Summarize daily Primary Surveys
+    df <- cbb$creche_raw  # Summarize daily Primary Surveys
     
     
     df$Island <- plyr::mapvalues(df$Island, 
@@ -412,95 +412,95 @@ PlotHistBands<- function(survey, current_yr ){
   
   
   
-# Plot ribbon for each metric_type (d50, d95, d100), grouped by variable
-
-plot_values <- c("d100" = "#B8D8ED", "d95" = "#7FB9DD", "d50" = "#1378b5", "median" = "blue",
-                "value" = "black")
+  # Plot ribbon for each metric_type (d50, d95, d100), grouped by variable
   
-plot_breaks <- c("d100", "d95", "d50", "median" ,
-                 "value")
-
-plot_labels <-c("d100" = "Historic range", "d95" = "Hist. 95% range",
-                "d50" = "Hist. 50% range", "median" = "Hist. median",
-                "value" = "Current counts")
+  plot_values <- c("d100" = "#B8D8ED", "d95" = "#7FB9DD", "d50" = "#1378b5", "median" = "blue",
+                   "value" = "black")
   
-line_values <-c("median" = "solid")
-line_breaks <-NULL
-
-line_labels <- NULL
-
-# df_sum_plot$month <-  factor(df_sum_plot$month,
-#                          levels = df_sum_plot$month,
-#                          labels = month.abb[df_sum_plot$month], ordered = T)
-# 
-# df_current$month <- factor(df_current$month,
-#                         levels = df_current$month,
-#                         labels = month.abb[df_current$month], ordered = T)
-# 
-# df_med$month <-   factor(df_med$month,
-#                              levels = df_med$month,
-#                              labels = month.abb[df_med$month], ordered = T)
-
-# Create plot
-
-y1<- ggplot() +
-  geom_ribbon(data = df_sum_plot, 
-              aes(x = month, 
-                  ymin = lower, ymax = upper, fill = metric_type, group= metric_type), alpha = 0.2) +
- 
-  geom_line(data = df_med,
-            aes(y = median_val, x = month, 
-                color = metric_type, group = metric_type,
-                text = paste0("Island: ", Island, "<br>",
-                              "Month: ", month, "<br>",
-                              "Historic Median: ", round(median_val, 1), "<br>")), lwd = 0.7) +
+  plot_breaks <- c("d100", "d95", "d50", "median" ,
+                   "value")
   
-  geom_point(data = df_current,
-             aes(y = value, 
-                 x = as.numeric(format(time, "%m")) + as.numeric(format(time, "%d")) / 31,
-                 color = metric_type, group = metric_type)) +
-  scale_x_continuous(
-    breaks = 1:12,
-    labels = month.abb,
-    name = "Month"
-  ) + 
-   scale_color_manual(values = plot_values,
-                     breaks = plot_breaks,
-                     labels = plot_labels,
-                     name = NULL) +
-  scale_fill_manual(values = plot_values,
+  plot_labels <-c("d100" = "Historic range", "d95" = "Hist. 95% range",
+                  "d50" = "Hist. 50% range", "median" = "Hist. median",
+                  "value" = "Current counts")
+  
+  line_values <-c("median" = "solid")
+  line_breaks <-NULL
+  
+  line_labels <- NULL
+  
+  # df_sum_plot$month <-  factor(df_sum_plot$month,
+  #                          levels = df_sum_plot$month,
+  #                          labels = month.abb[df_sum_plot$month], ordered = T)
+  # 
+  # df_current$month <- factor(df_current$month,
+  #                         levels = df_current$month,
+  #                         labels = month.abb[df_current$month], ordered = T)
+  # 
+  # df_med$month <-   factor(df_med$month,
+  #                              levels = df_med$month,
+  #                              labels = month.abb[df_med$month], ordered = T)
+  
+  # Create plot
+  
+  y1<- ggplot() +
+    geom_ribbon(data = df_sum_plot, 
+                aes(x = month, 
+                    ymin = lower, ymax = upper, fill = metric_type, group= metric_type), alpha = 0.2) +
+    
+    geom_line(data = df_med,
+              aes(y = median_val, x = month, 
+                  color = metric_type, group = metric_type,
+                  text = paste0("Island: ", Island, "<br>",
+                                "Month: ", month, "<br>",
+                                "Historic Median: ", round(median_val, 1), "<br>")), lwd = 0.7) +
+    
+    geom_point(data = df_current,
+               aes(y = value, 
+                   x = as.numeric(format(time, "%m")) + as.numeric(format(time, "%d")) / 31,
+                   color = metric_type, group = metric_type)) +
+    scale_x_continuous(
+      breaks = 1:12,
+      labels = month.abb,
+      name = "Month"
+    ) + 
+    scale_color_manual(values = plot_values,
+                       breaks = plot_breaks,
+                       labels = plot_labels,
+                       name = NULL) +
+    scale_fill_manual(values = plot_values,
                       breaks = plot_breaks,
-                    labels = plot_labels,
-                    name = NULL) +
-  scale_linetype_manual(values = line_values,
-                        breaks = line_breaks,
-                        labels = line_labels,
-                        name = NULL) +
-  
-  facet_grid( ~ Species_Code +variable, scales = "free_y", switch = "y") +
-  labs(
-    title = paste("Historical Seasonal Pattern (monthly) vs", current_yr, "Observations across all Outer Islands"),
-    x = "Month",
-    y = "No. of Common Eider",
-    fill = "Metric Type",
-    color = "Metric Type"
-  ) +
-  theme_bw()+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-  theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
-  theme(axis.text.y = element_text(size = 12 )) +
-  #theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-  theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-  theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-  #theme(panel.background =  element_rect(fill="white", colour="black")) +
-  #theme(panel.grid.major = element_line(colour = "grey90")) +
-  theme(plot.title=element_text(size=12, vjust=2, face= "bold")) 
+                      labels = plot_labels,
+                      name = NULL) +
+    scale_linetype_manual(values = line_values,
+                          breaks = line_breaks,
+                          labels = line_labels,
+                          name = NULL) +
+    
+    facet_grid( ~ Species_Code +variable, scales = "free_y", switch = "y") +
+    labs(
+      title = paste("Historical Seasonal Pattern (monthly) vs", current_yr, "Observations across all Outer Islands"),
+      x = "Month",
+      y = "No. of Common Eider",
+      fill = "Metric Type",
+      color = "Metric Type"
+    ) +
+    theme_bw()+
+    theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+    theme(axis.text.x = element_text(angle = 0,  vjust=0,size = 12 )) +
+    theme(axis.text.y = element_text(size = 12 )) +
+    #theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+    theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+    theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+    #theme(panel.background =  element_rect(fill="white", colour="black")) +
+    #theme(panel.grid.major = element_line(colour = "grey90")) +
+    theme(plot.title=element_text(size=12, vjust=2, face= "bold")) 
   #theme(strip.background= element_rect(size=10, color="gray"))
-
   
-
-suppressWarnings(print(y1))
-
+  
+  
+  suppressWarnings(print(y1))
+  
 }
 
 plt_var<- function(type = "boxplot", survey, species, var) {
