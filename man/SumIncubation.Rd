@@ -6,10 +6,11 @@
 \usage{
 SumIncubation(
   df = NULL,
-  time,
-  species = NA,
-  output = "graph",
-  ByObserver = "no",
+  time = c("date", "year"),
+  species = NULL,
+  output = c("graph", "table"),
+  survey_effort = NULL,
+  ByObserver = c("no", "yes"),
   segment = FALSE
 )
 }

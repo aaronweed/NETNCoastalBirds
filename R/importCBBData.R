@@ -1,103 +1,477 @@
-#' @title importCBBData Import NETN Coastal Bird data that are formatted as .xlxs files.
+#' Import NETN Coastal Bird data from a database export ZIP
 #'
-#' @importFrom  readxl read_excel
+#' Imports a NETN Coastal Bird database export and returns analysis-ready
+#' data frames corresponding to the objects returned by
+#' [GetIncubationData()], [GetCrecheData()], [GetNestData()], and
+#' [GetSurveyData()].
 #'
-#' @description This function imports all CSVs exported from NETN's Coastal Bird Database. 
+#' @param zip_file Character. Path to the NETN Coastal Bird database
+#'   export ZIP file.
 #'
-#' @param path Quoted path of folder containing tables.
+#' @return A named list with four data frames:
+#' \describe{
+#'   \item{incubation_raw}{Boat-based incubation survey data.}
+#'   \item{creche_raw}{Common Eider creche survey data.}
+#'   \item{nest_surveys_raw}{Ground-based nest survey data.}
+#'   \item{seg_event}{Survey effort by species, island, segment, and
+#'   survey type.}
+#' }
 #'
-#' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
-#' views in CBB_TABLES environment. If \code{FALSE}, stores views in global environment
-#' 
-#' @param zip_name Quoted string ending in .zip. If specified, function looks for the specified file name and
-#' imports .csvs from the zip file. If not specified, function looks for and imports individual csvs. Note that
-#' this takes slightly longer than loading individual .csvs, due to the unzipping process.
+#' @details
+#' This function provides an alternative to direct ODBC access through
+#' the `Get*Data()` functions. It is intended for users who have a current
+#' database export ZIP but do not have direct access to the NETN ODBC
+#' connection.
 #'
-#' @return NETN database views in specified environment
+#' The export must contain `Events`, `Segments`, `Survey_Incubation`,
+#' `Survey_Creche`, and `Survey_Nest` CSV tables. Date-stamped filenames
+#' such as `Survey_Nest_20260828.csv` are supported.
+#'
+#' The `Survey_*` files are already joined database views. Filtering,
+#' date handling, column selection, and ordering reproduce the
+#' corresponding `Get*Data()` functions.
 #'
 #' @examples
 #' \dontrun{
-#' # Import individual xlsxs into global environment
-#' importCBBData(path = "C:/Coastal_Birds/exports/NETN")
+#' cbb <- importCBBData(
+#'   "NETN_CoastalBirds_Dataset_20260828.zip"
+#' )
 #'
-#' # Import zipped csvs into global environment
-#' path <- "C:/Coastal_Birds/exports/NETN"
-#' importCBBData(path = path, zip_name = "CBB_Dataset_Export_20230119.zip")
+#' incubation_raw <- cbb$incubation_raw
+#' creche_raw <- cbb$creche_raw
+#' nest_surveys_raw <- cbb$nest_surveys_raw
+#' seg_event <- cbb$seg_event
 #' }
-#' 
+#'
 #' @export
-
-importCBBData<- function(path = NA, new_env = TRUE, zip_name = NA){
+importCBBData <- function(zip_file) {
   
-  # Error handling for path
+  if (missing(zip_file) || length(zip_file) != 1L ||
+      !is.character(zip_file) || !file.exists(zip_file)) {
+    stop(
+      "Please supply the path to an existing NETN Coastal Bird ZIP export.",
+      call. = FALSE
+    )
+  }
   
-  if(is.na(path)){stop("Must specify a path to import files.")
-  } else if(!dir.exists(path)){stop("Specified path does not exist.")}
+  required_tables <- c(
+    "Events",
+    "Segments",
+    "Survey_Incubation",
+    "Survey_Creche",
+    "Survey_Nest"
+  )
   
-  # Add / to end of path if it wasn't specified.
-  path <- if(substr(path, nchar(path), nchar(path)) != "/"){paste0(path, "/")} else {(paste0(path))}
+  zip_list <- utils::unzip(zip_file, list = TRUE)$Name
   
+  csv_files <- basename(
+    zip_list[grepl("\\.csv$", zip_list, ignore.case = TRUE)]
+  )
   
-  view_list <- c("qry_Dataset_1_Events_All","qry_Dataset_2_Survey_Incubation", "qry_Dataset_3_Survey_Nest",
-                 "qry_Dataset_4_Survey_Creche", "qry_Dataset_5_Survey_AMOY", "qry_Dataset_6_Summary_AMOY_PIPL",
-                 "qry_Dataset_7_Summary_Terns", "qry_Dataset_8_Survey_Surveillance","qry_Dataset_9_Incidental_Observations")
-  
-  # Make sure zip file exists and all the views are included
-  if(!is.na(zip_name)){
-    if(!file.exists(paste0(path, zip_name))){stop("Specified zip file doesn't exist in path.")}}
-  
-  
-  # Make sure all the views are in the path or zip file. If anything is missing, function stops.
-  files <-
-    if(!is.na(zip_name)){
-      zfiles <- unzip(paste0(path, zip_name), list = TRUE)$Name
-      files <- substr(zfiles, 1, nchar(zfiles) - 5)
-    } else if(is.na(zip_name)) {
-      files <- substr(list.files(path), 1, nchar(list.files(path)) - 5)}
-  
-  missing <- setdiff(view_list, files)
-  
-  if(length(missing) > 0 & length(missing) < length(view_list)){
-    stop(paste0("Missing the following views: ", paste0(missing, collapse = ", ")))
-  } else if (length(missing) == length(view_list)){
-    stop(paste0("Views were not detected in specified ", ifelse(is.na(zip_name), "path.", "zip file.")))}
-  
-  # Since the missing test passed, clean up files so only includes names in view_list, but
-  # maintain order in files
-  files <- intersect(files, view_list)
-  
-  # Import views now that all tests passed
-  pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
-  
-  view_import <-
-    if(!is.na(zip_name)){
-      views <- unzip(paste0(path, zip_name), junkpaths = TRUE, exdir = tempdir())
-      lapply(seq_along(view_list), function(x){
-        setTxtProgressBar(pb,x)
-        read_excel(views[x])})
-    } else if(is.na(zip_name)){
-      lapply(seq_along(view_list), function(x){
-        setTxtProgressBar(pb, x)
-        read_excel(paste0(path, view_list[x], ".csv"))
-      })
+  find_table <- function(table_name) {
+    
+    hits <- csv_files[
+      grepl(
+        paste0("^", table_name, "_[0-9]{8}\\.csv$"),
+        csv_files,
+        ignore.case = TRUE
+      )
+    ]
+    
+    if (length(hits) == 0L) {
+      stop(
+        "Required table not found in ZIP export: ",
+        table_name,
+        call. = FALSE
+      )
     }
+    
+    if (length(hits) > 1L) {
+      stop(
+        "More than one dated version of ",
+        table_name,
+        " was found in the ZIP export.",
+        call. = FALSE
+      )
+    }
+    
+    hits
+  }
   
-  view_import <- setNames(view_import, files)
+  table_files <- stats::setNames(
+    lapply(required_tables, find_table),
+    required_tables
+  )
   
-  if(new_env == TRUE){
-    CBB_TABLES <<- new.env()
-    list2env(view_import, envir = CBB_TABLES)
-  } else {
-    list2env(view_import, envir = .GlobalEnv)}
+  tmp <- tempfile("NETNCoastalBirds_")
+  dir.create(tmp)
   
-    close(pb)
+  on.exit(
+    unlink(tmp, recursive = TRUE, force = TRUE),
+    add = TRUE
+  )
   
-  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in CBB_TABLES environment."),
-               paste0("Import complete. Views are located in global environment.")), quote = FALSE)
+  utils::unzip(
+    zip_file,
+    files = unlist(table_files),
+    exdir = tmp,
+    junkpaths = TRUE
+  )
   
+  # Read CSV while handling both UTF-8 and legacy Windows-1252
+  # characters encountered in the database export.
+  read_cbb_csv <- function(file) {
+    
+    raw <- readBin(
+      file,
+      what = "raw",
+      n = file.info(file)$size
+    )
+    
+    txt <- rawToChar(raw)
+    
+    txt_utf8 <- iconv(
+      txt,
+      from = "UTF-8",
+      to = "UTF-8",
+      sub = NA_character_
+    )
+    
+    if (is.na(txt_utf8)) {
+      txt <- iconv(
+        txt,
+        from = "Windows-1252",
+        to = "UTF-8",
+        sub = "byte"
+      )
+    } else {
+      txt <- txt_utf8
+    }
+    
+    utils::read.csv(
+      text = txt,
+      stringsAsFactors = FALSE,
+      na.strings = c("", "NA"),
+      check.names = FALSE,
+      strip.white = TRUE
+    )
+  }
+  
+  Events <- read_cbb_csv(
+    file.path(tmp, table_files$Events)
+  )
+  
+  Segments <- read_cbb_csv(
+    file.path(tmp, table_files$Segments)
+  )
+  
+  Survey_Incubation <- read_cbb_csv(
+    file.path(tmp, table_files$Survey_Incubation)
+  )
+  
+  Survey_Creche <- read_cbb_csv(
+    file.path(tmp, table_files$Survey_Creche)
+  )
+  
+  Survey_Nest <- read_cbb_csv(
+    file.path(tmp, table_files$Survey_Nest)
+  )
+  
+  # ================================================================
+  # Incubation
+  # Reproduce GetIncubationData()
+  # ================================================================
+  
+  temp.incub <- Survey_Incubation[
+    Survey_Incubation$Obs_Type %in% "Target",
+    ,
+    drop = FALSE
+  ]
+  
+  temp.incub$Date <- lubridate::ymd(temp.incub$Date)
+  
+  temp.incub$year <- lubridate::year(
+    temp.incub$Date
+  )
+  
+  temp.incub$month <- lubridate::month(
+    temp.incub$Date
+  )
+  
+  # The export already contains HH:MM:SS.
+  temp.incub$Start_Time <- substr(
+    as.character(temp.incub$Start_Time),
+    1L,
+    8L
+  )
+  
+  incubation_raw <- temp.incub |>
+    dplyr::select(
+      Park,
+      Island,
+      Segment,
+      Survey_Class,
+      Survey_Type,
+      Survey_MultiPart,
+      Survey_Duplicate,
+      Survey_Primary,
+      Survey_Complete,
+      Date,
+      year,
+      month,
+      Start_Time,
+      Observer,
+      Species_Code,
+      Species_Unit,
+      Unit_Count,
+      Obs_Notes,
+      Recorder,
+      Data_Source,
+      Wind_Direction,
+      Wind_Speed,
+      Air_Temp_F,
+      Cloud_Perc,
+      Tide_Stage
+    ) |>
+    dplyr::arrange(
+      Island,
+      Segment,
+      Date,
+      Species_Code,
+      Observer
+    )
+  
+  # ================================================================
+  # Creche
+  # Reproduce GetCrecheData()
+  # ================================================================
+  
+  temp.crec2 <- Survey_Creche[
+    Survey_Creche$Species_Code %in% "COEI" &
+      Survey_Creche$Obs_Type %in% "Group",
+    ,
+    drop = FALSE
+  ]
+  
+  temp.crec2$Date <- lubridate::ymd(
+    temp.crec2$Date
+  )
+  
+  temp.crec2$year <- lubridate::year(
+    temp.crec2$Date
+  )
+  
+  temp.crec2$month <- lubridate::month(
+    temp.crec2$Date
+  )
+  
+  temp.crec2$Start_Time <- substr(
+    as.character(temp.crec2$Start_Time),
+    1L,
+    8L
+  )
+  
+  temp.crec2$Group_Time <- substr(
+    as.character(temp.crec2$Group_Time),
+    1L,
+    8L
+  )
+  
+  # Group_NewTerritory is not included in the current export.
+  # Add it so the output matches GetCrecheData().
+  if (!"Group_NewTerritory" %in% names(temp.crec2)) {
+    
+    temp.crec2$Group_NewTerritory <- NA_character_
+    
+  }
+  
+  creche_raw <- temp.crec2 |>
+    dplyr::select(
+      Park,
+      Island,
+      Segment,
+      Survey_Class,
+      Survey_Type,
+      Date,
+      Start_Time,
+      year,
+      month,
+      Survey_MultiPart,
+      Survey_Duplicate,
+      Survey_Primary,
+      Survey_Complete,
+      Recorder,
+      Observer,
+      Species_Code,
+      Group_Count,
+      Group_Time,
+      Group_NewTerritory,
+      Group_Notes,
+      Latitude,
+      Longitude,
+      Species_Unit,
+      Unit_Count,
+      Survey_Notes,
+      Wind_Direction,
+      Wind_Speed,
+      Air_Temp_F,
+      Cloud_Perc,
+      Tide_Stage
+    ) |>
+    dplyr::filter(
+      !is.na(Unit_Count)
+    )
+  
+  # ================================================================
+  # Nest surveys
+  # Reproduce GetNestData()
+  # ================================================================
+  
+  temp.nest <- Survey_Nest[
+    Survey_Nest$Obs_Type %in% "Target" &
+      Survey_Nest$c_TargetSpp_Group != "AMOY",
+    ,
+    drop = FALSE
+  ]
+  
+  temp.nest$Date <- lubridate::ymd(
+    temp.nest$Date
+  )
+  
+  temp.nest$year <- lubridate::year(
+    temp.nest$Date
+  )
+  
+  temp.nest$month <- lubridate::month(
+    temp.nest$Date
+  )
+  
+  temp.nest$Start_Time <- substr(
+    as.character(temp.nest$Start_Time),
+    1L,
+    8L
+  )
+  
+  temp.nest$Unit_Count[
+    temp.nest$Unit_Count == 999
+  ] <- NA
+  
+  temp.nest$Egg_Count[
+    temp.nest$Egg_Count == 999
+  ] <- NA
+  
+  temp.nest$Chick_Count[
+    temp.nest$Chick_Count == 999
+  ] <- NA
+  
+  # Match GetNestData().
+  nest_surveys_raw <- temp.nest |>
+    dplyr::select(
+      Park,
+      Island,
+      Segment,
+      Survey_Class,
+      Survey_Type,
+      Survey_MultiPart,
+      Survey_Duplicate,
+      Survey_Primary,
+      Survey_Complete,
+      Date,
+      year,
+      month,
+      Start_Time,
+      Species_Code,
+      Species_Unit,
+      Nest_Status,
+      Unit_Count,
+      Egg_Count,
+      Chick_Count,
+      Latitude,
+      Longitude,
+      Obs_Notes,
+      Survey_Notes,
+      Wind_Direction,
+      Wind_Speed,
+      Air_Temp_F,
+      Cloud_Perc,
+      Tide_Stage
+    )
+  
+  # ================================================================
+  # Survey effort
+  # Reproduce GetSurveyData() output structure
+  # ================================================================
+  
+  # The new export does not include the historical
+  # tbl_Survey_Segments_Size or tlu_Species tables.
+  #
+  # SurveyEffortBySpecies is therefore used as the package-level
+  # source for segment effort and species mappings.
+  
+  segment_keys <- Segments |>
+    dplyr::transmute(
+      Island = Site,
+      Segment,
+      Survey_Class,
+      Survey_Type
+    ) |>
+    dplyr::distinct()
+  
+  Spec_Isl <- SurveyEffortBySpecies |>
+    dplyr::inner_join(
+      segment_keys,
+      by = c(
+        "Island",
+        "Segment",
+        "Survey_Class",
+        "Survey_Type"
+      )
+    ) |>
+    dplyr::distinct()
+  
+  All_Isl <- Spec_Isl |>
+    dplyr::group_by(
+      Species_Code,
+      Survey_Class,
+      Survey_Type
+    ) |>
+    dplyr::summarise(
+      Survey_Size = sum(Survey_Size),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      Size_Units = ifelse(
+        Survey_Type %in% "Creche",
+        "m",
+        "m2"
+      ),
+      Island = "All Islands",
+      Segment = "All"
+    )
+  
+  seg_event <- dplyr::bind_rows(
+    Spec_Isl,
+    All_Isl
+  ) |>
+    dplyr::select(
+      Species_Code,
+      Island,
+      Segment,
+      Survey_Class,
+      Survey_Type,
+      Survey_Size,
+      Size_Units
+    ) |>
+    dplyr::distinct()
+  
+  # ================================================================
+  # Return analysis-ready objects
+  # ================================================================
+  
+  list(
+    incubation_raw = incubation_raw,
+    creche_raw = creche_raw,
+    nest_surveys_raw = nest_surveys_raw,
+    seg_event = seg_event
+  )
 }
-
-  
-  
-  
-  

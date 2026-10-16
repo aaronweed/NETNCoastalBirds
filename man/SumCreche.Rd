@@ -87,6 +87,4 @@ importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
-
-\url{ https://www.nps.gov/im/netn/coastal-birds.htm}
 }

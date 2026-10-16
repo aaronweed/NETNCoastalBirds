@@ -2,34 +2,54 @@
 % Please edit documentation in R/importCBBData.R
 \name{importCBBData}
 \alias{importCBBData}
-\title{importCBBData Import NETN Coastal Bird data that are formatted as .xlxs files.}
+\title{Import NETN Coastal Bird data from a database export ZIP}
 \usage{
-importCBBData(path = NA, new_env = TRUE, zip_name = NA)
+importCBBData(zip_file)
 }
 \arguments{
-\item{path}{Quoted path of folder containing tables.}
-
-\item{new_env}{Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
-views in CBB_TABLES environment. If \code{FALSE}, stores views in global environment}
-
-\item{zip_name}{Quoted string ending in .zip. If specified, function looks for the specified file name and
-imports .csvs from the zip file. If not specified, function looks for and imports individual csvs. Note that
-this takes slightly longer than loading individual .csvs, due to the unzipping process.}
+\item{zip_file}{Character. Path to the NETN Coastal Bird database
+export ZIP file.}
 }
 \value{
-NETN database views in specified environment
+A named list with four data frames:
+\describe{
+  \item{incubation_raw}{Boat-based incubation survey data.}
+  \item{creche_raw}{Common Eider creche survey data.}
+  \item{nest_surveys_raw}{Ground-based nest survey data.}
+  \item{seg_event}{Survey effort by species, island, segment, and
+  survey type.}
+}
 }
 \description{
-This function imports all CSVs exported from NETN's Coastal Bird Database.
+Imports a NETN Coastal Bird database export and returns analysis-ready
+data frames corresponding to the objects returned by
+[GetIncubationData()], [GetCrecheData()], [GetNestData()], and
+[GetSurveyData()].
+}
+\details{
+This function provides an alternative to direct ODBC access through
+the `Get*Data()` functions. It is intended for users who have a current
+database export ZIP but do not have direct access to the NETN ODBC
+connection.
+
+The export must contain `Events`, `Segments`, `Survey_Incubation`,
+`Survey_Creche`, and `Survey_Nest` CSV tables. Date-stamped filenames
+such as `Survey_Nest_20260828.csv` are supported.
+
+The `Survey_*` files are already joined database views. Filtering,
+date handling, column selection, and ordering reproduce the
+corresponding `Get*Data()` functions.
 }
 \examples{
 \dontrun{
-# Import individual xlsxs into global environment
-importCBBData(path = "C:/Coastal_Birds/exports/NETN")
+cbb <- importCBBData(
+  "NETN_CoastalBirds_Dataset_20260828.zip"
+)
 
-# Import zipped csvs into global environment
-path <- "C:/Coastal_Birds/exports/NETN"
-importCBBData(path = path, zip_name = "CBB_Dataset_Export_20230119.zip")
+incubation_raw <- cbb$incubation_raw
+creche_raw <- cbb$creche_raw
+nest_surveys_raw <- cbb$nest_surveys_raw
+seg_event <- cbb$seg_event
 }
 
 }
