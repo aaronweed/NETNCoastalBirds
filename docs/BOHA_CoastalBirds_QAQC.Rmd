@@ -175,7 +175,7 @@ PlotBirds(DCCO, raw_count = T, stat = "max", plot_title = FALSE)
 
 # create violin plot
 
-plt_var(type= "violin", survey = "incubation", species = "DCCO", var ="Incubating Adults")
+plt_var(df= incub, type= "violin", survey = "incubation", species = "DCCO", var ="Incubating Adults")
 
 
 ```
@@ -220,7 +220,7 @@ cat("\\newpage")
 
 # create violin plot
 
-plt_var(type= "violin", survey = "incubation", species = "GBBG", var ="Incubating Adults")
+plt_var(df= incub, type= "violin", survey = "incubation", species = "GBBG", var ="Incubating Adults")
 
 ```
 \pagebreak 
@@ -262,7 +262,7 @@ cat("\\newpage")
 
 # create violin plot
 
-y<- plt_var(type= "violin", survey = "incubation", species = "HERG", var ="Incubating Adults")
+y<- plt_var(df= incub, type= "violin", survey = "incubation", species = "HERG", var ="Incubating Adults")
 
 ```
 
@@ -338,8 +338,7 @@ creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summa
 
 `r CrechmethodsHist`
 
-```{r ducks,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
+```{r ducks}
 
 creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
 
@@ -367,8 +366,7 @@ cat("\\newpage")
 
 `r CrechmethodsHist`
 
-```{r Ftend,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
+```{r Ftend}
 
 COEIplots[[3]] + labs(y ="Females tending ducklings")
 
@@ -380,12 +378,11 @@ cat("\\newpage")
 
 ```
 
-##### Lone  Females
+##### Total Number of Female COEI Observed
 
 `r CrechmethodsHist`
 
-```{r Ftotal,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
+```{r Ftotal}
 
 COEIplots[[2]] + labs(y ="Lone Females")
 
@@ -395,11 +392,12 @@ kable(df |> filter(variable == "Total Number of Female COEI Observed") , caption
 ```
 
 
-#### Annual counts over time by life stage
+#### Annual counts over time by life stage {.tabset}
 
 `r SumCreche_Annual`
 
-```{r creche_year,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
+```{r creche_year}
+
 creche_y <- SumCreche(df= cbb$creche_raw, time ="year") |> 
   mutate(shape = case_when(
   year == params$year ~ "8",
@@ -410,34 +408,32 @@ creche_y <- SumCreche(df= cbb$creche_raw, time ="year") |>
 
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 
-# add table of raw counts
-
-creche_y |> filter(stat == "max", !variable == "Average creche size") |> dplyr::select(Island, variable, time, value) |> arrange(variable, Island) |> pivot_wider(names_from = time, values_from = value ) |> kableExtra::kbl(caption= "Table 4. Maximum annual counts of COEI tending duckings",padding =2) |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
-
 # per island plots by life stage (variable)
 plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
 
 # All island plots by life stage (variable)
 plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F))
 
-# plot F-tend stats
-print(plots[[1]]);cat("\\newpage")# F-tend time series per island
-print(plots2[[1]]);cat("\\newpage")# F-tend time series all islands
+
+```
+
+##### Ducklings
+
+```{r ducklings_y}
+
+creche_y |> filter(stat == "max", variable == "COEI Ducklings") |> dplyr::select(Island, time, value) |> arrange(Island) |> pivot_wider(names_from = time, values_from = value ) |> kableExtra::kbl(caption= "Table 4. Maximum annual counts of COEI Ducklings",padding =2) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
 
 # plot duckling stats
 
 print(plots[[3]]);cat("\\newpage")# Ducklings time series per island
 print(plots2[[3]]);cat("\\newpage")# Ducklings time series all islands
 
-# plot all female counts
-print(plots[[4]]);cat("\\newpage")# total femalestime series per island
-print(plots2[[4]]);cat("\\newpage")# total females for all islands
+# create violin plot
 
-
-# create box plot of all life stages for all islands
-ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", !variable == "Average creche size"), aes(x= variable, y= value, fill= variable, group= variable)) +
-  geom_violin(alpha= 0.3, notch= F)+ 
+ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "COEI Ducklings"), aes(x= variable, y= value, fill= variable, group= variable)) +
+  geom_violin(alpha= 0.3)+ 
   geom_jitter(aes(shape = shape, color= color), size= 3) +
   scale_color_manual(values = c("black", "red"))+ 
   coord_flip()+ facet_wrap(~variable, scales = "free_x")+
@@ -445,7 +441,7 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", !variable 
   theme_bw()+
   theme(legend.position = "none")+
   labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in creche counts per life stage from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
+  ggtitle(paste0("Variation in COEI Ducklings counts from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
   theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
          theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
         theme(axis.text.y =element_blank())  +
@@ -456,6 +452,90 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", !variable 
          theme(panel.grid.major = element_line(colour = "grey90")) +
          theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
          theme(strip.background= element_rect(size=10, color="gray" ))
+
+```
+
+
+##### Females tending ducklings
+
+```{r Ftend_y}
+
+creche_y |> filter(stat == "max", variable == "Adult female COEI tending") |> dplyr::select(Island, time, value) |> arrange( Island) |> pivot_wider(names_from = time, values_from = value ) |> kableExtra::kbl(caption= "Table 5. Maximum annual counts of Female COEI tending ducklings",padding =2) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+
+# plot F-tend stats
+print(plots[[1]]);cat("\\newpage")# F-tend time series per island
+print(plots2[[1]]);cat("\\newpage")# F-tend time series all islands
+
+# create violin plot
+
+ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "Adult female COEI tending"), aes(x= variable, y= value, fill= variable, group= variable)) +
+  geom_violin(alpha= 0.3)+ 
+  geom_jitter(aes(shape = shape, color= color), size= 3) +
+  scale_color_manual(values = c("black", "red"))+ 
+  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
+  scale_shape_manual(values = c(19, 8))+ 
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(y = "Count", x ="")+
+  ggtitle(paste0("Variation in Adult female COEI tending from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
+  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
+        theme(axis.text.y =element_blank())  +
+         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+         theme(panel.background =  element_rect(fill="white", colour="black")) +
+         theme(panel.grid.major = element_line(colour = "grey90")) +
+         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
+         theme(strip.background= element_rect(size=10, color="gray" ))
+
+```
+
+
+##### Total Number of Female COEI Observed
+
+```{r Flone_y}
+
+creche_y |> filter(stat == "max", variable == "Total Number of Female COEI Observed") |> dplyr::select(Island, time, value) |> arrange( Island) |> pivot_wider(names_from = time, values_from = value ) |> kableExtra::kbl(caption= "Table 5. Maximum annual counts of All COEI females",padding =2) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+
+
+# plot all female counts
+print(plots[[4]]);cat("\\newpage")# total femalestime series per island
+print(plots2[[4]]);cat("\\newpage")# total females for all islands
+
+# create violin plot
+
+ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "Total Number of Female COEI Observed"), aes(x= variable, y= value, fill= variable, group= variable)) +
+  geom_violin(alpha= 0.3)+ 
+  geom_jitter(aes(shape = shape, color= color), size= 3) +
+  scale_color_manual(values = c("black", "red"))+ 
+  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
+  scale_shape_manual(values = c(19, 8))+ 
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(y = "Count", x ="")+
+  ggtitle(paste0("Variation in All COEI females from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
+  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
+         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
+        theme(axis.text.y =element_blank())  +
+         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
+         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
+         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
+         theme(panel.background =  element_rect(fill="white", colour="black")) +
+         theme(panel.grid.major = element_line(colour = "grey90")) +
+         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
+         theme(strip.background= element_rect(size=10, color="gray" ))
+
+
+```
+
+
+##### Trends over time per life stage
+
+```{r coei_trends}
 
 # assess trends in ducklings and f-tend
 
@@ -479,10 +559,7 @@ FTotal <-lm(value ~ year, offset = Survey_Size, data = filter(creche_y, variable
 
 kable(FTotal, caption = "Linear Trend Model Summary for All Females", digits = 3)
 
-
 ```
-\pagebreak
-
 
 ### **Ground-based Nest Surveys** {.tabset}
 
@@ -569,13 +646,14 @@ kable(ground_notes |> filter(Species_Code == "COEI")) |>
 
 ##### Counts over time
 
-```{r,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12,message=FALSE}
+```{r coei_date}
+
+# plot current year values for each life stage
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "COEI", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "COEI", var ="Nests")
 
-# plot current year values for each life stage
 coei<-filter(nests, Species_Code == "COEI")
 
 PlotBirds(coei, raw_count= TRUE, legend = T, var = "Nests", plot_title = FALSE, overlay = "island", facet = "Species_Code")+
@@ -614,7 +692,7 @@ kable(ground_notes |> filter(Species_Code == "DCCO")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "DCCO", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "DCCO", var ="Nests")
 
 
 # subset by DCCO to plot
@@ -653,7 +731,7 @@ kable(filter(ground_notes, Species_Code == "GBBG")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "GBBG", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "GBBG", var ="Nests")
 
 
 gbbg2<-filter(nests, Species_Code == "GBBG")
@@ -690,7 +768,7 @@ kable(filter(ground_notes, Species_Code == "HERG")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "HERG", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "HERG", var ="Nests")
 
 # plot counts over time per island
 herg2<-filter(nests, Species_Code == "HERG")
@@ -728,7 +806,7 @@ kable(filter(ground_notes, Species_Code == "BCNH")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "BCNH", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "BCNH", var ="Nests")
 
 # plot counts over time per island
 bcnh<-filter(nests, Species_Code == "BCNH")
@@ -764,7 +842,7 @@ kable(filter(ground_notes,Species_Code == "GLIB")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "GLIB", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "GLIB", var ="Nests")
 
 # plot counts over time per island
 glib<-filter(nests, Species_Code == "GLIB")
@@ -800,7 +878,7 @@ kable(filter(ground_notes, Species_Code == "GREG")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "GREG", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "GREG", var ="Nests")
 
 # plot counts over time per island
 greg<-filter(nests, Species_Code == "GREG")
@@ -834,7 +912,7 @@ kable(filter(ground_notes, Species_Code == "SNEG")) |>
 
 # create violin plot
 
-plt_var(type= "violin", survey = "ground", species = "SNEG", var ="Nests")
+plt_var(df= nests, type= "violin", survey = "ground", species = "SNEG", var ="Nests")
 
 
 # plot counts over time per island
@@ -842,7 +920,7 @@ sneg<-filter(nests, Species_Code == "SNEG")
 PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 ```
 
-
+<!--
 ### **Additional Incubation Surveys** {.tabset}
 
 
@@ -851,3 +929,4 @@ PlotBirds(sneg, raw_count= TRUE, legend = TRUE, var = "Nests")
 
 #### American Oystercatcher
 
+--->
