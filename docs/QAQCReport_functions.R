@@ -503,6 +503,8 @@ PlotHistBands<- function(survey, current_yr ){
   
 }
 
+# violin plot showing variation in annual counts
+
 plt_var<- function(type = "boxplot", survey, species, var) {
   
   if(survey == "incubation"){ 
@@ -526,14 +528,15 @@ plt_var<- function(type = "boxplot", survey, species, var) {
   
   if(type == "boxplot") {
     
-    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year)) +
+    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year, shape = shape)) +
       geom_boxplot(alpha= 0.3, notch= F) +geom_jitter(size= 3)
     
   }
   
   if(type == "violin"){
     
-    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year)) + geom_violin(alpha= 0.3)+
+    y2<- ggplot(data= df, aes(x= Island, y= value, group= Island, color = year, shape = shape)) + 
+      geom_violin(alpha= 0.3)+
       geom_jitter(size= 3)
   }
   
@@ -541,14 +544,15 @@ plt_var<- function(type = "boxplot", survey, species, var) {
            facet_wrap(~Island, scales = "free_x")+
            coord_flip()+
            #scale_color_manual(values = c("black", "red"))+ 
-           #scale_shape_manual(values = c(19, 8))+ 
+           scale_shape_manual(values = c(19, 8))+ 
            theme_bw()+
-           #guides(fill = "none") + # This removes the legend title for fill
+           guides(shape = "none") + # This removes the legend title for fill
            labs(y = "Count", x ="", color = "Year")+
            #scale_color_gradient(low = "yellow", high = "purple", name = "Year") +
            scale_color_viridis_c(
              option = "D",           # Options: "A", "B", "C", "D", "E", "F", "G", "H", etc.
-             name = "Year"
+             name = "Year",
+             direction = -1
            )+
            ggtitle(paste0("Variation in maximum annual counts of ", species," ", var, " from 2007 to ", params$year, "."))+
            theme(

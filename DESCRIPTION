@@ -45,7 +45,6 @@ Collate:
     'SumCreche.R'
     'SumGulls_DCCO.R'
     'SumIncubation_new.R'
-    'SumIncubation_old.R'
     'SurveyEffortBySpecies.R'
     'creche_raw.R'
     'getSurveyMat.R'

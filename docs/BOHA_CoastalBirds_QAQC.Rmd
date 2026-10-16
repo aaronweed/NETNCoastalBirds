@@ -15,8 +15,8 @@ knitr::opts_chunk$set(
   warning = FALSE,    # Suppress warnings
   message = FALSE,    # Suppress messages
   fig.pos='h',
-  fig.width = 8,      # Set default figure width
-  fig.height = 12,     # Set default figure height
+  fig.width = 12,      # Set default figure width
+  fig.height = 8,     # Set default figure height
   fig.align = "center" # Center align all plots
 )
 ```
@@ -152,14 +152,13 @@ kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year co
 
 ```{r DCCO_sum}
 
-incub <- SumIncubation(df= incub_raw,  time = "year") 
-
-# |> mutate(shape = case_when(
-#   year == params$year ~ "8",
-#   .default = "19" )) |> 
-#   dplyr::mutate(color = case_when(
-#   year == params$year ~ "red",
-#   .default = "black" ))
+incub <- SumIncubation(df= incub_raw,  time = "year", survey_effort = SurveyEffortBySpecies) |> 
+  mutate(shape = case_when(
+  year == params$year ~ "8",
+  .default = "19" )) |>
+  dplyr::mutate(color = case_when(
+  year == params$year ~ "red",
+  .default = "black" ))
 
 
 DCCO<- filter(incub, Species_Code == "DCCO")
@@ -205,15 +204,14 @@ kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed G
 `r SumIncubation_methods`
 
 
-```{r GBBG_sum, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12, message=FALSE}
-options(knitr.kable.NA = '')
+```{r GBBG_sum}
 
-incub <- SumIncubation(incub_raw, time = "year")
-
-GBBG<- filter(incub,Species_Code == "GBBG")
+GBBG<- filter(incub, Species_Code == "GBBG")
 
 # add table of raw counts
-kable(GBBG[,c("Island","time","value")] |> spread(time, value), caption= "Table 6. Maximum annual counts of Great Black-backed Gull",padding =2) |>
+GBBG |> filter(stat == "max") |> dplyr::select(Island, time, value) |> pivot_wider(names_from = time,values_from = value ) |> 
+
+kableExtra::kbl(caption= "Table 4. Maximum annual counts of Great Black-backed Gull",padding =2) |>
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # plot time series per Island
@@ -249,16 +247,14 @@ kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from p
 
 `r SumIncubation_methods`
 
-```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
-#incub <- SumIncubation(time = "year")
+```{r herg_sum}
 
 HERG<- filter(incub,Species_Code == "HERG")
 
-# add table of raw counts
-kable(HERG[,c("Island","time","value")] |> spread(time, value), caption= "Table 8. Maximum annual counts of Herring Gull",padding =2) |>
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
+HERG |> filter(stat == "max") |> dplyr::select(Island, time, value) |> pivot_wider(names_from = time,values_from = value ) |> 
 
+kableExtra::kbl(caption= "Table 4. Maximum annual counts of Herring Gull",padding =2) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), fixed_thead = T)
 
 # plot time series per Island
 PlotBirds(HERG, raw_count = T, stat = "max")
