@@ -6,54 +6,74 @@
 \usage{
 SumCreche(
   df = NULL,
-  time,
-  survey_data = SurveyEffortBySpecies,
+  time = c("date", "year"),
+  survey_effort = NULL,
   segment = FALSE,
-  output = "graph",
-  ByObserver = "no",
+  output = c("graph", "table"),
+  ByObserver = c("no", "yes"),
   islands = "outer"
 )
 
 SumCreche(
   df = NULL,
-  time,
-  survey_data = SurveyEffortBySpecies,
+  time = c("date", "year"),
+  survey_effort = NULL,
   segment = FALSE,
-  output = "graph",
-  ByObserver = "no",
+  output = c("graph", "table"),
+  ByObserver = c("no", "yes"),
   islands = "outer"
 )
 }
 \arguments{
-\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view 'qry_Dataset_4_Survey_Creche'. If \code{df} 
-is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetCrecheData}}.}
+\item{df}{Data frame containing raw creche survey data, typically imported
+from the NETN Coastal Birds data package using
+\code{\link{importCBBData}}. The data should correspond to
+\code{qry_Dataset_4_Survey_Creche}. If \code{NULL}, data are retrieved
+using \code{\link{GetCrecheData}}.}
 
-\item{time}{Character string equal to "date" or "year". Summing by date will sum 
-counts (and associated densities) across segments of each island for each date. Summing by year sums counts 
-across all surveys conducted in that year. Note that some sites were surveyed more than once in 
-the same year (primarily terns COTE and LETE).}
+\item{time}{Character string specifying the temporal summary: \code{"date"}
+or \code{"year"}. With \code{"date"}, counts are summarized across
+segments of each island for each survey date (or separately by segment
+when \code{segment = TRUE}). With \code{"year"}, counts are summarized
+across surveys conducted in each year. Some sites may be surveyed more
+than once in a year.}
 
-\item{segment}{Logical. To summarize data at the survey (island-segment) scale (\code{TRUE}) or island-scale (\code{FALSE})
-Defaults to \code{FALSE}.}
+\item{survey_effort}{Required data frame containing survey-effort
+information used to calculate effort-adjusted densities. It is imported
+from the NETN Coastal Birds data package using
+\code{\link{importCBBData}}. The data should correspond to
+\code{qry_Dataset_#_Segments}.}
 
-\item{output}{Character string equal to "graph" or "table". 
-Defaults to exporting a data frame in long format (output= "graph") ready for ggplot and \code{\link{PlotBirds}}
-For wide format enter "table" but note this currently just returns raw count values per life stage, not density.}
+\item{segment}{Logical. If \code{TRUE}, summarize at the island-segment
+scale; if \code{FALSE}, summarize at the island scale. Defaults to
+\code{FALSE}.}
 
-\item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
-If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
-each island segment on each date. Sums counts across multiple observations by same 
-observer at each segment. Defaults to "no".}
+\item{output}{Character string specifying the output format:
+\code{"graph"} or \code{"table"}. The \code{"graph"} format returns
+long-format data suitable for \code{ggplot2} and \code{\link{PlotBirds}}.
+The \code{"table"} format returns wide-format data, with life stages
+represented as columns. Check the function implementation to confirm
+whether density values are included in the table output.}
 
-\item{islands}{Character. Defaults to summarizing counts only within the Outer Islands (Calf, Little Calf, Green,
-The Graves, Middle Brewster, Outer Brewster, Shag Rocks and Little Brewster) or a vector of island names can be provided.}
+\item{ByObserver}{Character string specifying whether to summarize by
+observer. Use \code{"yes"} to summarize by observer or \code{"no"} to
+combine observers, where supported by the selected \code{time} setting.
+Defaults to \code{"no"}. Observer-specific summaries are documented for
+\code{time = "date"}.}
+
+\item{islands}{Character vector specifying the islands to include.
+Defaults to \code{"outer"}, representing the Outer Islands: Calf,
+Little Calf, Green, The Graves, Middle Brewster, Outer Brewster,
+Shag Rocks, and Little Brewster. A vector of island names may be
+supplied instead.}
 }
 \value{
 Returns a \code{data.frame} with the raw and effort-adjusted counts of COEI life stages observed 
 during boat-based creche surveys per island, life stage, and time.
 
-Returns a \code{data.frame} with the raw and effort-adjusted counts of COEI life stages observed 
-during boat-based creche surveys per island, life stage, and time.
+A data frame containing summarized Common Eider creche survey
+  counts and, where calculated, effort-adjusted densities by island or
+  island segment, life stage, and time.
 }
 \description{
 Brings in the raw creche survey data from \code{\link{GetCrecheData}} 
@@ -61,14 +81,20 @@ and summarizes life stage counts by year or date to support analysis and reporti
 densities.This function currently ony sums counts from the primary survey conducted by the lead biologist when multiple observer surveys were conducted.
  When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
 
-Imports raw creche survey data and summarizes life stage counts by year or date. Raw counts are also converted to
-densities.This function currently only sums counts from the primary surveyor conducted by the lead biologist when multiple observer surveys were conducted.
- When you specify \code{ByObserver = TRUE} and \code{time = "date"} the  raw counts and associated densities of all surveys are summed by observer.
+Imports and summarizes Common Eider (*Somateria mollissima*) creche survey
+data by date or year. Counts are summarized by life stage and may be
+converted to effort-adjusted densities using survey effort data.
+
+By default, summaries are calculated at the island scale. Setting
+\code{segment = TRUE} produces summaries at the island-segment scale.
+When \code{ByObserver = "yes"} and \code{time = "date"}, counts are
+summarized separately for each observer and island segment on each date.
+
+When \code{df} is not supplied, raw data are retrieved using
+\code{\link{GetCrecheData}}, which requires access to the NETNCB database
+through a configured Windows ODBC connection named "NETNCB".
 }
 \section{Warning}{
-
-Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-
 
 Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
 }
@@ -78,13 +104,36 @@ Unless \code{df} is specified, the user must have an Access backend entered as '
 # CrecheSum(time ="date")
 # CrecheSum(time ="year")
 # CrecheSum(time= "date", ByObserver = "yes")
-\dontrun{ 
-importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
-# CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="date")
-# CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time ="year")
-# CrecheSum(df=CBB_TABLES$qry_Dataset_4_Survey_Creche, time= "date", ByObserver = "yes")
+\dontrun{
+# Import the Coastal Birds dataset from a ZIP archive
+cbb <- importCBBData("data/NETN_CoastalBirds_Dataset_YYYYMMDD.zip")
+
+# Summarize creche surveys by date
+SumCreche(
+  df = cbb$qry_Dataset_4_Survey_Creche,
+  time = "date"
+)
+
+# Summarize by year
+SumCreche(
+  df = cbb$qry_Dataset_4_Survey_Creche,
+  time = "year"
+)
+
+# Summarize each observer's surveys by date
+SumCreche(
+  df = cbb$qry_Dataset_4_Survey_Creche,
+  time = "date",
+  ByObserver = "yes"
+)
 }
+
 }
 \seealso{
 \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+
+\code{\link{GetCrecheData}},
+\code{\link{importCBBData}},
+\code{\link{PlotBirds}},
+\url{https://www.nps.gov/im/netn/coastal-birds.htm}
 }

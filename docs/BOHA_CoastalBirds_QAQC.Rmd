@@ -2,8 +2,6 @@
 output:
   html_document:
         anchor_sections: FALSE
-    
-  
 params:
   year: 2026
 ---
@@ -323,24 +321,13 @@ cat("\\newpage")
 
 `r SumCreche_Daily`
 
-```{r crecheday}
-
-creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
-
-# # plot counts of F-tending and ducklings by survey date in current year for each island
-# y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$year, raw_count = T, stat = "sum", legend= T, print= FALSE)
-# 
-# (y1 + scale_color_manual(values = c("black","darkgray", "blue"))+ labs(title= "Daily counts of Common Eider (COEI) per lifestage and  Island"))
-
-```
-
 ##### Ducklings
 
 `r CrechmethodsHist`
 
 ```{r ducks}
 
-creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
+creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer", survey_effort = SurveyEffortBySpecies) # Summarize daily Primary Surveys
 
 # plot current year counts per life stage compared to historical data for all island segments
 
@@ -398,7 +385,7 @@ kable(df |> filter(variable == "Total Number of Female COEI Observed") , caption
 
 ```{r creche_year}
 
-creche_y <- SumCreche(df= cbb$creche_raw, time ="year") |> 
+creche_y <- SumCreche(df= cbb$creche_raw, time ="year", survey_effort = SurveyEffortBySpecies) |> 
   mutate(shape = case_when(
   year == params$year ~ "8",
   .default = "19" )) |> 
