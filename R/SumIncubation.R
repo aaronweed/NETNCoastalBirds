@@ -97,9 +97,7 @@ SumIncubation <- function(
   df <- df |> ### Subset by Islands and by species
     dplyr::filter(
       !Species_Code %in% c("LETE", "COTE"), # remove terns from the dataset
-      Island %in% islands,
-      Survey_Primary == "Yes"
-    ) |>
+      Island %in% islands) |>
     dplyr::mutate(
       Date = lubridate::ymd(Date),
       year = lubridate::year(Date),
@@ -121,11 +119,11 @@ SumIncubation <- function(
   
   if (time == "date" & ByObserver =="Yes") {
     graph.final <- df |> 
-      filter(Survey_Primary %in% "Yes") |>
+     # filter(Survey_Primary %in% "Yes") |>
       group_by(Island, Segment, Date,month, year, Species_Code, Survey_Type, Survey_Primary,
                Survey_Duplicate, Survey_Complete, Observer) |> 
-      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE)) |> ## sum counts across observers
-      dplyr::left_join(., survey_effort, 
+      dplyr::summarise(value = sum(Unit_Count, na.rm=TRUE), .groups = "drop_last") |> ## sum counts across observers
+      dplyr::left_join(survey_effort, 
                        by=c("Species_Code","Island","Segment","Survey_Type")) |> ## append survey effort per segment
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size)*1000000,3)) |> # standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000000) |> # added in case I want to scale to other units
@@ -133,6 +131,13 @@ SumIncubation <- function(
       dplyr::select(Species_Code, Island, Segment, time = Date, month, year, Survey_Type, Survey_Primary,
                     Survey_Duplicate, Survey_Complete, value, valuePerSurveySize,Survey_Size, Survey_Units, Observer)
     return(graph.final)
+    
+    
+    #how many primary surveys were conducted by unique observers each day?
+    
+    # graph.final |> filter(Species_Code == "DCCO") |> distinct(Survey_Type, Island, Segment, Survey_Complete, Survey_Primary, Survey_Duplicate, year, time, Observer) |> group_by(Survey_Type, Island, Segment, Survey_Complete, Survey_Primary, Survey_Duplicate, year, time) |> tally() |>
+    #   pivot_wider(names_from = Survey_Primary, values_from = "n", values_fill = 0) |> clipr::write_clip()
+    
   }else{
     
     df.melt <- df |>
@@ -258,7 +263,7 @@ SumIncubation <- function(
       survey_effort, 
       by = c("Species_Code", "Island", "Segment", "Survey_Type") # append survey effort per segment
     ) |>
-    dplyr::group_by(!!!rlang::syms(group_cols)) |> # choose correct grouping variables (segment or all BOHA)
+    dplyr::group_by(!!!rlang::syms(group_cols)) |> # choose correct grouping variables (segment or Island)
     dplyr::summarise(
       value = sum(value, na.rm = TRUE), # sum counts per grouping variable
       Survey_Size = sum(Survey_Size, na.rm = TRUE), # sum survey effort per island 

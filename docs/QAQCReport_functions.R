@@ -505,23 +505,23 @@ PlotHistBands<- function(survey, current_yr ){
 
 # violin plot showing variation in annual counts
 
-plt_var<- function(type = "boxplot", survey, species, var) {
+plt_var<- function(df, type = "boxplot", survey, species, var) {
   
   if(survey == "incubation"){ 
     
-    df <- filter(incub, Species_Code == species &  stat == "max", variable == var)
+    df <- filter(df, Species_Code == species &  stat == "max", variable == var)
     
   }
   
-  if(survey == "creche"){ df<-creche
-  
-  df <- filter(creche, Species_Code == species &  stat == "max", variable == var)
+  if(survey == "creche"){ 
+    
+  df <- filter(df, Species_Code == species &  stat == "max", variable == var)
   
   }
   
   if(survey == "ground"){ 
     
-    df <- filter(nests, Species_Code == species, variable == var)
+    df <- filter(df, Species_Code == species, variable == var)
     
   }
   
@@ -541,8 +541,8 @@ plt_var<- function(type = "boxplot", survey, species, var) {
   }
   
   y2 <- (y2 + 
-           facet_wrap(~Island, scales = "free_x")+
            coord_flip()+
+           facet_wrap(~Island, scales = "free_x")+
            #scale_color_manual(values = c("black", "red"))+ 
            scale_shape_manual(values = c(19, 8))+ 
            theme_bw()+
