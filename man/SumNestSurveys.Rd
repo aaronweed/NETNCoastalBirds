@@ -7,13 +7,13 @@
 SumNestSurveys(
   df = NULL,
   time,
-  species = NA,
+  species = NULL,
   output = "graph",
   segment = FALSE
 )
 }
 \arguments{
-\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "Survey_Nest_YYYMMDD". If \code{df} 
 is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.}
 
 \item{time}{Character string equal to "date" or "year".
@@ -48,10 +48,10 @@ The user must have NETN's Access backend entered as 'NETNCB' in Windows ODBC man
 
 \examples{
 \dontrun{
-importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
-SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "date", species = "BCNH")
-SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", species = "BCNH")
-SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", output = "table")
+cbb<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "date", species = "BCNH")
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", species = "BCNH")
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", output = "table")
 }
 }
 \seealso{

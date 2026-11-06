@@ -407,10 +407,10 @@ creche_y <- SumCreche(df= cbb$creche_raw, time ="year", survey_effort = SurveyEf
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 
 # per island plots by life stage (variable)
-plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
+plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", show_plot = F, legend = F))
 
 # All island plots by life stage (variable)
-plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F))
+plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", show_plot= F, legend = F, facet= "variable", plot_title = F))
 
 ```
 
@@ -538,7 +538,7 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable =
 
 df<- filter(creche_y, Island == "All Islands" & !variable == "Average creche size" & stat =="max" & year %in% c(2009:2026))
 
-PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")+ scale_color_manual(values = c("black","darkgray", "blue"))
+PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", show_plot = F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")+ scale_color_manual(values = c("black","darkgray", "blue"))
 
 
   # fit linear trend models 

@@ -3,7 +3,6 @@
 #'
 #' @import dplyr
 #' @importFrom tidyr spread pivot_longer
-#' @importFrom magrittr |>%<>%
 #' @importFrom tibble add_column
 #' @importFrom lubridate year month
 #' @importFrom plyr mapvalues
@@ -22,7 +21,7 @@
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 #' function. For wide format use "table".
-#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_3_Survey_Nest". If \code{df} 
+#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "Survey_Nest_YYYMMDD". If \code{df} 
 #' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetNestData}}.
 #' @param segment Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale (\code{FALSE})? Defaults to \code{FALSE}.
 #' @return Returns a \code{data.frame} with the raw nest, chick, or egg counts and counts adjusted for survey-area (e.g. nests per km2) by Island and time.
@@ -32,15 +31,15 @@
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
 #' @examples 
 #' \dontrun{
-#' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
-#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "date", species = "BCNH")
-#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", species = "BCNH")
-#' SumNestSurveys(df= CBB_TABLES$qry_Dataset_3_Survey_Nest, time= "year", output = "table")
+#' cbb<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
+#' SumNestSurveys(df= cbb$nest_surveys_raw, time= "date", species = "BCNH")
+#' SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", species = "BCNH")
+#' SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", output = "table")
 #' }
 #' @export
 
 
-SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segment= FALSE) {
+SumNestSurveys <- function(df = NULL, time, species=  NULL, output= "graph", segment= FALSE) {
   
   ################################################################################
   # bring in raw data from ODBC connection
@@ -66,8 +65,7 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
   ## NOT 20 nests with a total of 2 eggs.
   ## Chick and egg counts ONLY calculated when Nest Status == Normal
   
-  df %<>%  
-    dplyr::rename(Nests = Unit_Count) |> # change Unit_Count to Nests to be more specific
+  df<- df |>   
     mutate(Chicks = Nests * Chick_Count,
            Eggs = Nests * Egg_Count)
   # calculate no. of life stages based on per nest counts
@@ -192,34 +190,48 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
   # bind together the results aggregated by time AT the SEGMENT-SCALE, then calc mean eggs and chicks per nest
   #################################
   
+  # Define grouping columns based on segment
+  group_cols <- if (segment) {
+    c("Species_Code", "Island", "Segment", "time", "Size_Units", "stat")
+  } else {
+    c("Species_Code", "Island", "time", "Size_Units", "stat")
+  }
+  
+  # Define output columns based on segment
+  select_cols <- if (segment) {
+    c("Species_Code", "Island", "Segment", "time", "variable", "stat",
+      "value", "valuePerSurveySize", "Survey_Size", "Survey_Units")
+  } else {
+    c("Species_Code", "Island", "time", "variable", "stat",
+      "value", "valuePerSurveySize", "Survey_Size", "Survey_Units")
+  }
+  
    ## add survey effort to nest, chick and egg data to estimate # per survey effort at the island scale
   # this provides the option to view the sum total of eggs and chicks per area; the next code chunk sets up per nest estimates
    
-  SumNests <- bind_rows(SumBySegment, SumByBOHA) |>### bind together island-segment and all island data
+  SumNests <- bind_rows(SumBySegment, SumByBOHA) |> ### bind together island-segment and all island data
     dplyr::filter(variable %in% c("Nests","Chicks","Eggs")) |>
-     tibble::add_column(Survey_Type = "Nest") |># add in for correct binding of survey effort
-    dplyr::left_join(.,GetSurveyData(x, survey="Nest", species = {if(!anyNA(species)) species else NA}),# bind on survey effort #
-    by=c("Species_Code","Island","Segment", "Survey_Type")) |>## append survey effort per segment (Segment == Other not binding and should be excluded)
-    {if(segment) group_by(.,Species_Code, Island, Segment, time, variable, Size_Units, Count_Method) else ## first summarize data by Island-Segment or Island
-      group_by(.,Species_Code, Island, time, variable, Size_Units, Count_Method)} |>
-     dplyr::summarise(value= sum(value), # sum raw counts
-                      Survey_Size = sum(Survey_Size)) |>## sum survey effort per island,  
-    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size)*1000000,3)) |># Then standardize counts by survey effort
-    dplyr::mutate(Survey_Size = Survey_Size) |># added in case I want to scale to other units
+     tibble::add_column(Survey_Type = "Nest") |> # add in for correct binding of survey effort
+    dplyr::left_join(.,GetSurveyData(x, survey="Nest", species = {if(!is.null(species)) species else NA}),# bind on survey effort #
+    by=c("Species_Code","Island","Segment", "Survey_Type")) |> ## append survey effort per segment (Segment == Other not binding and should be excluded)
+    dplyr::group_by(!!!rlang::syms(group_cols)) |> # choose correct grouping variables (segment or Island)
+    dplyr::summarise(value= sum(value), # sum raw counts
+                      Survey_Size = sum(Survey_Size)) |> ## sum survey effort per island,  
+    dplyr::mutate(valuePerSurveySize = round((value/Survey_Size)*1000000,3)) |> # Then standardize counts by survey effort
+    dplyr::mutate(Survey_Size = Survey_Size) |> # added in case I want to scale to other units
     tibble::add_column(Survey_Units = "km2") # denote what survey effort units are reported
   
   # Calc eggs per nest and chicks per nest (for nests status == normal) and bind to nest count data
   
-  temp2 <-  SumNests |>filter(!variable %in% "Nests") |># remove the counts of all nests (multiple statuses) 
-    bind_rows(.,SumNormNestsBOHA) |># add in counts of "normal" nests to divide egg and chick counts by
-    {if(segment) group_by(.,Species_Code, Island, Segment, time, Count_Method, variable) else ## first summarize data by Island-Segment or Island
-      group_by(.,Species_Code, Island, time, Count_Method, variable)} |>
+  temp2 <-  SumNests |> filter(!variable %in% "Nests") |> # remove the counts of all nests (multiple statuses) 
+    bind_rows(.,SumNormNestsBOHA) |> # add in counts of "normal" nests to divide egg and chick counts by
+    dplyr::group_by(!!!rlang::syms(group_cols)) |> # choose correct grouping variables (segment or Island)
     dplyr::summarise(value = sum(value, na.rm=TRUE)) |> # because there are 4 cases of duplicate key combos, sum
     tidyr::pivot_wider(names_from= variable, values_from= value) |> # make wide to divide chicks and eggs by nest count
     mutate(ClutchSize = Eggs+Chicks) |>
     mutate(EggsPerNest = round(Eggs/Nests,2), ChicksPerNest = round(Chicks/Nests,2), ClutchPerNest = round(ClutchSize/Nests,2)) |> # calc avg chicks or eggs per nest
-    {if(segment) tidyr::pivot_longer(.,cols=c(-Island,-Segment, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE) else 
-      tidyr::pivot_longer(.,cols=c(-Island, -Species_Code,-time,-Count_Method), names_to = "variable", values_to = "value",values_drop_na = TRUE)} |>
+    tidyr::pivot_longer(cols = -dplyr::all_of(c(group_cols, "Count_Method")),
+      names_to = "variable", values_to = "value", values_drop_na = TRUE) |> 
     na.omit()  # remove NAs added when no chicks or eggs found and Nests =0
   
   ### Now bind to data above
@@ -234,8 +246,8 @@ SumNestSurveys <- function(df = NULL, time, species=  NA, output= "graph", segme
     mutate(FullLatinName = as.character(FullLatinName),CommonName = as.character(CommonName))
     
     #subset by species if provided argument to species
-    if(!anyNA(species)) graph.final<-graph.final |>
-      filter(Species_Code %in% species) |>droplevels()
+    if(!is.null(species)) graph.final<-graph.final |>
+      filter(Species_Code %in% species) |> droplevels()
   
     # need to add back "year" to subset by year for "PlotBirds" 
     if(time  == "year"){

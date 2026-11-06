@@ -33,5 +33,5 @@ the function returns a saved image of the data.
 # amoy <- GetAMOYdata()
 }
 \seealso{
-\url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+\url{ https |> ://www.nps.gov/im/netn/coastal-birds.htm}
 }
