@@ -94,8 +94,8 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
   # bind Events to Nests
   # intersect(names(event),names(nests))
   
-   temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
-      left_join(nests, ., by="pk_EventID") %>% 
+   temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") |> 
+      left_join(nests, ., by="pk_EventID") |> 
       filter(Obs_Type %in% "Target")
           
   #head(temp.nest)
@@ -156,8 +156,8 @@ GetNestData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     # bind Events to Nests
     # intersect(names(event),names(nests))
     
-    temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") %>% 
-      left_join(nests, ., by= c(fk_EventID = "pk_EventID")) %>% 
+    temp.nest <- filter(event, Survey_Type =="Nest" & !c_TargetSpp_Group %in% "AMOY") |> 
+      left_join(nests, ., by= c(fk_EventID = "pk_EventID")) |> 
       filter(Obs_Type %in% "Target")
     
     #head(temp.nest)

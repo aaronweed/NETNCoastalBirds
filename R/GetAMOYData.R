@@ -19,7 +19,7 @@
 #' (This argument is used to regenerate the RData for the package.)
 #' 
 #' @return This function returns the raw AMOY survey data as a \code{data.frame}.
-#' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm}
+#' @seealso \url{ https |> ://www.nps.gov/im/netn/coastal-birds.htm}
 #' @examples
 #' # amoy <- GetAMOYdata()
 #' @export
@@ -157,7 +157,7 @@ GetAMOYData <- function(connect = "ODBC", DBfile = NULL, export = FALSE){
                             Species_Code,Group_Time, Group_NewTerritory, 
                             Group_Notes, Group_Coords, Species_Unit, Unit_Count, 
                             Wind_Direction, Wind_Speed, Air_Temp_F, Cloud_Perc,
-                            Tide_Stage) %>% 
+                            Tide_Stage) |> 
     # refactor Survey_Type levels from  Creche and Surv. to Incubation
     mutate(Survey_Type= recode_factor(Survey_Type,Surveillance = "Incubation", Creche = "Incubation"))
   

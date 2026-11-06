@@ -5,7 +5,7 @@ output:
     
   
 params:
-  year: 2026
+  year: 2010
 ---
 
 ```{r setup, include=FALSE}
@@ -325,7 +325,7 @@ cat("\\newpage")
 
 ```{r crecheday}
 
-creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
+creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer", survey_effort = SurveyEffortBySpecies) # Summarize daily Primary Surveys
 
 # # plot counts of F-tending and ducklings by survey date in current year for each island
 # y1<- PlotBirds(filter(creche,!variable == "Average creche size"), year= params$year, raw_count = T, stat = "sum", legend= T, print= FALSE)
@@ -338,10 +338,8 @@ creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summa
 
 `r CrechmethodsHist`
 
-```{r ducks,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
-
-creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer") # Summarize daily Primary Surveys
+```{r ducks}
+creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer", survey_effort = SurveyEffortBySpecies) # Summarize daily Primary Surveys
 
 # plot current year counts per life stage compared to historical data for all island segments
 
@@ -367,8 +365,7 @@ cat("\\newpage")
 
 `r CrechmethodsHist`
 
-```{r Ftend,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
+```{r Ftend}
 
 COEIplots[[3]] + labs(y ="Females tending ducklings")
 
@@ -384,8 +381,7 @@ cat("\\newpage")
 
 `r CrechmethodsHist`
 
-```{r Ftotal,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
-options(knitr.kable.NA = '')
+```{r Ftotal}
 
 COEIplots[[2]] + labs(y ="Lone Females")
 
@@ -400,7 +396,7 @@ kable(df |> filter(variable == "Total Number of Female COEI Observed") , caption
 `r SumCreche_Annual`
 
 ```{r creche_year,cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 8, fig.width= 12, message=FALSE}
-creche_y <- SumCreche(df= cbb$creche_raw, time ="year") |> 
+creche_y <- SumCreche(df= cbb$creche_raw, time ="year", survey_effort = SurveyEffortBySpecies) |> 
   mutate(shape = case_when(
   year == params$year ~ "8",
   .default = "19" )) |> 

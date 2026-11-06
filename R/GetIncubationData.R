@@ -93,9 +93,9 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
     # Add obs data to  incubation event data
     
     # intersect(names(event), names(obs))
-    temp.incub <- filter(event, Survey_Type == "Incubation") %>%
-      left_join(.,obs, by = c(pk_EventID= "fk_EventID")) %>% 
-      filter(Obs_Type =="Target") %>% 
+    temp.incub <- filter(event, Survey_Type == "Incubation") |>
+      left_join(.,obs, by = c(pk_EventID= "fk_EventID")) |>
+      filter(Obs_Type =="Target") |>
       droplevels()
     
     # View(temp.incub)
@@ -128,7 +128,7 @@ GetIncubationData <- function(connect = "ODBC", DBfile = NULL, export = FALSE) {
                                       Obs_Notes, Recorder, Data_Source, Wind_Direction,
                                       Wind_Speed, Air_Temp_F, Cloud_Perc, Tide_Stage)  
     # sort df
-    incubation_raw <- incubation_raw %>%
+    incubation_raw <- incubation_raw |>
       dplyr::arrange(Island, Segment, Date, Species_Code, Observer)
     #[order(incubation_raw$Island,incubation_raw$Segment,incubation_raw$Date, incubation_raw$Species_Code, incubation_raw$Observer),]
     
