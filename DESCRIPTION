@@ -30,10 +30,12 @@ Collate:
     'GetIncubationData.R'
     'GetNestData.R'
     'GetSurveyData.R'
+    'PlotAnnualVariation.R'
     'SumCreche.R'
     'SumNestSurveys.R'
     'SumIncubation.R'
     'PlotBirds.R'
+    'PlotWeeklyByObserver.R'
     'importCBBData.R'
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
