@@ -12,7 +12,7 @@
 #'  If you specify  \code{ByObserver}= \code{TRUE} and \code{time} = "date", nests will be summed by each observer.
 #' @section Warning:
 #' Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
+#' @param df Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "Survey_Incubation_YYYYMMDD". If \code{df} 
 #' is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetIncubationData}}.
 #' @param time Character string equal to "date" or "year". Value must be provided; there is
 #' no default. Choose to summarize counts by "date" or "year". Summing by date will sum counts across 
@@ -23,6 +23,10 @@
 #' @param output Character string equal to "graph" or "table". 
 #' Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 #' function. For wide format use "table".
+#' @param survey_effort Required data frame containing survey-effort
+#'   information used to calculate effort-adjusted densities. It is imported
+#'   from the NETN Coastal Birds data package using
+#'   \code{\link{importCBBData}}. 
 #' @param ByObserver Character string equal to \code{"yes"} or \code{"no"}.
 #' If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 #' each island segment on each date. Sums counts across multiple observations by same 
@@ -34,10 +38,10 @@
 #' @seealso \url{ https://www.nps.gov/im/netn/coastal-birds.htm} 
 #' @examples 
 #' \dontrun{ 
-#' importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year", species = "DCCO", output = "graph")
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", species = "DCCO", output = "graph")
-#' SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", ByObserver = "yes")
+#' CBB_TABLES<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
+#' SumIncubation(df= cbb$incubation_raw, time= "year", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+#' SumIncubation(df= cbb$incubation_raw, time= "date", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+#' SumIncubation(df= cbb$incubation_raw, time= "date", ByObserver = "yes", survey_effort = cbb$seg_event)
 #' }
 #' @export
 #' 

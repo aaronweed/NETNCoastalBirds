@@ -15,7 +15,7 @@ SumIncubation(
 )
 }
 \arguments{
-\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "qry_Dataset_2_Survey_Incubation". If \code{df} 
+\item{df}{Requires dataframe exported from NETN's data package imported via \code{\link{importCBBData}} from view "Survey_Incubation_YYYYMMDD". If \code{df} 
 is \code{NULL}, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager in order to import from \code{\link{GetIncubationData}}.}
 
 \item{time}{Character string equal to "date" or "year". Value must be provided; there is
@@ -29,6 +29,11 @@ to providing output for all species.}
 \item{output}{Character string equal to "graph" or "table". 
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
+
+\item{survey_effort}{Required data frame containing survey-effort
+information used to calculate effort-adjusted densities. It is imported
+from the NETN Coastal Birds data package using
+\code{\link{importCBBData}}.}
 
 \item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
 If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
@@ -54,10 +59,10 @@ Unless \code{df} is specified, the user must have an Access backend entered as '
 
 \examples{
 \dontrun{ 
-importCBBData(path, zip_name, new_env= TRUE) #creates CBB_TABLES object
-SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "year", species = "DCCO", output = "graph")
-SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", species = "DCCO", output = "graph")
-SumIncubation(df= CBB_TABLES$qry_Dataset_2_Survey_Incubation, time= "date", ByObserver = "yes")
+CBB_TABLES<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
+SumIncubation(df= cbb$incubation_raw, time= "year", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+SumIncubation(df= cbb$incubation_raw, time= "date", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+SumIncubation(df= cbb$incubation_raw, time= "date", ByObserver = "yes", survey_effort = cbb$seg_event)
 }
 }
 \seealso{

@@ -37,6 +37,31 @@ source("../docs/QAQCReport_functions.R")
 cbb <- importCBBData("../data/NETN_CoastalBirds_Dataset_20261007.zip")
 
 # SurveyEffortBySpecies<-cbb$seg_event # missing DCCO MIddle All
+
+
+# Descriptions for captions to support QAQC reporting for NETN's Coastal Breeding Bird Program 
+
+Incubation_methods<- {print("The nesting counts presented below show the daily number of nests counted by expert observers on each Island-Segment 
+                       in comparison to the historical variation. Historical variation is summarized by the standardized week of each year.")}
+
+
+SumIncubation_methods<- {print("The annual nesting counts summarized in each table and figure below were derived from the annual 
+                               maximum counts among multiple Primary Surveys conducted within a year (May-July) or represent the average of the maximum count values from Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands.")}
+
+Crechmethods<- {print(paste0("The following tables and graphs summarize all Primary Survey counts collected during boat-based Common Eider (creche) surveys conducted in ", params$year, " among all Outer Islands."))}
+
+CrechmethodsHist<- {print(paste0("The following graphs summarize all Primary Survey counts collected 
+                                 during boat-based Common Eider (creche) surveys conducted in ", params$year, 
+                                 " among all Outer Islands in comparison to the historical variation. Historical variation is summarized by the standardized week of each year."))}
+
+
+SumCreche_Annual<- {print("The annual counts summarized below were derived from the annual maximum counts among 
+                          completed, Primary Surveys within a year (May-July) or represent the average of the completed, Primary Surveys among multiple expert birders. These count values are summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
+
+SumCreche_Daily<- {print("The daily counts summarized below and for each life stage (scroll down) were derived from 
+                         completed, Primary Surveys conducted within a year (May-July) or represent the average of this daily count value among multiple expert birders. These count values were summarized for each island and among all Outer Islands. Note that counts from Roaring Bulls are combined with The Graves.")}
+
+
 ```
 
 ## Coastal Bird monitoring at Boston Harbor Islands (BOHA) {.tabset .tabset-fade .tabset-pills}
@@ -57,7 +82,7 @@ cbb <- importCBBData("../data/NETN_CoastalBirds_Dataset_20261007.zip")
 incub_raw <- cbb$incubation_raw
 
 # surveys per segment 
-incub_surveys<- incub_raw |> filter(Species_Code == "DCCO" & year %in% params$year & Island %in% outer) |> dplyr::select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary, Survey_Duplicate)
+incub_surveys<- incub_raw |> dplyr::filter(Species_Code == "DCCO" & year %in% params$year & Island %in% outer) |> dplyr::select( Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary, Survey_Duplicate)
 
 # Count the number of unique observers for primary and secondary incubation surveys by event
 obs_incub<-incub_surveys |> group_by(Island, Segment, Date, Survey_Complete, Survey_Primary, Survey_Duplicate) |> tally(name= "Observers") |> 
@@ -120,7 +145,7 @@ NETN staff should check the following sections for DCCO, GBBG, and HERG to ensur
 
 **2. There is consistency in the observer's name denoted during the primary surveys for each Island-Segment and the entire Outer Island boat route for each day and among surveys counted on other days in the same year. For instance, in some years (e.g., 2024) there may be >1 completed survey for each island-segment on different dates. NETN staff should check to confirm with the field team whether the repeated surveys were conducted by the same observer(s) among dates if denoted otherwise in the database. If so, the initials of the Principal Investigator should be denoted for all Primary Survey records in the database.**
 
-**3. All field observational notes (Obs_Notes) are clearly understood and the ramifications on the survey counts are reconciled in the database.**
+**3. All field observational notes (Survey_Notes) are clearly understood and the ramifications on the survey counts are reconciled in the database.**
 
 **4. Incubating adult nest counts during the current year are reasonable compared to the long term record .**
 
@@ -132,10 +157,10 @@ NETN staff should check the following sections for DCCO, GBBG, and HERG to ensur
 
 ```{r DCCO_raw}
 
-PlotWeeklyObserver(survey = "incubation", species = "DCCO", current_yr = params$year)
+PlotWeeklyByObserver(df = cbb$incubation_raw, survey = "incubation", species = "DCCO", current_yr = params$year)
 
 
-dcco_incub<- incub_raw |> filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer,  Obs_Notes)
+dcco_incub<- incub_raw |> filter(Species_Code == "DCCO" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer,  Survey_Notes)
 
 # raw count data by observer
 kableExtra::kbl(dcco_incub, format = "html",  caption= "Table 3. Current year counts of Double-crested Cormorant from primary surveys conducted among Outer Islands",  padding =2) |>
@@ -173,7 +198,7 @@ PlotBirds(DCCO, raw_count = T, stat = "max", plot_title = FALSE)
 
 # create violin plot
 
-plt_var(df= incub, type= "violin", survey = "incubation", species = "DCCO", var ="Incubating Adults")
+PlotAnnualVariation(df= incub, current_yr = params$year,  plot_type= "violin", survey = "incubation", species = "DCCO", var ="Incubating Adults")
 
 
 ```
@@ -187,9 +212,9 @@ plt_var(df= incub, type= "violin", survey = "incubation", species = "DCCO", var 
 
 ```{r GBBG_raw, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
-PlotWeeklyObserver(survey = "incubation", species = "GBBG", current_yr = params$year)
+PlotWeeklyByObserver(df = cbb$incubation_raw, survey = "incubation", species = "GBBG", current_yr = params$year)
 
-gbbg_incub<- incub_raw |> filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete,Nests = Unit_Count, Observer,  Obs_Notes)
+gbbg_incub<- incub_raw |> filter(Species_Code == "GBBG" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete,Nests = Unit_Count, Observer,  Survey_Notes)
 
 # raw count data by observer
 kable(gbbg_incub, caption= "Table 5. Current year counts of Great black-backed Gulls from primary surveys",  padding =2) |>
@@ -218,7 +243,7 @@ cat("\\newpage")
 
 # create violin plot
 
-plt_var(df= incub, type= "violin", survey = "incubation", species = "GBBG", var ="Incubating Adults")
+PlotAnnualVariation(df= incub, current_yr = params$year, plot_type= "violin", survey = "incubation", species = "GBBG", var ="Incubating Adults")
 
 ```
 \pagebreak 
@@ -231,9 +256,9 @@ plt_var(df= incub, type= "violin", survey = "incubation", species = "GBBG", var 
 
 ```{r, cache=F,echo=F, warning =FALSE, include=T,fig.pos='h',results='asis', fig.height= 12, fig.width= 12,message=FALSE}
 
-PlotWeeklyObserver(survey = "incubation", species = "HERG", current_yr = params$year)
+PlotWeeklyByObserver(df = cbb$incubation_raw, survey = "incubation", species = "HERG", current_yr = params$year)
 
-herg_incub<- incub_raw |> filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer, Survey_Complete, Obs_Notes)
+herg_incub<- incub_raw |> filter(Species_Code == "HERG" & year %in% params$year & Survey_Primary == "Yes") |> dplyr::select( Island, Segment, Date, Survey_Complete, Nests = Unit_Count, Observer, Survey_Complete, Survey_Notes)
 
 # raw count data by observer
 kable(herg_incub, caption= "Table 7. Current year counts of Herring Gulls from primary surveys",  padding =2) |>
@@ -260,7 +285,7 @@ cat("\\newpage")
 
 # create violin plot
 
-y<- plt_var(df= incub, type= "violin", survey = "incubation", species = "HERG", var ="Incubating Adults")
+y<- PlotAnnualVariation(df= incub, current_yr= params$year,  plot_type= "violin", survey = "incubation", species = "HERG", var ="Incubating Adults")
 
 ```
 
@@ -345,7 +370,8 @@ creche <- SumCreche(df= cbb$creche_raw, time ="date", islands = "outer", survey_
 VAR<-c("Chick", "F-Lone", "F-Tend"); VAR<-set_names(VAR, nm=VAR)
 
 # per island plots by life stage (variable)
-COEIplots<-purrr::map(VAR, ~PlotWeeklyObserver(survey = "creche", current_yr = params$year, var = ., print= FALSE ))
+COEIplots<-purrr::map(VAR, ~PlotWeeklyByObserver(df = cbb$creche_raw, survey = "creche", current_yr = params$year, var = ., print= FALSE ))
+
 
 COEIplots[[1]] + labs(y ="Ducklings")
 
@@ -407,10 +433,10 @@ creche_y <- SumCreche(df= cbb$creche_raw, time ="year", survey_effort = SurveyEf
 VAR<-unique(creche_y$variable); VAR<-set_names(VAR, nm=VAR)
 
 # per island plots by life stage (variable)
-plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", print= F, legend = F))
+plots<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , raw_count = T , stat = "max", show_plot = F, legend = F))
 
 # All island plots by life stage (variable)
-plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F))
+plots2<-purrr::map(VAR, ~PlotBirds(creche_y, var = . , island ="All Islands", raw_count = T , stat = "max", show_plot= F, legend = F, facet= "variable", plot_title = F))
 
 ```
 
@@ -429,26 +455,9 @@ print(plots2[[3]]);cat("\\newpage")# Ducklings time series all islands
 
 # create violin plot
 
-ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "COEI Ducklings"), aes(x= variable, y= value, fill= variable, group= variable)) +
-  geom_violin(alpha= 0.3)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in COEI Ducklings counts from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
-        theme(axis.text.y =element_blank())  +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+
+PlotAnnualVariation(df= filter(creche_y, Island == "All Islands", stat == "max"), current_yr= params$year, plot_type= "violin", survey = "creche", species = "COEI", var ="COEI Ducklings") +
+  ggtitle(paste0("Variation in COEI Ducklings counts from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))
 
 ```
 
@@ -467,26 +476,8 @@ print(plots2[[1]]);cat("\\newpage")# F-tend time series all islands
 
 # create violin plot
 
-ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "Adult female COEI tending"), aes(x= variable, y= value, fill= variable, group= variable)) +
-  geom_violin(alpha= 0.3)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in Adult female COEI tending from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
-        theme(axis.text.y =element_blank())  +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
+PlotAnnualVariation(df= filter(creche_y, Island == "All Islands", stat == "max"), current_yr= params$year, plot_type= "violin", survey = "creche", species = "COEI", var ="Adult female COEI tending") +
+  ggtitle(paste0("Variation in Adult female COEI tending counts from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))
 
 ```
 
@@ -505,27 +496,8 @@ print(plots2[[4]]);cat("\\newpage")# total females for all islands
 
 # create violin plot
 
-ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable == "Total Number of Female COEI Observed"), aes(x= variable, y= value, fill= variable, group= variable)) +
-  geom_violin(alpha= 0.3)+ 
-  geom_jitter(aes(shape = shape, color= color), size= 3) +
-  scale_color_manual(values = c("black", "red"))+ 
-  coord_flip()+ facet_wrap(~variable, scales = "free_x")+
-  scale_shape_manual(values = c(19, 8))+ 
-  theme_bw()+
-  theme(legend.position = "none")+
-  labs(y = "Count", x ="")+
-  ggtitle(paste0("Variation in All COEI females from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))+
-  theme(axis.text.y = element_text(color="black", vjust= 0.5, size = 16)) +
-         theme(axis.text.y = element_text(angle = 0,  vjust=0,size = 12 )) +
-        theme(axis.text.y =element_blank())  +
-         theme(strip.text.x= element_text(size=12, face=c("bold.italic"))) +
-         theme(axis.title.x =element_text(size = 16, face ="bold", vjust= 0, debug=F)) +
-         theme(axis.title.y =element_text(size = 16, face ="bold", vjust= 1, debug=F)) +
-         theme(panel.background =  element_rect(fill="white", colour="black")) +
-         theme(panel.grid.major = element_line(colour = "grey90")) +
-         theme(plot.title=element_text(size=12, vjust=2, face= "bold")) +
-         theme(strip.background= element_rect(size=10, color="gray" ))
-
+PlotAnnualVariation(df= filter(creche_y, Island == "All Islands", stat == "max"), current_yr= params$year, plot_type= "violin", survey = "creche", species = "COEI", var ="Total Number of Female COEI Observed") +
+  ggtitle(paste0("Variation in Total Number of Female COEI Observed from 2007 to ", params$year, " for Outer Islands. The red asterisks denotes current year count."))
 
 ```
 
@@ -538,7 +510,7 @@ ggplot(data= filter(creche_y, Island == "All Islands", stat == "max", variable =
 
 df<- filter(creche_y, Island == "All Islands" & !variable == "Average creche size" & stat =="max" & year %in% c(2009:2026))
 
-PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", print= F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")+ scale_color_manual(values = c("black","darkgray", "blue"))
+PlotBirds(df, island ="All Islands", raw_count = T , stat = "max", show_plot = F, legend = F, facet= "variable", plot_title = F) + geom_smooth(method = "lm")+ scale_color_manual(values = c("black","darkgray", "blue"))
 
 
   # fit linear trend models 
@@ -572,14 +544,14 @@ The following tables and graphs summarize data from boat-based creche surveys in
 # 
 # 1. It may be useful to bring in the full table of islands that were supposed to be surveyed to check completeness of surveying work
 # 2. Double check that partial surveys occurred and that the portion of the route survey was estimated in the DB. As of now the % surveyed is not being imported into the R package object (confirm data field with Adam).
-
+library(NETNCoastalBirds)
 
 # bring in raw event level data
 
-nests_raw<-GetNestData()
+nests_raw<-cbb$nest_surveys_raw
 
 # create data summarizing all ground-based nest counts
-nests <- SumNestSurveys(df= nests_raw,time= "year") |> mutate(shape = case_when(
+nests <- SumNestSurveys(df= nests_raw,time= "year", survey_effort= SurveyEffortBySpecies) |> mutate(shape = case_when(
   year == params$year ~ "8",
   .default = "19" )) |> 
   mutate(color = case_when(
@@ -587,7 +559,7 @@ nests <- SumNestSurveys(df= nests_raw,time= "year") |> mutate(shape = case_when(
   .default = "black" ))
 
 # surveys per segment 
-ground_surveys<- nests_raw |> filter(year %in% params$year) |> dplyr::select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Observer, Obs_Notes, Survey_Complete, Survey_Primary)
+ground_surveys<- nests_raw |> filter(year %in% params$year) |> dplyr::select(Species_Code, Island, Segment, Date, Nests = Unit_Count, Observer, Survey_Notes, Survey_Complete, Survey_Primary)
 
   if(nrow(ground_surveys) == 0){
     paste0("No ground-based nest surveys were collected during ", params$year)
@@ -649,7 +621,7 @@ kable(ground_notes |> filter(Species_Code == "COEI")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "COEI", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "COEI", var ="Nests")
 
 coei<-filter(nests, Species_Code == "COEI")
 
@@ -689,7 +661,7 @@ kable(ground_notes |> filter(Species_Code == "DCCO")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "DCCO", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "DCCO", var ="Nests")
 
 
 # subset by DCCO to plot
@@ -728,7 +700,7 @@ kable(filter(ground_notes, Species_Code == "GBBG")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "GBBG", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "GBBG", var ="Nests")
 
 
 gbbg2<-filter(nests, Species_Code == "GBBG")
@@ -765,7 +737,7 @@ kable(filter(ground_notes, Species_Code == "HERG")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "HERG", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "HERG", var ="Nests")
 
 # plot counts over time per island
 herg2<-filter(nests, Species_Code == "HERG")
@@ -803,7 +775,7 @@ kable(filter(ground_notes, Species_Code == "BCNH")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "BCNH", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "BCNH", var ="Nests")
 
 # plot counts over time per island
 bcnh<-filter(nests, Species_Code == "BCNH")
@@ -839,7 +811,7 @@ kable(filter(ground_notes,Species_Code == "GLIB")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "GLIB", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "GLIB", var ="Nests")
 
 # plot counts over time per island
 glib<-filter(nests, Species_Code == "GLIB")
@@ -875,7 +847,7 @@ kable(filter(ground_notes, Species_Code == "GREG")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "GREG", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "GREG", var ="Nests")
 
 # plot counts over time per island
 greg<-filter(nests, Species_Code == "GREG")
@@ -909,7 +881,7 @@ kable(filter(ground_notes, Species_Code == "SNEG")) |>
 
 # create violin plot
 
-plt_var(df= nests, type= "violin", survey = "ground", species = "SNEG", var ="Nests")
+PlotAnnualVariation(df= nests, current_yr= params$year, plot_type= "violin", survey = "ground", species = "SNEG", var ="Nests")
 
 
 # plot counts over time per island

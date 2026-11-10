@@ -19,7 +19,7 @@
 #' @param df Data frame containing raw creche survey data, typically imported
 #'   from the NETN Coastal Birds data package using
 #'   \code{\link{importCBBData}}. The data should correspond to
-#'   \code{qry_Dataset_4_Survey_Creche}. If \code{NULL}, data are retrieved
+#'   \code{Survey_Creche_YYYMMDD}. If \code{NULL}, data are retrieved
 #'   using \code{\link{GetCrecheData}}.
 #'
 #' @param time Character string specifying the temporal summary: \code{"date"}
@@ -32,8 +32,7 @@
 #' @param survey_effort Required data frame containing survey-effort
 #'   information used to calculate effort-adjusted densities. It is imported
 #'   from the NETN Coastal Birds data package using
-#'   \code{\link{importCBBData}}. The data should correspond to
-#'   \code{qry_Dataset_#_Segments}.
+#'   \code{\link{importCBBData}}. 
 #'
 #' @param segment Logical. If \code{TRUE}, summarize at the island-segment
 #'   scale; if \code{FALSE}, summarize at the island scale. Defaults to
@@ -75,21 +74,21 @@
 #'
 #' # Summarize creche surveys by date
 #' SumCreche(
-#'   df = cbb$qry_Dataset_4_Survey_Creche,
-#'   time = "date"
+#'   df = cbb$creche_raw,
+#'   time = "date", survey_effort = cbb$seg_event
 #' )
 #'
 #' # Summarize by year
 #' SumCreche(
-#'   df = cbb$qry_Dataset_4_Survey_Creche,
-#'   time = "year"
+#'   df = cbb$creche_raw,
+#'   time = "year",survey_effort = cbb$seg_event
 #' )
 #'
 #' # Summarize each observer's surveys by date
 #' SumCreche(
-#'   df = cbb$qry_Dataset_4_Survey_Creche,
+#'   df = cbb$creche_raw,
 #'   time = "date",
-#'   ByObserver = "yes"
+#'   ByObserver = "yes",survey_effort = cbb$seg_event
 #' )
 #' }
 #'
@@ -360,12 +359,7 @@ SumCreche<-function(
               by = c("Species_Code", "Island", "Segment", "Survey_Type")) |> ## append survey effort per segment
      tidyr::gather( variable, value, -Species_Code, -Island,-Segment,-time, -Survey_Type,-Survey_Class, -Survey_Size,-Size_Units,-stat) |> # pivot longer
      dplyr::group_by(!!!rlang::syms(group_cols)) |> # choose correct grouping variables (segment or Island)
-      
-      # {if(segment) group_by(.,Species_Code, Island, Segment, time, Size_Units, stat, variable) else # sum by segment if needed
-      # dplyr::group_by(.,Species_Code, Island, time, stat, variable)} |>## first summarize data by Island
-      
-      
-      dplyr::summarise(value= sum(value, na.rm = TRUE), # sum raw counts per island
+     dplyr::summarise(value= sum(value, na.rm = TRUE), # sum raw counts per island
                        Survey_Size = sum(Survey_Size, na.rm = TRUE), .groups = "drop") |># , ## sum survey effort per island,
       dplyr::mutate(valuePerSurveySize = round(value/(Survey_Size/1000),2)) |># standardize counts by survey effort
       dplyr::mutate(Survey_Size = Survey_Size/1000) |>
