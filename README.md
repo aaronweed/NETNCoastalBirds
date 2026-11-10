@@ -252,6 +252,17 @@ PlotBirds(
   stat ="max",
   var = "Nests"
 )
+
+PlotAnnualVariation(
+  nest_summary,
+  species = "BCNH",
+  stat ="max",
+  var = "Nests"
+)
+
+PlotWeeklyByObserver(df = cbb$incubation_raw,
+survey = "incubation", species = "GBBG", 
+current_yr = "2026")
 ```
 
 ---
@@ -347,6 +358,8 @@ The primary exported functions are:
 ### Visualization and survey history
 
 * `PlotBirds()`
+* `PlotWeeklyByObserver()`
+* `PlotAnnual Variation()`
 
 ---
 
@@ -392,8 +405,7 @@ Please report problems or suggestions using the [GitHub Issues](https://github.c
 
 # License
 
-The current package metadata specifies **No license**. A formal open-source license should be added if the package is intended for broader redistribution or reuse.
-
+The current package metadata specifies **CC0 1.0 Universal**.
 ---
 
 # Contact

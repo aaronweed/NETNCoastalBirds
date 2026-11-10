@@ -31,8 +31,7 @@ than once in a year.}
 \item{survey_effort}{Required data frame containing survey-effort
 information used to calculate effort-adjusted densities. It is imported
 from the NETN Coastal Birds data package using
-\code{\link{importCBBData}}. The data should correspond to
-\code{qry_Dataset_#_Segments}.}
+\code{\link{importCBBData}}.}
 
 \item{segment}{Logical. If \code{TRUE}, summarize at the island-segment
 scale; if \code{FALSE}, summarize at the island scale. Defaults to
@@ -84,20 +83,20 @@ cbb <- importCBBData("data/NETN_CoastalBirds_Dataset_YYYYMMDD.zip")
 # Summarize creche surveys by date
 SumCreche(
   df = cbb$creche_raw,
-  time = "date"
+  time = "date", survey_effort = cbb$seg_event
 )
 
 # Summarize by year
 SumCreche(
   df = cbb$creche_raw,
-  time = "year"
+  time = "year",survey_effort = cbb$seg_event
 )
 
 # Summarize each observer's surveys by date
 SumCreche(
   df = cbb$creche_raw,
   time = "date",
-  ByObserver = "yes"
+  ByObserver = "yes",survey_effort = cbb$seg_event
 )
 }
 

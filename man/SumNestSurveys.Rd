@@ -6,9 +6,10 @@
 \usage{
 SumNestSurveys(
   df = NULL,
-  time,
+  time = c("date", "year"),
   species = NULL,
-  output = "graph",
+  output = c("graph", "table"),
+  survey_effort = NULL,
   segment = FALSE
 )
 }
@@ -29,6 +30,11 @@ to providing output for all species.}
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
 
+\item{survey_effort}{Required data frame containing survey-effort
+information used to calculate effort-adjusted densities. It is imported
+from the NETN Coastal Birds data package using
+\code{\link{importCBBData}}.}
+
 \item{segment}{Would you like to summarize data at the island-segment scale (\code{TRUE}) or island-scale (\code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
@@ -41,17 +47,14 @@ Imports raw ground-based nest survey data and summarizes it by date or year and 
 \section{Warning}{
 
 Unless \code{df} is specified, the user must have an Access backend entered as 'NETNCB' in Windows ODBC manager.
-
-
-The user must have NETN's Access backend entered as 'NETNCB' in Windows ODBC manager in order for \code{\link{GetSurveyData}} to append survey effort to the survey data.
 }
 
 \examples{
 \dontrun{
 cbb<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
-SumNestSurveys(df= cbb$nest_surveys_raw, time= "date", species = "BCNH")
-SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", species = "BCNH")
-SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", output = "table")
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "date", species = "BCNH", survey_effort = cbb$seg_event)
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", species = "BCNH", survey_effort = cbb$seg_event)
+SumNestSurveys(df= cbb$nest_surveys_raw, time= "year", output = "table", survey_effort = cbb$seg_event)
 }
 }
 \seealso{

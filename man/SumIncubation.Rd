@@ -30,6 +30,11 @@ to providing output for all species.}
 Defaults to long format (output= "graph") ready for ggplot and the \code{\link{PlotBirds}}
 function. For wide format use "table".}
 
+\item{survey_effort}{Required data frame containing survey-effort
+information used to calculate effort-adjusted densities. It is imported
+from the NETN Coastal Birds data package using
+\code{\link{importCBBData}}.}
+
 \item{ByObserver}{Character string equal to \code{"yes"} or \code{"no"}.
 If "yes" and \code{time} = "date", the function will output the survey data counted by each observer for 
 each island segment on each date. Sums counts across multiple observations by same 
@@ -55,9 +60,9 @@ Unless \code{df} is specified, the user must have an Access backend entered as '
 \examples{
 \dontrun{ 
 CBB_TABLES<-importCBBData(path, zip_name, new_env= TRUE) #creates cbb object
-SumIncubation(df= cbb$incubation_raw, time= "year", species = "DCCO", output = "graph")
-SumIncubation(df= cbb$incubation_raw, time= "date", species = "DCCO", output = "graph")
-SumIncubation(df= cbb$incubation_raw, time= "date", ByObserver = "yes")
+SumIncubation(df= cbb$incubation_raw, time= "year", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+SumIncubation(df= cbb$incubation_raw, time= "date", species = "DCCO", survey_effort = cbb$seg_event, output = "graph")
+SumIncubation(df= cbb$incubation_raw, time= "date", ByObserver = "yes", survey_effort = cbb$seg_event)
 }
 }
 \seealso{
