@@ -222,7 +222,7 @@ creche_observer <- SumCreche(cbb$creche_raw,
 
 # Visualizing monitoring data
 
-`PlotBirds()` provides a common plotting interface for summarized monitoring data at the daily or annual periods or island or all islands scales.
+`PlotBirds()`, `PlotWeeklyByObserver()`, and `PlotAnnualVaraition()` provides a common plotting interface for summarized monitoring data at the daily or annual periods or island or all islands scales.
 
 The function can be used with output from:
 
